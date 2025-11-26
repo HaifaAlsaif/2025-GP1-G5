@@ -63,7 +63,7 @@ python app.py
 Default: http://127.0.0.1:5000/
 
 ---
-## 👥 Project Team
+## 👥 Project Team (G5)
 #### Haifa Alsaif – 443202006
 #### Amira Aljeraisy – 443200950
 #### Nouf Al-Muhanna – 444201063
