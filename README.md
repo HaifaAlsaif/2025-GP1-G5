@@ -64,10 +64,10 @@ Default: http://127.0.0.1:5000/
 
 ---
 ## 👥 Project Team
-Haifa Alsaif – 443202006
-Amira Aljeraisy – 443200950
-Nouf Al-Muhanna – 444201063
-Afnan Alzakary – 444201013
+### Haifa Alsaif – 443202006
+### Amira Aljeraisy – 443200950
+### Nouf Al-Muhanna – 444201063
+#### Afnan Alzakary – 444201013
 
 ## 🎓 Supervisor
 Dr. Abeer Aldayel
