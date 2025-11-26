@@ -43,6 +43,6 @@ TrustLens follows a **client–server architecture** to ensure scalability and m
 ## 📌 Project Resources  
 
 - **GitHub Repository:**
-  (https://github.com/Haifasu/TrustLens)  
+  (https://github.com/HaifaAlsaif/2025-GP1-G5.git)  
 - **Jira Board:** [[TrustLens-Jira](https://afnanalzakary.atlassian.net/jira/software/projects/WL2025/boards/3/backlog?atlOrigin=eyJpIjoiZTQ0ZGUzMGM0M2Q2NDBlM2I1MDJkZjY2NDI1OGZmZDciLCJwIjoiaiJ9)]  
 - **University:** King Saud University – IT496 Graduation Project  
