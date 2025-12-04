@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -145,20 +144,12 @@
       </div>
       <div class="mast-right">
         <div class="lang">EN</div>
-        <div class="avatar-pill">
-          <div class="avatar-circle">H</div>
-          <div class="user-meta">
-            <div>Haifa</div>
-            <div class="small muted" style="text-transform:capitalize">owner</div>
-          </div>
-        </div>
-      </div>
-    </div>
+       
 
     <!-- Main frame -->
     <div class="frame">
       <div class="topbar">
-        <a class="back" href="Ownerdashboard.html">
+        <a class="back" href="/ownerdashboard">
           <img class="icon-16" src="../static/images/icon_back.svg" alt="">
           <div>Back to Dashboard</div>
         </a>
@@ -172,21 +163,25 @@
 
         <div class="content" id="form">
           <!-- Project Name -->
-          <div class="field">
+          <div class="field" id="fieldName">
+
             <div class="label"><span>Project Name</span></div>
             <input id="name" class="input" type="text" placeholder="Enter project name"/>
             <div class="note error" id="nameErr" hidden>Project name is required.</div>
           </div>
 
           <!-- Description -->
-          <div class="field">
+          <div class="field" id="fieldDesc">
+
+
             <div class="label"><span>Description</span></div>
             <textarea id="desc" class="textarea" rows="4" placeholder="Describe your project..."></textarea>
             <div class="note error" id="descErr" hidden>Description is required.</div>
           </div>
 
           <!-- Domain -->
-          <div class="field">
+          <div class="field" id="fieldDomains">
+
             <div class="label"><span>Domain</span></div>
             <div class="hint">Select one or more domains for your project</div>
 
@@ -213,7 +208,8 @@
           </div>
 
           <!-- Category -->
-          <div class="field">
+          <div class="field" id="fieldCategory">
+
             <div class="label"><span>Category</span></div>
             <div class="hint">Choose the type of content you want to evaluate</div>
             <div class="cats">
@@ -232,7 +228,8 @@
           </div>
 
           <!-- Dataset -->
-          <div class="field dataset">
+          <div class="field dataset" id="fieldDataset">
+
             <div class="label"><span>Dataset</span></div>
             <div class="drop" id="dropzone">
               <input id="file" class="file-input" type="file" accept=".csv">
@@ -249,7 +246,8 @@
           </div>
 
           <!-- Invite Examiners -->
-          <div class="field">
+          <div class="field" id="fieldInvite">
+
             <div class="label"><span>Invite Examiners</span></div>
             <div class="hint">Type username or email to add manually, or select from our volunteer community</div>
 
@@ -267,7 +265,7 @@
 
               <div class="sel">
                 <div class="sel-head">
-                  <span class="checkbox" aria-hidden="true"></span>
+                
                   <div id="selTitle">Selected Examiners (0)</div>
                 </div>
                 <div id="exList"></div>
@@ -277,14 +275,71 @@
 
           <!-- Actions -->
           <div class="actions">
-            <button id="submit" class="btn-primary" type="button">Create Project</button>
-            <button id="cancelBtn" class="btn-ghost" type="button">Cancel</button>
-          </div>
+  <button id="submit" class="btn-primary" type="button">Create Project</button>
+  <button id="cancelBtn" class="btn-ghost" type="button">Cancel</button>
+  <!-- 👇 نص صغير نستخدمه لعرض حالة الرفع -->
+  <span id="submitStatus" class="note" style="margin-left:8px;" hidden>
+    Uploading dataset and creating project...
+  </span>
+</div>
+
         </div>
       </section>
     </div>
   </div>
   <script>
+    const urlParams = new URLSearchParams(window.location.search);
+const EDIT_ID = urlParams.get("id");
+const BASIC_MODE = urlParams.get("basic") === "1";
+if (BASIC_MODE) {
+  document.getElementById("fieldDomains").style.display = "none";
+  document.getElementById("fieldCategory").style.display = "none";
+  document.getElementById("fieldDataset").style.display = "none";
+  document.getElementById("fieldInvite").style.display = "none";
+
+  // عنوان وزر
+  document.querySelector(".title").textContent = "Edit Project Info";
+  document.getElementById("submit").textContent = "Save Changes";
+
+ 
+  document.getElementById("cat-news").checked = true;
+  window.SKIP_CATEGORY_CHECK = true;
+}
+
+    
+    async function loadProjectData() {
+      const res = await fetch(`/api/project_json_owner/${EDIT_ID}`);
+      const data = await res.json();
+    
+      if (data.error) {
+        alert("Failed to load project data");
+        return;
+      }
+    
+      // تعبئة الحقول
+      $("#name").value = data.project_name;
+      $("#desc").value = data.description;
+    
+      // domains
+      selectedDomains = new Set(data.domain);
+      updateDomainState();
+      renderDomainList();
+      renderDomainChips();
+    
+      // category
+      if (data.category.toLowerCase() === "article")
+      document.getElementById("cat-news").checked = true;
+  else
+      document.getElementById("cat-conv").checked = true;
+  
+    
+      syncGenVisibility();
+    
+      // تعديل العنوان والزر
+      $(".title").textContent = "Edit Project";
+      $("#submit").textContent = "Update Project";
+    }
+    
     const $ = (s, el=document) => el.querySelector(s);
     const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
 
@@ -399,20 +454,41 @@
     fileInput.addEventListener("change", ()=>{ const f=fileInput.files?.[0]; if(f) validateFile(f); else { resetFileMessages(); dropTitle.textContent="Click to upload CSV file"; } });
 
     /* ===== Invite Examiners ===== */
-    const sampleUsers = [
-      {name:"John Doe", handle:"@john_doe", email:"john.doe@example.com", tag:"Computer Science"},
-      {name:"Maria Garcia", handle:"@maria_garcia", email:"maria.garcia@example.com", tag:"Journalism"},
-      {name:"Fatima Ali", handle:"@fatima_ali", email:"fatima.ali@example.com", tag:"Data Science"},
-      {name:"Omar Saleh", handle:"@omar_saleh", email:"omar.saleh@example.com", tag:"Healthcare"},
-      {name:"Sara Khan", handle:"@sara_khan", email:"sara.khan@example.com", tag:"Finance"},
-      {name:"Alex Kim", handle:"@alex_kim", email:"alex.kim@example.com", tag:"Design"},
-    ];
+    let sampleUsers = [];
+
+    async function loadVolunteers() {
+      try {
+        const res = await fetch("/api/volunteers");
+        const data = await res.json();
+        sampleUsers = data.volunteers || [];
+        console.log("Loaded volunteers:", sampleUsers);
+      } catch (err) {
+        console.error("Failed to load volunteers:", err);
+      }
+    }
+    
+    loadVolunteers();
+    
 
     const inviteInput = $("#inviteSearch"),
           suggestPop = $("#suggestPop"),
           addManual = $("#addManual"),
           exList = $("#exList"),
           selTitle = $("#selTitle");
+ // ⭐ أول ما يضغط على خانة الإدخال → تظهر كل القائمة
+inviteInput.addEventListener("focus", () => {
+  renderPopover(""); // عرض كل المتطوعين
+  suggestPop.classList.add("open");
+});
+
+// ⭐ بعد تحميل المتطوعين → افتحي القائمة تلقائيًا إذا دخل المستخدم الحقل
+loadVolunteers().then(() => {
+  inviteInput.addEventListener("focus", () => {
+    renderPopover("");
+    suggestPop.classList.add("open");
+  });
+});
+
 
     let selectedExaminers = [];
 
@@ -420,12 +496,38 @@
       suggestPop.innerHTML = "";
       const query = (q||"").trim().toLowerCase();
       if(!query){
-        const em = document.createElement("div");
-        em.className="empty";
-        em.textContent = "Browse volunteer examiners";
-        suggestPop.appendChild(em);
-        suggestPop.classList.add("open"); return;
+        const results = sampleUsers.slice(0, 10); // عرض الكل
+      
+        if(results.length === 0){
+          const em = document.createElement("div");
+          em.className="empty";
+          em.textContent = "No volunteers found";
+          suggestPop.appendChild(em);
+          suggestPop.classList.add("open");
+          return;
+        }
+      
+        results.forEach(u=>{
+          const row = document.createElement("div");
+          row.className="result";
+          row.innerHTML = `
+            <div class="avatar">${u.name.split(" ").map(x=>x[0]).join("").slice(0,2).toUpperCase()}</div>
+            <div style="flex:1">
+              <div style="display:flex;gap:8px;align-items:center">
+                <strong>${u.name}</strong><span class="muted">${u.handle}</span>
+              </div>
+              <div class="small muted">${u.email}</div>
+            </div>
+            <span class="tag">${u.tag}</span>
+          `;
+          row.onclick = ()=>{ addSelected(u); closePopover(); };
+          suggestPop.appendChild(row);
+        });
+      
+        suggestPop.classList.add("open");
+        return;
       }
+      
       const results = sampleUsers.filter(u =>
         u.name.toLowerCase().includes(query) ||
         u.handle.toLowerCase().includes(query) ||
@@ -549,41 +651,106 @@
 
     cancelBtn.addEventListener("click", resetAll);
 
-    /* ===== Submit validation + redirect ===== */
-    const submitBtn=$("#submit");
-    submitBtn.addEventListener("click", ()=>{
-      // Required: Name + Description
-      $("#nameErr").hidden = !!nameEl.value.trim();
-      $("#descErr").hidden = !!descEl.value.trim();
+    /* ===== Submit validation + redirect (Create + Edit مع رفع ملف ودعوات) ===== */
+const submitBtn = $("#submit");
+const submitStatus = $("#submitStatus");
+let isSubmitting = false;
 
-      // Required: Category
-      const hasCategory = catNews.checked || catConv.checked;
-      if(!hasCategory){
-        alert("Please select a category.");
-        return;
-      }
+submitBtn.addEventListener("click", async () => {
+  // منع الضغط المتكرر
+  if (isSubmitting) return;
 
-      // Dataset rule
-      let datasetOK=true;
-      const hasFile=!!(fileInput.files&&fileInput.files[0]);
-      if(catNews.checked){
-        if(!hasFile){ datasetOK=false; fileErr.hidden=false; fileErr.textContent="For News Articles, a CSV file is required."; }
-        else datasetOK=validateFile(fileInput.files[0]);
-        gen.checked=false;
-      }else{ // Conversations
-        if(!hasFile && !gen.checked){
-          datasetOK=false; fileErr.hidden=false; fileErr.textContent="Upload a CSV or enable 'Generate from scratch'.";
-        }else if(hasFile){
-          datasetOK=validateFile(fileInput.files[0]);
-        }
-      }
+  const isEdit = !!EDIT_ID;
 
-      const baseOK = !!nameEl.value.trim() && !!descEl.value.trim();
-      if(baseOK && datasetOK && hasCategory){
-    
-        window.location.href = "./Ownerdashboard.html";
-      }
-    });
+  // التحقق من الاسم والوصف
+  const hasName = !!nameEl.value.trim();
+  const hasDesc = !!descEl.value.trim();
+
+  $("#nameErr").hidden = hasName;
+  $("#descErr").hidden = hasDesc;
+
+  if (!hasName || !hasDesc) {
+    return; // لا تكمل لو فاضية
+  }
+
+  // التحقق من الكاتيجوري (إلا لو BASIC_MODE)
+  const hasCategory = catNews.checked || catConv.checked;
+  if (!window.SKIP_CATEGORY_CHECK && !hasCategory) {
+    alert("Please select a category.");
+    return;
+  }
+
+  // تجهيز FormData
+  const formData = new FormData();
+  formData.append("project_name", nameEl.value.trim());
+  formData.append("description", descEl.value.trim());
+
+  // بس لو فيه كاتيجوري (في basic mode ممكن نتجاهلها)
+  if (hasCategory) {
+    formData.append("category", catNews.checked ? "Article" : "Conversation");
+  }
+
+  // domains
+  selectedDomains.forEach(d => formData.append("domain", d));
+
+  // ✅ هنا رجّعنا رفع ملف الـ dataset مثل الكود الأول
+  if (fileInput.files && fileInput.files[0]) {
+    formData.append("dataset", fileInput.files[0]);
+  }
+
+  // ✅ إرسال قائمة الـ invited_examiners للباكند (اللي حلّت مشكلتك في الكود الثاني)
+  formData.append("invited_examiners", JSON.stringify(selectedExaminers));
+
+  // اختيار URL (إنشاء أو تحديث)
+  let url = "/api/create_project";
+  if (isEdit) {
+    url = `/api/update_project/${EDIT_ID}`;
+  }
+
+  // حالة التحميل في الواجهة
+  isSubmitting = true;
+  submitBtn.disabled = true;
+  submitBtn.textContent = isEdit ? "Saving..." : "Uploading dataset...";
+  submitStatus.hidden = false;
+  submitStatus.textContent = isEdit
+    ? "Saving changes..."
+    : "Uploading dataset and creating project...";
+
+  try {
+    const res = await fetch(url, { method: "POST", body: formData });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = {};
+    }
+
+    if (!res.ok) {
+      throw new Error(data.error || "Server error.");
+    }
+
+    alert(isEdit ? "Project updated!" : "Project created!");
+    window.location.href = "/myprojectowner";
+  } catch (err) {
+    console.error(err);
+    submitStatus.hidden = false;
+    submitStatus.textContent =
+      "Error while uploading dataset or saving project. Please try again.";
+    alert("❌ " + (err.message || "Network error. Please try again."));
+  } finally {
+    // يرجع الزر لحالته (لو ما صار redirect)
+    isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.textContent = isEdit ? "Update Project" : "Create Project";
+  }
+});
+
+if (EDIT_ID) {
+  loadProjectData();
+}
+
+
   </script>
 </body>
 </html>

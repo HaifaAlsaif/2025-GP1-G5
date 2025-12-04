@@ -1,1436 +1,319 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TrustLens AI Detection Dashboard | Project Management Platform</title>
-  <meta name="description" content="Manage and track your AI detection projects with TrustLens dashboard. Monitor content analysis across technology, healthcare, education, finance and more domains with comprehensive project tracking tools.">
-  <meta name="keywords" content="AI detection, content analysis, project management, TrustLens, artificial intelligence, content verification, dashboard">
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="TrustLens AI Detection Dashboard | Project Management Platform">
-  <meta property="og:description" content="Manage and track your AI detection projects with TrustLens dashboard. Monitor content analysis across multiple domains with comprehensive project tracking tools.">
-  
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Projects | TrustLens</title>
+  <meta name="description" content="Manage and track your AI detection projects with TrustLens dashboard.">
+  <meta name="keywords" content="AI detection, content analysis, project management, TrustLens">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    
-    /* Reset and base styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #ffffff;
-      color: #0a0a0a;
-      line-height: 1.5;
-    }
-    
-    /* Layout components */
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      width: 100%;
-    }
-    
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      max-width: 1252px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    
-    .header-left {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    
-    .logo {
-      width: 32px;
-      height: 32px;
-    }
-    
-    .brand-text {
-      font-size: 20px;
-      font-weight: 400;
-      line-height: 23px;
-      background: linear-gradient(90deg, #00b8da 0%, #155cfb 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    
-    .language-text {
-      font-size: 14px;
-      color: #0a0a0a;
-    }
-    
-    .theme-icon {
-      width: 10px;
-      height: 10px;
-    }
-    .user-profile{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  cursor:pointer;
-  position: relative;   /* ← هذا يحل المشكلة */
-  z-index: 1;           /* يخلي المنيو فوق أي عناصر قريبة */
-}
+    /* ---------- Reset & Base ---------- */
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;background:#fff;color:#0a0a0a;line-height:1.5}
 
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, #00b8da 0%, #155cfb 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ffffff;
-      font-size: 16px;
-      font-weight: 400;
-    }
-    /* ⚑ اجعلي h3 نفس تنسيق h4 حتى ما يصير Bold */
-.user-info h3{
-  font-size: 14px;
-  color: #0a0a0a;
-  font-weight: 400;  /* هذا يلغي البولد */
-  margin: 0;
-}
+    /* ---------- Layout ---------- */
+    .main-container{display:flex;flex-direction:column;min-height:100vh;width:100%}
+    .header{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:1440px;margin:16px auto 0;padding:16px}
+    .header-left{display:flex;gap:8px;align-items:center}
+    .logo{width:32px;height:32px}
+    .brand-text{font-size:20px;font-weight:400;background:linear-gradient(90deg,#00b8da 0%,#155cfb 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .header-right{display:flex;gap:12px;align-items:center}
+    .language-selector{padding:6px;font-size:14px;color:#0a0a0a;cursor:pointer}
+    .notification-btn{width:36px;height:36px;cursor:pointer}
+    .user-profile{display:flex;gap:8px;align-items:center;position:relative;cursor:pointer}
+    .user-avatar{width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#00b8da 0%,#155cfb 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:400}
+    .user-info h3{font-size:14px;font-weight:400;color:#0a0a0a}
+    .user-info p{font-size:12px;color:#717182;text-transform:capitalize}
 
-/* خلي البروفايل نفسه قابل للنقر */
-.user-profile{ cursor:pointer; }
+    .content-wrapper{display:flex;width:100%;max-width:1440px;margin:0 auto;flex:1}
+    .sidebar{width:256px;background:#fff;border-right:1px solid #ddd;padding:16px}
+    .sidebar-menu{display:flex;flex-direction:column;gap:8px}
+    .menu-item{display:flex;align-items:center;padding:12px;gap:16px;cursor:pointer;transition:background .3s;border-radius:8px}
+    .menu-item:hover{background:#f3f4f6}
+    .menu-item.active{background:#f2f2f2;border-right:3px solid #4c84ff;cursor:default}
+    .menu-icon{width:16px;height:16px}
+    .menu-text{font-size:14px;color:#0a0a0a}
 
-/* تنسيقات بسيطة للقائمة المنسدلة */
-.user-dropdown{
-  position: absolute;
-  top: 100%;
-  right: 0;
-  width: 190px;
-  background: #fff;
-  border: 1px solid #00000019;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px #00000019;
-  padding: 6px 0;
-  display: none;           /* افتراضي: مخفية */
-  z-index: 1000;
-}
-.user-dropdown.show{ display:block; }
-.dropdown-item{
-  display:flex; align-items:center; gap:10px;
-  padding:8px 12px; font-size:14px; color:#0a0a0a; text-decoration:none;
-}
-.dropdown-item:hover{ background:#f3f4f6; }
-.dropdown-divider{ height:1px; background:#00000019; margin:4px 0; }
+    .main-content{flex:1;padding:32px;display:flex;flex-direction:column;gap:32px}
+    .welcome-section{background:linear-gradient(90deg,#00b8da19 0%,#2b7fff19 50%,#ac46ff19 100%);border-radius:16px;padding:24px;box-shadow:0 4px 128px #8888}
+    .welcome-title{font-size:24px;font-weight:400;line-height:28px;color:#0a0a0a;margin-bottom:8px}
+    .welcome-subtitle{font-size:16px;color:#717182}
 
-    
-    .user-info p {
-      font-size: 12px;
-      color: #717182;
-      text-transform: capitalize;
-    }
-    
-    .content-wrapper {
-      display: flex;
-      gap: 32px;
-      width: 98%;
-      margin: 0 auto;
-    }
-    
-    .sidebar {
-      width: 256px;
-      background-color: #ffffff;
-      border: 0 solid #00000019;
-      border-radius: 0;
-      padding: 16px;
-      height: fit-content;
-    }
-    
-    .sidebar-menu {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .menu-item {
-      display: flex;
-      align-items: center;
-      padding: 8px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-    }
-    
-    .menu-item:hover {
-      background-color: #f3f4f6;
-    }
-    
-    .menu-item.active {
-      background-color: #e5f3ff;
-    }
-    
-    .menu-icon {
-      width: 16px;
-      height: 16px;
-      margin-right: 16px;
-    }
-    
-    .menu-text {
-      font-size: 14px;
-      color: #0a0a0a;
-    }
-    
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      padding: 0 16px;
-    }
-    
-    .welcome-section {
-      background: linear-gradient(90deg, #00b8da19 0%, #2b7fff19 50%, #ac46ff19 100%);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0px 4px 128px #888888ff;
-    }
-    
-    .welcome-title {
-      font-size: 24px;
-      font-weight: 400;
-      line-height: 28px;
-      color: #0a0a0a;
-      margin-bottom: 10px;
-    }
-    
-    .welcome-subtitle {
-      font-size: 16px;
-      color: #717182;
-      line-height: 19px;
-    }
-    
-    .projects-section {
-      background-color: #ffffff;
-      border: 0 solid #0000000d;
-      border-radius: 14px;
-      padding: 24px;
-      box-shadow: 0px 4px 6px #00000019;
-    }
-    
-    .projects-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 48px;
-    }
-    
-    .projects-info {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-    
-    .projects-icon {
-      width: 48px;
-      height: 48px;
-      background: linear-gradient(135deg, #00b8da 0%, #155cfb 100%);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0px 4px 6px #00b8da33;
-    }
-    
-    .projects-details h2 {
-      font-size: 16px;
-      color: #0a0a0a;
-      margin-bottom: 2px;
-    }
-    
-    .projects-details p {
-      font-size: 14px;
-      color: #717182;
-    }
-    
-    .new-project-btn {
-      background: linear-gradient(90deg, #00b8da 0%, #155cfb 100%);
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 12px 8px 44px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      position: relative;
-      transition: transform 0.3s ease;
-    }
-    
-    .new-project-btn:hover {
-      transform: scale(1.05);
-    }
-    
-    .new-project-btn::before {
-      content: '';
-      position: absolute;
-      left: 12px;
-      width: 16px;
-      height: 16px;
-      background-image: url('../assets/images/img_icon_3.svg');
-      background-size: contain;
-    }
-    
-    .filter-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 48px;
-      flex-wrap: wrap;
-    }
-    
-    .chip-item {
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      border: 0 solid transparent;
-    }
-    
-    .chip-item.active {
-      background: linear-gradient(90deg, #00b8da 0%, #155cfb 100%);
-      color: #ffffff;
-    }
-    
-    .chip-item:not(.active) {
-      background-color: #ffffff;
-      color: #0a0a0a;
-      border: 0 solid #00000019;
-    }
-    
-    .chip-item:hover:not(.active) {
-      background-color: #f3f4f6;
-    }
-    
-    .projects-table {
-      width: 100%;
-      border-collapse: collapse;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 0 solid #0000000d;
-    }
-    
-    .table-header {
-      background-color: #ececf04c;
-      border-bottom: 1px solid #00000019;
-    }
-    
-    .table-header th {
-      padding: 10px 8px;
-      text-align: left;
-      font-size: 14px;
-      font-weight: 700;
-      color: #0a0a0a;
-    }
-    
-    .table-row {
-      border-bottom: 1px solid #00000007;
-    }
-    
-    .table-row:hover {
-      background-color: #f9fafb;
-    }
-    
-    .table-cell {
-      padding: 22px 8px;
-      vertical-align: middle;
-    }
-    
-    .domain-tags {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    
-    .domain-tag {
-      background-color: #615fff0c;
-      color: #432dd7;
-      border: 0 solid #615eff4c;
-      border-radius: 8px;
-      padding: 2px 8px;
-      font-size: 12px;
-    }
-    
-    .category-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 8px;
-      font-size: 12px;
-    }
-    
-    .category-news {
-      background-color: #2b7fff19;
-      color: #1347e5;
-      border: 0 solid #2b7fff66;
-    }
-    
-    .category-conversation {
-      background-color: #00c95019;
-      color: #008235;
-      border: 0 solid #00c85066;
-    }
-    
-    .examiners-count {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      justify-content: center;
-    }
-    
-    .examiner-icon {
-      width: 16px;
-      height: 16px;
-    }
-    
-    .status-btn {
-      border: none;
-      border-radius: 8px;
-      padding: 8px 24px 8px 8px;
-      font-size: 12px;
-      color: #ffffff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0px 1px 2px #00000019;
-      position: relative;
-      transition: transform 0.3s ease;
-    }
-    
-    .status-btn:hover {
-      transform: scale(1.05);
-    }
-    
-    .status-completed {
-      background-color: #00c950e5;
-    }
-    
-    .status-progress {
-      background-color: #2b7fffe5;
-    }
-    
-    .status-btn::after {
-      content: '';
-      position: absolute;
-      right: 8px;
-      width: 16px;
-      height: 16px;
-      background-image: url('../assets/images/img_arrowdown.svg');
-      background-size: contain;
-    }
-    
-    .actions-cell {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    
-    .view-btn {
-      background-color: #ffffff;
-      border: 0 solid #00000019;
-      border-radius: 8px;
-      padding: 6px 10px 6px 38px;
-      font-size: 14px;
-      color: #0a0a0a;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      position: relative;
-      transition: background-color 0.3s ease;
-    }
-    
-    .view-btn:hover {
-      background-color: #f3f4f6;
-    }
-    
-    .view-btn::before {
-      content: '';
-      position: absolute;
-      left: 10px;
-      width: 16px;
-      height: 16px;
-      background-image: url('../assets/images/img_icon_4.svg');
-      background-size: contain;
-    }
-    
-    .action-icon {
-      width: 36px;
-      height: 32px;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    
-    .action-icon:hover {
-      transform: scale(1.1);
-    }
-    
-    /* Mobile hamburger menu */
-    .hamburger {
-      display: none;
-      flex-direction: column;
-      cursor: pointer;
-      padding: 8px;
-    }
-    
-    .hamburger span {
-      width: 25px;
-      height: 3px;
-      background-color: #0a0a0a;
-      margin: 3px 0;
-      transition: 0.3s;
-    }
-    
-    /* Responsive media queries */
-    @media (max-width: 639px) {
-      .header {
-        padding: 12px 16px;
-      }
-      
-      .brand-text {
-        font-size: 18px;
-      }
-      
-      .user-info {
-        display: none;
-      }
-      
-      .hamburger {
-        display: flex;
-      }
-      
-      .content-wrapper {
-        flex-direction: column;
-        gap: 16px;
-        width: 100%;
-        padding: 0 16px;
-      }
-      
-      .sidebar {
-        display: none;
-        width: 100%;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 1000;
-        height: 100vh;
-        background-color: #ffffff;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-      
-      .sidebar.active {
-        display: block;
-      }
-      
-      .main-content {
-        padding: 0;
-      }
-      
-      .welcome-title {
-        font-size: 20px;
-      }
-      
-      .welcome-subtitle {
-        font-size: 14px;
-      }
-      
-      .projects-header {
-        flex-direction: column;
-        gap: 16px;
-        align-items: flex-start;
-      }
-      
-      .projects-table {
-        font-size: 12px;
-      }
-      
-      .table-cell {
-        padding: 12px 4px;
-      }
-      
-      .domain-tags {
-        flex-direction: column;
-        gap: 4px;
-      }
-      
-      .actions-cell {
-        flex-direction: column;
-        gap: 8px;
-      }
-      
-      .filter-tabs {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        padding-bottom: 8px;
-      }
-      
-      .chip-item {
-        flex-shrink: 0;
-        white-space: nowrap;
-      }
-    }
-    
-    @media (min-width: 640px) {
-      .header {
-        padding: 16px 24px;
-      }
-      
-      .content-wrapper {
-        gap: 24px;
-      }
-      
-      .main-content {
-        padding: 0 8px;
-      }
-    }
-    
-    @media (min-width: 768px) {
-      .welcome-title {
-        font-size: 24px;
-      }
-      
-      .projects-header {
-        flex-direction: row;
-        align-items: center;
-      }
-      
-      .table-cell {
-        padding: 22px 8px;
-      }
-      
-      .domain-tags {
-        flex-direction: row;
-      }
-      
-      .actions-cell {
-        flex-direction: row;
-      }
-    }
-    
-    @media (min-width: 1024px) {
-      .content-wrapper {
-        gap: 32px;
-        max-width: 1400px;
-        margin: 0 auto;
-      }
-      
-      .hamburger {
-        display: none;
-      }
-      
-      .sidebar {
-        display: block;
-        position: static;
-        height: auto;
-        box-shadow: none;
-      }
-      
-      .user-info {
-        display: block;
-      }
-    }
-    
-    @media (min-width: 1280px) {
-      .header {
-        max-width: 1252px;
-      }
-    }
-    /* ===== FINAL OVERRIDES (force exact dashboard layout) ===== */
-.main-container{
-  justify-content:flex-start !important;
-  align-items:center !important;
-}
+    /* ---------- Projects Card ---------- */
+    .projects-section{background:linear-gradient(135deg,#eef5fe4c 0%,#fff 50%,#ebfdfe4c 100%);border-radius:14px;padding:24px;border:0 solid #0000000d;box-shadow:0 8px 10px #00000019}
+    .projects-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:16px}
+    .projects-info{display:flex;gap:12px;align-items:center}
+    .projects-icon{width:48px;height:48px;background:linear-gradient(135deg,#00b8da 0%,#155cfb 100%);border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px #00b8da33}
+    .projects-details h2{font-size:16px;color:#0a0a0a;margin-bottom:2px}
+    .projects-details p{font-size:14px;color:#717182}
+    .new-project-btn{background:linear-gradient(90deg,#00b8da 0%,#155cfb 100%);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:transform .3s;white-space:nowrap}
+    .new-project-btn:hover{transform:scale(1.05)}
 
-/* Header نفس الداشبورد */
-.header{
-  max-width:none !important;
-  width:100% !important;
-  padding:16px !important;
-  margin-top:16px !important;
-  margin-left:140px !important;
-  margin-right:128px !important;
-}
+    .filter-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+    .chip-item{padding:6px 10px;border-radius:8px;font-size:14px;cursor:pointer;transition:all .3s;border:0 solid transparent}
+    .chip-item.active{background:linear-gradient(90deg,#00b8da 0%,#155cfb 100%);color:#fff}
+    .chip-item:not(.active){background:#fff;color:#0a0a0a;border:0 solid #00000019}
+    .chip-item:hover:not(.active){background:#f3f4f6}
 
-/* Wrapper: الغِ أي max-width/margins */
-.content-wrapper{
-  display:flex !important;
-  width:100% !important;
-  flex:1 !important;
-  gap:0 !important;
-  margin:0 !important;
-  padding:0 !important;
-  max-width:none !important;
-}
+    .projects-table{width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;border:0 solid #0000000d}
+    .table-header{background:#ececf04c;border-bottom:1px solid #00000019}
+    .table-header th{padding:10px 8px;text-align:left;font-size:14px;font-weight:700;color:#0a0a0a}
+    .table-row{border-bottom:1px solid #00000007}
+    .table-row:hover{background:#f9fafb}
+    .table-cell{padding:22px 8px;vertical-align:middle}
+    .domain-tags{display:flex;gap:8px;flex-wrap:wrap}
+    .domain-tag{background:#615fff0c;color:#432dd7;border:0 solid #615eff4c;border-radius:8px;padding:2px 8px;font-size:12px}
+    .category-badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:12px}
+    .category-news{background:#2b7fff19;color:#1347e5;border:0 solid #2b7fff66}
+    .category-conversation{background:#00c95019;color:#008235;border:0 solid #00c85066}
+    .examiners-count{display:flex;align-items:center;gap:6px;justify-content:center}
+    .examiner-icon{width:16px;height:16px}
+    /* ------ STATUS BADGE (لا سهم) ------ */
+    .status-badge{display:inline-block;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;color:#fff;white-space:nowrap}
+    .status-active {background:#2b7fffe5}
+    .status-completed{background:#00c950e5}
+    .actions-cell{display:flex;gap:6px;align-items:center;justify-content:center;padding:16px}
+    .view-btn{background:#fff;border:1px solid #ddd;border-radius:8px;padding:6px 14px 6px 40px;font-size:14px;color:#0a0a0a;cursor:pointer;display:flex;align-items:center;gap:8px;position:relative;transition:background .3s;font-weight:500}
+    .view-btn:hover{background:#f3f4f6}
+    .view-btn::before{content:'';position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;background:url('../static/images/eye.svg') center/contain no-repeat;opacity:.9}
+    .action-icon{width:36px;height:32px;cursor:pointer;transition:transform .3s}
+    .action-icon:hover{transform:scale(1.1)}
 
-/* Sidebar: نفس العرض وحدّ فاصل */
-.sidebar{
-  width:256px !important;
-  background:#fff !important;
-  border-right:1px solid #ddd !important;
-  padding:16px !important;
-  min-height:calc(100vh - 80px) !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-}
+    /* ---------- Dropdown (مخفي افتراضياً) ---------- */
+    .user-dropdown{position:absolute;top:100%;right:0;background:#fff;border:0 solid #00000019;border-radius:8px;box-shadow:0 2px 4px #00000019;padding:4px 0;margin-top:4px;width:190px;display:none;z-index:9999}
+    .user-dropdown.show{display:block}
+    .dropdown-item{display:flex;align-items:center;gap:16px;padding:8px 12px;font-size:14px;color:#0a0a0a;text-decoration:none;transition:background .3s}
+    .dropdown-item:hover{background:#f3f4f6}
+    .dropdown-icon{width:16px;height:16px}
+    .dropdown-divider{height:1px;background:#00000019;margin:4px 0}
 
-/* العنصر النشط في السايدبار */
-.sidebar-menu .menu-item.active{
-  background-color:#f2f2f2 !important;
-  border-right:3px solid #4c84ff !important;
-  cursor:default !important;
-}
+    /* ---------- Dark Mode ---------- */
+    body.dark{--bg:#0a0a0a;--card:#1c1c1e;--text:#e5e5e5;--border:#333;--shadow:rgba(0,0,0,.6)}
+    body.dark{background:var(--bg);color:var(--text)}
+    body.dark .sidebar{background:var(--bg);border-right-color:#555}
+    body.dark .menu-text,body.dark .brand-text,body.dark .welcome-title,body.dark .table-header th,body.dark .table-cell,body.dark .view-btn,body.dark .dropdown-item{color:var(--text)}
+    body.dark .projects-table,body.dark .table-row:hover,body.dark .view-btn,body.dark .user-dropdown{background:var(--card)}
+    body.dark .view-btn:hover{background:#2a2a2a}
 
-/* Main content spacing */
-.main-content{
-  flex:1 !important;
-  padding:32px !important;
-  display:flex !important;
-  flex-direction:column !important;
-  gap:32px !important;
-}
-
-/* Banner “Welcome” */
-.welcome-section{
-  background:linear-gradient(90deg,#00b8da19 0%,#2b7fff19 50%,#ac46ff19 100%) !important;
-  border-radius:16px !important;
-  padding:24px !important;
-  box-shadow:0 4px 128px #888888ff !important;
-}
-
-/* كرت “My Projects” بنفس ستايل كروت الداشبورد */
-.projects-section{
-  background:linear-gradient(135deg,#eef5fe4c 0%,#ffffff 50%,#ebfdfe4c 100%) !important;
-  border-radius:14px !important;
-  padding:24px !important;
-  border:0 solid #0000000d !important;
-  box-shadow:0 8px 10px #00000019 !important;
-}
-
-/* جدول المشاريع */
-.projects-table{
-  width:100% !important;
-  border-collapse:collapse !important;
-  border-radius:10px !important;
-  overflow:hidden !important;
-  border:0 solid #0000000d !important;
-}
-.table-header{background:#ececf04c !important; border-bottom:1px solid #00000019 !important;}
-.table-header th{
-  padding:10px 8px !important;
-  text-align:left !important;
-  font-size:14px !important;
-  font-weight:700 !important;
-  color:#0a0a0a !important;
-}
-.table-row{border-bottom:1px solid #00000007 !important;}
-.table-row:hover{background:#f9fafb !important;}
-.table-cell{padding:22px 8px !important; vertical-align:middle !important;}
-
-/* زر New Project */
-.new-project-btn{
-  background:linear-gradient(90deg,#00b8da 0%,#155cfb 100%) !important;
-  color:#fff !important;
-  border:none !important;
-  border-radius:8px !important;
-  padding:8px 12px 8px 44px !important;
-  font-size:14px !important;
-  position:relative !important;
-}
-
-/* موبايل */
-@media (max-width:639px){
-  .header{ margin:16px !important; padding:12px !important; }
-  .content-wrapper{ flex-direction:column !important; }
-  .sidebar{ width:100% !important; padding:16px !important; min-height:auto !important; }
-  .main-content{ padding:16px !important; gap:24px !important; }
-  .projects-header{ flex-direction:column !important; gap:16px !important; align-items:flex-start !important; }
-  .projects-table{ font-size:12px !important; }
-  .table-cell{ padding:12px 4px !important; }
-}
-.new-project-btn::before{
-  content:"+";
-  position:absolute;
-  left:18px;
-  top:50%;
-  transform:translateY(-52%);
-  font-size:20px;
-  line-height:1;
-  font-weight:600;
-}
-.view-btn{
-  background-color:#ffffff;
-  border:1px solid #ddd;
-  border-radius:8px;
-  padding:6px 14px 6px 40px; /* مساحة للأيقونة */
-  font-size:14px;
-  color:#0a0a0a;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  position:relative;
-  transition:background-color 0.3s ease;
-  font-weight:500;
-}
-.view-btn:hover{
-  background-color:#f3f4f6;
-}
-
-/* أيقونة العين */
-.view-btn::before{
-  content:"";
-  position:absolute;
-  left:12px;
-  top:50%;
-  transform:translateY(-50%);
-  width:18px;
-  height:18px;
-  background:url('../static/images/eye.svg') center/contain no-repeat;
-  opacity:0.9;
-}
-
+    /* ---------- Responsive ---------- */
+    @media(max-width:639px){
+      .header{margin:0 auto!important;padding:12px 16px!important}
+      .content-wrapper{flex-direction:column!important}
+      .sidebar{width:100%!important;padding:16px!important}
+      .main-content{padding:16px!important;gap:24px!important}
+      .projects-header{flex-direction:column;align-items:flex-start!important}
+      .projects-table{font-size:12px!important}
+      .table-cell{padding:12px 4px!important}
+      .actions-cell{flex-direction:column!important;gap:8px!important}
+    }
+    @media(min-width:640px){.header{padding:16px 24px!important}.main-content{padding:24px!important}}
+    @media(min-width:1024px){.content-wrapper{gap:32px!important}.sidebar{width:256px!important}}
   </style>
-  
-  </head>
+</head>
 <body>
-  <div class="main-container">
-    <header class="header">
-      <div class="header-left">
-        <img src="../static/images/img_header.svg" alt="TrustLens Logo" class="logo">
-        <div class="brand-text">TrustLens</div>
-      </div>
-      
-      <div class="header-right">
-        <div class="hamburger" onclick="toggleSidebar()">
-         
+<div class="main-container">
+  <!-- ===== Header ===== -->
+  <header class="header">
+    <div class="header-left">
+      <img src="../static/images/img_header.svg" alt="TrustLens Logo" class="logo">
+      <div class="brand-text">TrustLens</div>
+    </div>
+    <div class="header-right">
+      <div class="language-selector">EN</div>
+      <img src="../static/images/img_buttonlight.png" id="themeToggle" class="notification-btn" style="cursor:pointer;">
+      <div class="user-profile" onclick="toggleUserDropdown()">
+        <img src="../static/images/user-profile.png" alt="Avatar" class="user-avatar">
+        <div class="user-info">
+          <h3>{{ user_name }}</h3>
+          <p>Project Owner</p>
         </div>
-        
-        <span class="language-text">EN</span>
-        <img src="../static/images/img_button.svg" alt="Theme Toggle" class="theme-icon">
-        
-        <div class="user-profile" onclick="toggleUserDropdown()">
- <img src="../static/images/user-profile.png" alt="Avatar" class="user-avatar">
- <div class="user-info">
- <h3>{{ user_name }}</h3>
- <p>Project Owner</p>
+        <div class="user-dropdown" id="userDropdown">
+          <a href="/" class="dropdown-item"><img src="../static/images/img_iconhome.svg" class="dropdown-icon"> Home</a>
+          <div class="dropdown-divider"></div>
+          <a href="/profile" class="dropdown-item"><img src="../static/images/img_profile.svg" class="dropdown-icon"> Profile</a>
+          <a href="Settings.html" class="dropdown-item"><img src="../static/images/img_icon_Settings.svg" class="dropdown-icon"> Settings</a>
+          <div class="dropdown-divider"></div>
+          <a href="/" class="dropdown-item"><img src="../static/images/img_logout.png" class="dropdown-icon"> Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Content ===== -->
+  <div class="content-wrapper">
+    <aside class="sidebar">
+      <nav class="sidebar-menu">
+        <div class="menu-item" onclick="goTo('/')"><img src="../static/images/img_iconhome.svg" class="menu-icon"><span class="menu-text">Home</span></div>
+        <div class="menu-item" onclick="goTo('/ownerdashboard')"><img src="../static/images/img_File.svg" class="menu-icon"><span class="menu-text">Dashboard</span></div>
+        <div class="menu-item" onclick="goTo('/createproject')"><img src="../static/images/img_AddBlack.svg" class="menu-icon"><span class="menu-text">Create Project</span></div>
+        <div class="menu-item active"><img src="../static/images/img_File.svg" class="menu-icon"><span class="menu-text">My Projects</span></div>
+        <div class="menu-item" onclick="goTo('Explainability.html')"><img src="../static/images/img_Explainability2.png" class="menu-icon"><span class="menu-text">Explainability</span></div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <section class="welcome-section">
+        <h1 class="welcome-title">Welcome back, {{ user_name }}! 👋</h1>
+        <p class="welcome-subtitle">View and manage all your AI detection projects</p>
+      </section>
+
+      <section class="projects-section">
+        <div class="projects-header">
+          <div class="projects-info">
+            <div class="projects-icon"><img src="../static/images/img_container_white_a700_48x48.svg" width="24" height="24"></div>
+            <div class="projects-details"><h2>My Projects</h2><p>Manage and track your AI detection projects</p></div>
+          </div>
+          <button class="new-project-btn" onclick="goTo('/createproject')">New Project</button>
+        </div>
+
+        <div class="filter-tabs">
+          <div class="chip-item active" onclick="filterProjects('all')">All (0)</div>
+          <div class="chip-item" onclick="filterProjects('pending')">Pending (0)</div>
+          <div class="chip-item" onclick="filterProjects('progress')">In Progress (0)</div>
+          <div class="chip-item" onclick="filterProjects('completed')">Completed (0)</div>
+        </div>
+
+        <table class="projects-table">
+          <thead class="table-header">
+            <tr>
+              <th>Project Name</th><th>Domain</th><th>Category</th><th>Examiners</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="projectsBody"><!-- يُملأ ديناميكياً --></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
 </div>
 
+<script>
+  /* ===== dropdown ===== */
+  function toggleUserDropdown(){document.getElementById('userDropdown').classList.toggle('show')}
+  document.addEventListener('click',e=>{if(!e.target.closest('.user-profile'))document.getElementById('userDropdown').classList.remove('show')});
 
+  /* ===== theme ===== */
+  const themeBtn=document.getElementById('themeToggle');
+  const darkSrc='../static/images/img_buttonlight.png';
+  const lightSrc='../static/images/img_buttonDark.svg';
+  if(localStorage.theme==='dark'){document.body.classList.add('dark');themeBtn.src=darkSrc;}
+  themeBtn.addEventListener('click',()=>{
+    const isDark=document.body.classList.toggle('dark');
+    themeBtn.src=isDark?darkSrc:lightSrc;
+    localStorage.theme=isDark?'dark':'light';
+  });
 
+  function goTo(url){window.location.href=url}
 
+  function filterProjects(filter){
+    document.querySelectorAll('.chip-item').forEach(c=>c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.table-row').forEach(row=>{
+      const status=row.querySelector('.status-badge')?.textContent.toLowerCase()||'';
+      let show=filter==='all'||
+        (filter==='pending'&&status.includes('pending'))||
+        (filter==='progress'&&status.includes('active'))||
+        (filter==='completed'&&status.includes('completed'));
+      row.style.display=show?'table-row':'none';
+    });
+  }
 
-  <!-- ▼▼ القائمة المنسدلة ▼▼ -->
-  <div class="user-dropdown" id="userDropdown">
-    <a href="/" class="dropdown-item">
-      <img src="../static/images/img_iconhome.svg" alt="Home" width="16" height="16"> Home
-    </a>
-    <div class="dropdown-divider"></div>
-    <a href="/profile" class="dropdown-item">
-      <img src="../static/images/img_profile.svg" alt="Profile" width="16" height="16"> Profile
-    </a>
-    <a href="/settings" class="dropdown-item">
-      <img src="../static/images/img_icon_Settings.svg" alt="Settings" width="16" height="16"> Settings
-    </a>
-    <div class="dropdown-divider"></div>
-    <a href="/logout" class="dropdown-item">
-      <img src="../static/images/img_logout.png" alt="Logout" width="16" height="16"> Logout
-    </a>
-  </div>
-  <!-- ▲▲ نهاية القائمة المنسدلة ▲▲ -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        </div>
-
-
-
-      </div>
-    </header>
-    
-    <div class="content-wrapper">
-      <aside class="sidebar" id="sidebar">
-        <nav class="sidebar-menu">
-          <div class="menu-item" id="menu-home">
-            <img src="../static/images/img_iconhome.svg" alt="Home" class="menu-icon">
-            <span class="menu-text">Home</span>
-          </div>
-          <div class="menu-item"  id="menu-dashboard">
-            <img src="../static/images/img_File.svg" alt="Dashboard" class="menu-icon">
-            <span class="menu-text">Dashboard</span>
-          </div>
-          <div class="menu-item" id="menu-create">
-            <img src="../static/images/img_AddBlack.svg" alt="Create Project" class="menu-icon">
-            <span class="menu-text">Create Project</span>
-          </div>
-          <div class="menu-item  active">
-            <img src="../static/images/img_File.svg" alt="My Projects" class="menu-icon">
-            <span class="menu-text">My Projects</span>
-          </div>
-          <div class="menu-item" id="menu-Explain">
-            <img src="../static/images/img_Explainability2.png" alt="Explainability" class="menu-icon">
-            <span class="menu-text">Explainability</span>
-          </div>
-        </nav>
-      </aside>
+  async function loadProjects(){
+    try{
+      const res=await fetch('/api/my_projects');
+      const data=await res.json();
+      const tbody=document.getElementById('projectsBody');
+      tbody.innerHTML='';
+      if(!data.projects||data.projects.length===0){
+        tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:20px;color:#777;">No projects found yet.</td></tr>`;
+        return;
+      }
+      data.projects.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = 'table-row';
+        tr.setAttribute('data-id', p.project_id);
       
-      <main class="main-content">
-        <section class="welcome-section">
-        <h1 class="welcome-title">Welcome back, {{ user_name }}! 👋</h1>
-<p class="welcome-subtitle">View and manage all your AI detection projects</p>
-        </section>
-        
-        <section class="projects-section">
-          <div class="projects-header">
-            <div class="projects-info">
-              <div class="projects-icon">
-                <img src="../static/images/img_container_white_a700_48x48.svg" alt="Projects Icon" width="24" height="24">
-              </div>
-              <div class="projects-details">
-                <h2>My Projects</h2>
-                <p>Manage and track your AI detection projects</p>
-              </div>
+        tr.innerHTML = `
+          <td class="table-cell">${p.project_name}</td>
+          <td class="table-cell">
+            <div class="domain-tags">
+              ${p.domain.map(d => `<span class="domain-tag">${d}</span>`).join('')}
             </div>
-            <button class="new-project-btn">New Project</button>
-          </div>
-          
-          <div class="filter-tabs">
-            <div class="chip-item active" onclick="filterProjects('all')">All (12)</div>
-            <div class="chip-item" onclick="filterProjects('pending')">Pending (0)</div>
-            <div class="chip-item" onclick="filterProjects('progress')">In Progress (3)</div>
-            <div class="chip-item" onclick="filterProjects('completed')">Completed (9)</div>
-          </div>
-          
-          <table class="projects-table">
-            <thead class="table-header">
-              <tr>
-                <th>Project Name</th>
-                <th>Domain</th>
-                <th>Category</th>
-                <th>Examiners</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="table-row">
-                <td class="table-cell">News Authenticity Study</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Technology</span>
-                    <span class="domain-tag">Science</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>2</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">AI Conversation Detection</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Food</span>
-                    <span class="domain-tag">Customer Service</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-conversation">Conversation</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>1</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-progress">In Progress</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Healthcare Content Verification</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Healthcare</span>
-                    <span class="domain-tag">Science</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>1</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Educational Content Analysis</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Education</span>
-                    <span class="domain-tag">Technology</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>2</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Financial News Authenticity</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Finance</span>
-                    <span class="domain-tag">Technology</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>1</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-progress">In Progress</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Sports Commentary Review</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Sports</span>
-                    <span class="domain-tag">Entertainment</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>1</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">E-commerce Chat Analysis</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Technology</span>
-                    <span class="domain-tag">Customer Service</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-conversation">Conversation</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>2</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Environmental News Study</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Environment</span>
-                    <span class="domain-tag">Science</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>1</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Political Content Verification</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Politics</span>
-                    <span class="domain-tag">Media</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>2</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-progress">In Progress</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Tech Industry Analysis</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Technology</span>
-                    <span class="domain-tag">Industry</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>1</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Food & Culinary Content Review</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Food</span>
-                    <span class="domain-tag">Entertainment</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>1</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="table-row">
-                <td class="table-cell">Automotive Industry News</td>
-                <td class="table-cell">
-                  <div class="domain-tags">
-                    <span class="domain-tag">Cars</span>
-                    <span class="domain-tag">Technology</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <span class="category-badge category-news">News Article</span>
-                </td>
-                <td class="table-cell">
-                  <div class="examiners-count">
-                    <img src="../static/images/img_icon_cyan_700.svg" alt="Examiners" class="examiner-icon">
-                    <span>2</span>
-                  </div>
-                </td>
-                <td class="table-cell">
-                  <button class="status-btn status-completed">Completed</button>
-                </td>
-                <td class="table-cell">
-                  <div class="actions-cell">
-                    <button class="view-btn">View</button>
-                    <img src="../static/images/img_button_black_900.svg" alt="Edit" class="action-icon">
-                    <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete" class="action-icon">
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-      </main>
-    </div>
-  </div>
-  
-  <script>
+          </td>
+          <td class="table-cell">
+            <span class="category-badge category-${p.category.toLowerCase()}">${p.category}</span>
+          </td>
+          <td class="table-cell">
+            <div class="examiners-count">
+              <img src="../static/images/img_icon_cyan_700.svg" class="examiner-icon">
+             <span>${p.examiners ?? 0}</span>
 
-
-// إغلاق القائمة عند الضغط خارج البروفايل
-document.addEventListener('click', function (e) {
-  const profile = document.querySelector('.user-profile');
-  const dd = document.getElementById('userDropdown');
-  if (dd && !profile.contains(e.target)) dd.classList.remove('show');
-});
-
-
-
-
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('active');
-    }
-    
-    function filterProjects(filter) {
-      const chips = document.querySelectorAll('.chip-item');
-      chips.forEach(chip => chip.classList.remove('active'));
-      
-      event.target.classList.add('active');
-      
-      const rows = document.querySelectorAll('.table-row');
-      
-      rows.forEach(row => {
-        const statusBtn = row.querySelector('.status-btn');
-        const status = statusBtn.textContent.toLowerCase();
-        
-        let show = false;
-        
-        switch(filter) {
-          case 'all':
-            show = true;
-            break;
-          case 'pending':
-            show = status.includes('pending');
-            break;
-          case 'progress':
-            show = status.includes('progress');
-            break;
-          case 'completed':
-            show = status.includes('completed');
-            break;
-        }
-        
-        row.style.display = show ? 'table-row' : 'none';
+            </div>
+          </td>
+          <td class="table-cell">
+            <span class="status-badge status-${p.status === 'completed' ? 'completed' : 'active'}">${p.status}</span>
+          </td>
+          <td class="table-cell">
+            <div class="actions-cell">
+            <button class="view-btn" onclick="goToOwner('${p.project_id}')">View</button>
+            <img src="../static/images/img_button_black_900.svg" class="action-icon" onclick="editProject('${p.project_id}')" title="Edit">
+            <img src="../static/images/img_button_black_900_32x36.svg" class="action-icon" onclick="deleteProject('${p.project_id}')" title="Delete">
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
       });
+      // === تحديث العدادات في الفلاتر ===
+const total = data.projects.length;
+const pending = data.projects.filter(p => p.status.toLowerCase().includes('pending')).length;
+const progress = data.projects.filter(p => p.status.toLowerCase().includes('active')).length;
+const completed = data.projects.filter(p => p.status.toLowerCase().includes('completed')).length;
+
+// حدّثي النص داخل كل تبويب
+document.querySelector('.chip-item:nth-child(1)').textContent = `All (${total})`;
+document.querySelector('.chip-item:nth-child(2)').textContent = `Pending (${pending})`;
+document.querySelector('.chip-item:nth-child(3)').textContent = `In Progress (${progress})`;
+document.querySelector('.chip-item:nth-child(4)').textContent = `Completed (${completed})`;
+
+    }catch(e){console.error('Error loading projects:',e);}
+  }
+  window.addEventListener('DOMContentLoaded',loadProjects);
+  /* ===== حذف المشروع ===== */
+async function deleteProject(projectId) {
+  if (!confirm("Are you sure you want to delete this project?")) return;
+
+  try {
+    const res = await fetch(`/api/delete_project/${projectId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" }
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert(err.error || "Failed to delete");
+      return;
     }
-    function toggleUserDropdown(){
-  const dd = document.getElementById('userDropdown');
-  dd.classList.toggle('show');
+
+    // نجاح: احذف السطر من الجدول بدون تحديث الصفحة
+    const row = document.querySelector(`tr[data-id="${projectId}"]`);
+    if (row) row.remove();
+
+    alert("Project deleted successfully");
+  } catch (e) {
+    console.error(e);
+    alert("Network error while deleting");
+  }
 }
 
-    
-    // Add click handlers for menu items
-    document.querySelectorAll('.menu-item').forEach(item => {
-      item.addEventListener('click', function() {
-        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-      });
-    });
-    
-    // Add click handlers for action buttons
-document.querySelectorAll('.view-btn').forEach(btn => {
-  btn.addEventListener('click', function () {
-    window.location.href = 'ProjectDetailsOwner.html';
-  });
-});
-    
-    document.querySelectorAll('.action-icon').forEach(icon => {
-      icon.addEventListener('click', function() {
-        console.log('Action clicked');
-      });
-    });
-    
-    document.querySelectorAll('.status-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        console.log('Status dropdown clicked');
-      });
-    });
-    
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', function(event) {
-      const sidebar = document.getElementById('sidebar');
-      const hamburger = document.querySelector('.hamburger');
-      
-      if (window.innerWidth <= 1023 && 
-          !sidebar.contains(event.target) && 
-          !hamburger.contains(event.target) && 
-          sidebar.classList.contains('active')) {
-        sidebar.classList.remove('active');
-      }
-    });
-    // 🔹 Sidebar navigation links
-document.getElementById('menu-home').addEventListener('click', () => {
-  window.location.href = '/';
-});
 
-document.getElementById('menu-dashboard').addEventListener('click', () => {
-  window.location.href = '/ownerdashboard';
-});
+function goToOwner(projectId) {
+  window.location.href = `/projectdetailsowner/${projectId}`;
+}
+function editProject(projectId) {
+  window.location.href = `/createproject?id=${projectId}&basic=1`;
+}
 
-document.getElementById('menu-create').addEventListener('click', () => {
-  window.location.href = '/createproject';
-});
-
-document.querySelector('.menu-item.active').addEventListener('click', () => {
-  window.location.href = '/myprojectowner'; // صفحة My Projects الحالية
-});
-
-document.getElementById('menu-Explain').addEventListener('click', () => {
-  window.location.href = '/Explainability'; // غيّري الاسم إذا صفحتك اسمها مختلف
-});
-// 🔹 New Project button navigation
-document.querySelector('.new-project-btn').addEventListener('click', () => {
-  window.location.href = '/createproject'; // أو CreateProject.html لو غيّرتي الاسم
-});
-
-
-
-  </script>
+</script>
 </body>
 </html>

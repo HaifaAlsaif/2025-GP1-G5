@@ -1,4 +1,3 @@
-<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -250,12 +249,6 @@
       margin-bottom: 24px;
     }
 
-    .team-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 40px;
-    }
 
     .team-icon {
       width: 40px;
@@ -272,16 +265,6 @@
     .team-info p {
       font-size: 14px;
       color: #717182;
-    }
-
-    .team-member {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background-color: #ececf033;
-      border: 0 solid #0000000d;
-      border-radius: 10px;
-      padding: 12px;
     }
 
     .member-avatar {
@@ -593,239 +576,1250 @@
       transform: scale(0.95);
     }
     
+
+    /* ---- Buttons Styles ---- */
+.project-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d9d9d9;
+  background: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+
+.icon-btn:hover {
+  background-color: #f1f5ff;
+  transform: scale(1.04);
+}
+
+.icon-img {
+  width: 20px;
+  height: 20px;
+  opacity: 0.8;
+}
+
+.delete-btn {
+  border-color: #ffb1b1;
+  color: #b02020;
+}
+
+.delete-btn:hover {
+  background-color: #ffecec;
+}
+.team-section {
+  background-color: #ffffff;
+  border: 0 solid #0000000d;
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: 0px 4px 6px #00000019;
+  margin-bottom: 24px;
+}
+
+/* الهيدر حق السكشن */
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.team-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* زر Add Examiner */
+.add-examiner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: 0.2s ease;
+}
+
+.add-examiner-btn .add-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.add-examiner-btn:hover {
+  background-color: #f4f7ff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* كونتينر يصفّ الكروت جنب بعض */
+.team-members-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.team-member {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9fafb;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 8px;
+  flex: 1 1 280px;
+}
+
+.team-member-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+/* زر حذف examiner */
+.examiner-delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.examiner-delete-btn img {
+  width: 20px;   /* كبرناها شوي */
+  height: 20px;
+  opacity: 0.8;
+  transition: 0.2s ease;
+}
+
+.examiner-delete-btn:hover img {
+  opacity: 1;
+}
+/* ===== Bigger icons & avatars (final size) ===== */
+
+/* أيقونة Edit / Delete */
+.project-actions .icon-img {
+  width: 26px;   /* كان 20 */
+  height: 26px;
+  opacity: 0.95;
+}
+
+/* زر Edit / Delete نفسه نخليه أكبر شوي */
+.project-actions .icon-btn {
+  padding: 8px 18px;
+  gap: 8px;
+  font-size: 15px;
+}
+
+/* أيقونة السلة جنب الإيميل (examiners) */
+.examiner-delete-btn img {
+  width: 24px;   /* كان 20 */
+  height: 24px;
+  opacity: 0.95;
+}
+
+/* دائرة الحرف L / E */
+.team-member .member-avatar {
+  width: 44px;   /* كان 32 ثم 40 */
+  height: 44px;
+  font-size: 20px;
+}
+/* ===== Tasks: Articles for review layout ===== */
+
+.tasks-section {
+  background-color: #ffffff;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
+  margin-bottom: 32px;
+}
+
+.tasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tasks-title-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tasks-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #00b8ff, #155cfb);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tasks-icon img {
+  width: 22px;
+  height: 22px;
+}
+
+.tasks-info h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0a0a0a;
+}
+
+.tasks-info p {
+  font-size: 14px;
+  color: #717182;
+}
+
+.task-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* زر Create Task */
+.create-task-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(90deg, #00b8ff, #155cfb);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+}
+
+.create-task-plus {
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+/* فلاتر المهام */
+.task-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.task-filter-btn {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+  color: #111827;
+  transition: 0.2s ease;
+}
+
+.task-filter-btn.active {
+  background-color: #020617;
+  color: #ffffff;
+  border-color: #020617;
+}
+
+/* كروت المقالات */
+.tasks-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.article-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  padding: 18px 18px 16px 18px;
+  border-left: 4px solid #0ea5e9;
+}
+
+.article-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.article-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0a0a0a;
+}
+
+.article-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.article-icon-btn {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.article-icon-btn img {
+  width: 18px;
+  height: 18px;
+}
+
+/* وصف المقال */
+.article-description {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 8px 0 12px;
+}
+
+/* حالة المهمة */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-progress {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-completed {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+/* البوكس حق Assigned to */
+.article-assigned-box {
+  background-color: #eff6ff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.article-assigned-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.article-assigned-email {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0a0a0a;
+}
+
+/* الفوتر (عدد الممتحنين) */
+.article-footer-text {
+  font-size: 12px;
+  color: #6b7280;
+}
+/* --- Article cards compact like design --- */
+
+/* نخلي السكشن حق التاسكات يستخدم flex بدل grid */
+.tasks-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
+/* حجم الكرت نفسه */
+.article-card {
+  width: 340px;      /* تقدرين تغيرينها 320 أو 360 حسب اللي تحبين */
+  max-width: 100%;
+}
+
+/* تكبير أيقونات edit / delete داخل الكرت */
+.article-icon-btn {
+  padding: 6px;
+}
+
+.article-icon-btn img {
+  width: 24px;       /* كانت 18 */
+  height: 24px;
+}
+/* --- Assigned Examiners row width --- */
+
+/* نخلي الصفوف ما تتمدد على طول الكرت */
+.team-members-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+/* كل إيميل كرت عرضه ثابت تقريبا */
+.team-member {
+  flex: 0 0 360px;   /* تقدرين تنقصينها لـ 320 لو تبينه أضيق */
+  max-width: 100%;
+}
+
+/* تكبير أيقونة سلة الحذف عند اليمين */
+.examiner-delete-btn img {
+  width: 26px;       /* كانت 24 */
+  height: 26px;
+  opacity: 0.95;
+}
+
+/* ===== Conversation modal (owner viewer) ===== */
+.conv-modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1200;
+}
+.conv-modal-backdrop.show{
+  display:flex;
+}
+.conv-modal{
+  width:100%;
+  max-width:720px;
+  max-height:80vh;
+  background:#ffffff;
+  border-radius:16px;
+  padding:18px 20px;
+  box-shadow:0 25px 45px rgba(15,23,42,.25);
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.conv-modal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+.conv-modal-title{
+  font-size:15px;
+  font-weight:600;
+  color:#0f172a;
+}
+.conv-modal-sub{
+  font-size:12px;
+  color:#64748b;
+}
+.conv-close-btn{
+  border:none;
+  background:transparent;
+  font-size:18px;
+  cursor:pointer;
+}
+.conv-messages{
+  margin-top:4px;
+  padding-right:4px;
+  flex:1;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.conv-row{
+  display:flex;
+  font-size:13px;
+}
+.conv-left{justify-content:flex-start;}
+.conv-right{justify-content:flex-end;}
+
+.conv-bubble{
+  max-width:80%;
+  border-radius:14px;
+  padding:8px 10px;
+  background:#f1f5f9;
+}
+.conv-left .conv-bubble{
+  border-bottom-left-radius:6px;
+}
+.conv-right .conv-bubble{
+  background:#e0f2fe;
+  border-bottom-right-radius:6px;
+}
+
+.conv-meta{
+  font-size:11px;
+  color:#64748b;
+  margin-bottom:4px;
+}
+.conv-text{
+  color:#0f172a;
+  white-space:pre-wrap;
+}
+
+@media (max-width:640px){
+  .conv-modal{
+    max-height:85vh;
+  }
+}
+
+.owner-task-btn {
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #ffffff;
+  background: linear-gradient(90deg, #00b8ff, #155cfb);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.owner-task-btn::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  background-image: url("../static/images/img_container_white_a700.svg"); /* أي أيقونة شات حقتك */
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.owner-task-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.32);
+}
+
+.owner-task-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.25);
+  opacity: 0.9;
+}
+
   </style>
   
   </head>
 <body>
   <main class="main-container">
     <header class="header">
-      <div class="header-left">
-        <img src="../static/images/img_header.svg" alt="TrustLens logo" class="logo">
-        <div class="brand-text">TrustLens</div>
-      </div>
-      <div class="header-right">
-        <div class="language-selector">EN</div>
-        <img src="../static/images/img_button.svg" alt="Settings" class="settings-icon">
-        <div class="user-profile">
-          <div class="user-avatar">L</div>
-          <div class="user-info">
-            <div class="user-name">Lina</div>
-            <div class="user-role">examiner</div>
-          </div>
-        </div>
-      </div>
-    </header>
+  <div class="header-left">
+    <img src="../static/images/img_header.svg" alt="TrustLens logo" class="logo">
+    <div class="brand-text">TrustLens</div>
+  </div>
+  <div class="header-right">
+    <div class="language-selector">EN</div>
+    <img src="../static/images/img_button.svg" alt="Settings" class="settings-icon">
+  </div>
+</header>
+
 
     <div class="content-wrapper">
       <section class="page-header">
         <h1 class="page-title">Project Details</h1>
-        <a href="Ownerdashboard.html" class="back-link">
+        <a href="/ownerdashboard" class="back-link">
           <img src="../static/images/img_icon.svg" alt="Back arrow" class="back-icon">
           Back to Dashboard
         </a>
 
-        <div class="project-card">
-          <h2 class="project-title">Customer Service Chat Detection</h2>
-          <p class="project-description">Detecting AI-generated conversations in customer service and support interactions</p>
-          
+      <div class="project-card">
+
+  <!-- ⭐ أزرار Edit و Delete تمت إضافتها هنا ⭐ -->
+  <div class="project-actions">
+    <button class="icon-btn" onclick="goToEditProject()">
+      <img src="../static/images/img_button_black_900.svg" class="icon-img" alt="edit icon">
+      Edit
+    </button>
+    
+    
+
+    <button class="icon-btn delete-btn" onclick="deleteProject()">
+      <img src="../static/images/img_button_black_900_32x36.svg" class="icon-img" alt="delete icon">
+      Delete
+    </button>
+    
+  </div>
+  <!-- ⭐ نهاية الأزرار ⭐ -->
+
+  <h2 class="project-title"></h2>
+  <p class="project-description"></p>
+
+
           <div class="project-meta">
-            <div class="meta-row">
-              <img src="../static/images/img_icon_blue_a700_01.svg" alt="Owner icon" class="meta-icon">
+            <div class="meta-row owner-row">
+              <img src="../static/images/img_icon_blue_a700_01.svg" class="meta-icon">
               <span class="meta-label">Owner:</span>
-              <span class="meta-value">Ahmed Al-Mansour</span>
+              <span class="meta-value owner-name"></span>
               <span class="meta-label">•</span>
-              <span class="meta-label">ahmed.mansour@example.com</span>
+              <span class="meta-label owner-email"></span>
+            </div>
+            
+              
+             
             </div>
             
             <div class="meta-row">
-              <img src="../static/images/img_icon_purple_a700.svg" alt="Domain icon" class="meta-icon">
+              <img src="../static/images/img_icon_purple_a700.svg" class="meta-icon">
               <span class="meta-label">Domain:</span>
-              <span class="tag tag-purple">Customer Service</span>
-              <span class="tag tag-purple">Technology</span>
+              <div class="domain-tags" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
             </div>
+            
             
             <div class="meta-row">
               <img src="../static/images/img_icon_green_a700.svg" alt="Category icon" class="meta-icon">
               <span class="meta-label">Category:</span>
-              <span class="tag tag-green">Conversation</span>
+              <span class="tag tag-green category-tag"></span>
+
             </div>
           </div>
         </div>
 
-        <div class="team-section">
-          <div class="team-header">
-            <img src="../static/images/img_container.png" alt="Team icon" class="team-icon">
-            <div class="team-info">
-              <h3>All Examiners</h3>
-              <p>Team members working on this project</p>
-            </div>
-          </div>
-          
-          <div class="team-member">
-            <div class="member-avatar">L</div>
-            <div class="member-info">
-              <h4>Lina@hotmail.com</h4>
-              <span class="member-status">You</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="tasks-section">
-        <div class="tasks-header">
-          <div class="tasks-title-section">
-            <div class="tasks-icon">
-              <img src="../static/images/img_container_white_a700.svg" alt="Tasks icon" style="width: 100%; height: 100%;">
-            </div>
-            <div class="tasks-info">
-              <h3>Tasks</h3>
-              <p>Conversations to analyze</p>
-            </div>
-          </div>
-          
-          <div class="filter-buttons">
-            <button class="filter-btn active" onclick="filterTasks('all')">All</button>
-            <button class="filter-btn" onclick="filterTasks('pending')">Pending</button>
-            <button class="filter-btn" onclick="filterTasks('progress')">In Progress</button>
-            <button class="filter-btn" onclick="filterTasks('completed')">Completed</button>
-          </div>
-        </div>
-
-        <div class="tasks-grid">
-          <article class="task-card" data-status="pending">
-            <h4 class="task-title">Customer Support Chat #1</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-blue">Human ↔ AI</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">5 Messages</span>
-              </div>
-            </div>
-            <button class="task-button primary join">Join</button>
-          </article>
-
-          <article class="task-card" data-status="progress">
-            <h4 class="task-title">Tech Support Dialogue #2</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-green-alt">Human ↔ Human</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">3 Messages</span>
-              </div>
-            </div>
-            <div class="assignment-box">
-              <div class="assignment-label">Assigned to:</div>
-              <div class="assignment-value">Lina@hotmail.com</div>
-            </div>
-            <button class="task-button primary continue">Continue</button>
-          </article>
-
-          <article class="task-card" data-status="completed">
-            <h4 class="task-title">Sales Chat #3</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-blue">Human ↔ AI</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">7 Messages</span>
-              </div>
-            </div>
-            <div class="assignment-box">
-              <div class="assignment-label">Assigned to:</div>
-              <div class="assignment-value">Lina@hotmail.com</div>
-            </div>
-            <button class="task-button completed completed-btn">Completed</button>
-          </article>
-
-          <article class="task-card" data-status="pending">
-            <h4 class="task-title">Help Desk Chat #4</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-blue">Human ↔ AI</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">4 Messages</span>
-              </div>
-            </div>
-            <button class="task-button primary join">Join</button>
-          </article>
-
-          <article class="task-card" data-status="pending">
-            <h4 class="task-title">Product Inquiry Chat #5</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-green-alt">Human ↔ Human</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">6 Messages</span>
-              </div>
-            </div>
-            <button class="task-button primary join">Join</button>
-          </article>
-
-          <article class="task-card" data-status="progress">
-            <h4 class="task-title">Complaint Resolution #6</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-blue">Human ↔ AI</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">2 Messages</span>
-              </div>
-            </div>
-            <div class="assignment-box">
-              <div class="assignment-label">Assigned to:</div>
-              <div class="assignment-value">Lina@hotmail.com</div>
-            </div>
-            <button class="task-button primary continue">Continue</button>
-          </article>
-        </div>
-      </section>
+<div class="team-section">
+  <div class="team-header">
+    <div class="team-header-left">
+      <img src="../static/images/img_container.png" alt="Team icon" class="team-icon">
+      <div class="team-info">
+        <h3>Assigned Examiners</h3>
+        <p>Team members evaluating this project</p>
+      </div>
     </div>
-  </main>
 
-  <script>
-    function filterTasks(status) {
-      const buttons = document.querySelectorAll('.filter-btn');
-      const cards = document.querySelectorAll('.task-card');
-      
-      // Update active button
-      buttons.forEach(btn => btn.classList.remove('active'));
+    <!-- زر Add Examiner -->
+    <button class="add-examiner-btn" onclick="openAddExaminerModal()">
+
+      <img src="../static/images/img_AddBlack.svg" alt="Add examiner" class="add-icon">
+      <span>Add Examiner</span>
+    </button>
+  </div>
+
+  <!-- 🧑‍💻 هنا كل الإيميلات -->
+  <div class="team-members-row">
+ 
+  </div>
+</div>
+
+      </section>
+
+    <section class="tasks-section">
+  <div class="tasks-header">
+    <div class="tasks-title-section">
+      <div class="tasks-icon">
+        <img src="../static/images/img_container_white_a700.svg" alt="Tasks icon">
+      </div>
+      <div class="tasks-info">
+        <h3>Tasks</h3>
+        <p>Articles for review</p>
+      </div>
+    </div>
+
+    <button class="create-task-btn" onclick="goToCreateTask()">
+      <span class="create-task-plus">+</span>
+      <span>Create Task</span>
+    </button>
+    
+
+      <div class="task-filters">
+        <button class="task-filter-btn active" onclick="filterTasks('all')">All Tasks</button>
+        <button class="task-filter-btn" onclick="filterTasks('pending')">Pending Tasks</button>
+        <button class="task-filter-btn" onclick="filterTasks('progress')">In Progress Tasks</button>
+        <button class="task-filter-btn" onclick="filterTasks('completed')">Completed Tasks</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tasks-grid" id="tasksGrid"></div>
+  <p id="noTasksMsg" style="font-size:14px;color:#6b7280;margin-top:8px;display:none;">
+    No tasks yet. Click "Create Task" to add one.
+  </p>
+  
+</section>
+
+    </div>
+    
+
+    <!-- ===== Conversation Viewer Modal (Owner) ===== -->
+<div id="convModalBackdrop" class="conv-modal-backdrop">
+  <div class="conv-modal">
+    <div class="conv-modal-header">
+      <div>
+        <div class="conv-modal-title" id="convModalTitle">
+          Conversation
+        </div>
+        <div class="conv-modal-sub" id="convModalSub">
+          Human ↔ Human • Turns timeline
+        </div>
+      </div>
+      <button class="conv-close-btn" onclick="closeConversationModal()">×</button>
+    </div>
+
+    <div id="convMessages" class="conv-messages">
+      <!-- الرسائل تتعبّى هنا بالجافاسكربت -->
+    </div>
+  </div>
+</div>
+
+  </main>
+<script>
+  function filterTasks(status) {
+    const buttons = document.querySelectorAll('.task-filter-btn');
+    const cards = document.querySelectorAll('.article-card');
+
+    // تحديث الزر النشط
+    buttons.forEach(btn => btn.classList.remove('active'));
+    if (event && event.target) {
       event.target.classList.add('active');
-      
-      // Filter cards
-      cards.forEach(card => {
-        if (status === 'all') {
-          card.style.display = 'block';
-        } else {
-          const cardStatus = card.getAttribute('data-status');
-          card.style.display = cardStatus === status ? 'block' : 'none';
-        }
-      });
     }
 
-    // Add click handlers for task buttons
-    document.querySelectorAll('.task-button').forEach(button => {
-      button.addEventListener('click', function() {
-        const action = this.textContent.trim();
-        console.log(`${action} button clicked for task`);
-        // Add your task action logic here
-      });
+    // إظهار/إخفاء الكروت حسب الحالة
+    cards.forEach(card => {
+      const cardStatus = card.getAttribute('data-status');
+      if (status === 'all' || status === cardStatus) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
     });
+  }
+  async function removeExaminer(btn) {
+    const row = btn.closest(".team-member");
+    const email = row.querySelector(".team-member-email").textContent.trim();
+  
+    if (!confirm("Are you sure you want to remove this examiner?")) return;
+  
+    // نجيب uid الخاص بالـ examiner من API
+    const resEx = await fetch(`/api/project_examiners_owner/${projectId}`);
+    const dataEx = await resEx.json();
+  
+    const found = dataEx.examiners.find(e => e.email === email);
+    if (!found) {
+      alert("Examiner not found.");
+      return;
+    }
+  
+    const payload = {
+      project_id: projectId,
+      examiner_id: found.id
+    };
+  
+    const res = await fetch("/api/remove_examiner", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+  
+    const data = await res.json();
+  
+    if (data.success) {
+      row.remove();     // حذف الواجهة
+      alert("Examiner removed successfully.");
+    } else {
+      alert(data.error || "Something went wrong.");
+    }
+  }
+  
+  
+ 
+</script>
+<script>
+  // ============= Modal controls =============
+  function openAddExaminerModal() {
+    document.getElementById("addExaminerModal").style.display = "flex";
+    document.getElementById("examinerSearch").value = "";
+    document.getElementById("examinerResults").style.display = "none";
+  }
+  
+  function closeAddExaminerModal() {
+    document.getElementById("addExaminerModal").style.display = "none";
+  }
+  
+  // ============= Load volunteers list =============
+  let volunteers = [];
+  
+  async function loadVolunteersList() {
+    try {
+      const res = await fetch("/api/volunteers");
+      const data = await res.json();
+      volunteers = data.volunteers || [];
+    } catch (err) {
+      console.error("Volunteer load failed:", err);
+    }
+  }
+  loadVolunteersList();
+  
+  // ============= Search inside modal =============
+  document.getElementById("examinerSearch").addEventListener("input", () => {
+    const q = examinerSearch.value.toLowerCase().trim();
+    const box = document.getElementById("examinerResults");
+    box.innerHTML = "";
+  
+    if (!q) return box.style.display = "none";
+  
+    const results = volunteers.filter(v =>
+      v.name.toLowerCase().includes(q) ||
+      v.email.toLowerCase().includes(q)
+    );
+  
+    if (results.length === 0) {
+      box.innerHTML = `<div style="padding:10px;color:#777;">No results</div>`;
+    } else {
+      results.forEach(v => {
+        box.innerHTML += `
+          <div onclick="selectExaminer('${v.name}','${v.email}')" 
+               style="padding:10px;border-radius:8px;cursor:pointer;">
+            <b>${v.name}</b><br>
+            <small>${v.email}</small>
+          </div>`;
+      });
+    }
+  
+    box.style.display = "block";
+  });
+  
+  let selectedExaminer = null;
+  
+  function selectExaminer(name, email) {
+    selectedExaminer = { name, email };
+    document.getElementById("examinerSearch").value = email;
+    document.getElementById("examinerResults").style.display = "none";
+  }
+  
+  // ============= Submit examiner =============
+  async function manualAddExaminer() {
+    const email = document.getElementById("examinerSearch").value.trim();
+    if (!email) return alert("Enter email first");
+  
+    const payload = { project_id: projectId, examiner_email: email };
+  
+    const res = await fetch("/api/add_examiner_to_project", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  
+    const data = await res.json();
+  
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+  
+    closeAddExaminerModal();
+    loadExaminers(); // refresh list
+  }
   </script>
+  
+<script>
+  // === Get project_id from Flask URL ===
+  const projectId = "{{ project_id }}";
+
+  // === Fetch project data ===
+  async function loadProjectDetails() {
+    try {
+      const res = await fetch(`/api/project_json_owner/${projectId}`);
+      const data = await res.json();
+
+      if (data.error) {
+        console.error(data.error);
+        return;
+      }
+
+      // === Fill project data ===
+      document.querySelector(".project-title").textContent = data.project_name;
+      document.querySelector(".project-description").textContent = data.description;
+
+      // Owner name & email
+      const ownerRow = document.querySelector(".owner-row");
+      if (ownerRow) {
+        ownerRow.querySelector(".owner-name").textContent = data.owner_name;
+        ownerRow.querySelector(".owner-email").textContent = data.owner_email;
+      }
+
+      // Domain tags
+      const domainContainer = document.querySelector(".domain-tags");
+      domainContainer.innerHTML = "";
+      data.domain.forEach(d => {
+        domainContainer.innerHTML += `<span class="tag tag-purple">${d}</span>`;
+      });
+
+      // Category
+      document.querySelector(".category-tag").textContent = data.category;
+
+
+      // Load examiners list
+      loadExaminers();
+    } catch (err) {
+      console.error("Failed to load project:", err);
+    }
+  }
+
+  // === Fetch assigned examiners list ===
+  async function loadExaminers() {
+    const res = await fetch(`/api/project_examiners_owner/${projectId}`);
+    const data = await res.json();
+  
+    const container = document.querySelector(".team-members-row");
+    container.innerHTML = "";
+  
+    data.examiners.forEach(ex => {
+      container.innerHTML += `
+        <div class="team-member">
+          <div class="team-member-left">
+            <div class="member-avatar">${ex.name.charAt(0).toUpperCase()}</div>
+            <div class="member-info">
+              <h4 class="team-member-email">${ex.email}</h4>
+            </div>
+          </div>
+  
+          <button class="examiner-delete-btn" onclick="removeExaminer(this)">
+            <img src="../static/images/img_button_black_900_32x36.svg" alt="Delete examiner">
+          </button>
+        </div>`;
+    });
+  }
+  
+  // === Start loading when page opens ===
+  loadProjectDetails();
+</script>
+<!-- ========== Add Examiner Modal ========== -->
+<div id="addExaminerModal" style="
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 2000;
+">
+  <div style="
+    width: 420px; background: white;
+    padding: 20px; border-radius: 12px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+  ">
+    <h3 style="margin-bottom: 14px;">Add Examiner</h3>
+
+    <input id="examinerSearch" type="text"
+      placeholder="Search name or email..."
+      style="width:100%; height:36px; padding:8px 12px;
+             border-radius:8px; border:1px solid #ddd;">
+
+    <div id="examinerResults" style="
+       max-height: 220px; overflow-y: auto;
+       margin-top: 10px; border:1px solid #eee;
+       border-radius:8px; padding:6px; display:none;
+    "></div>
+
+    <div style="margin-top: 20px; display:flex; justify-content:flex-end; gap:10px;">
+      <button onclick="closeAddExaminerModal()" style="
+        padding:6px 14px; border-radius:6px; border:1px solid #ddd; background:#fff;">
+        Cancel
+      </button>
+      <button onclick="manualAddExaminer()" style="
+        padding:6px 14px; border-radius:6px;
+        background:linear-gradient(90deg,#00b8ff,#155cfb); color:white; border:none;">
+        Add
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function getStatusConfig(status) {
+    status = (status || "pending").toLowerCase();
+    if (status === "completed") return { text: "Completed", cls: "status-completed" };
+    if (status === "progress" || status === "in_progress")
+      return { text: "In Progress", cls: "status-progress" };
+    return { text: "Pending", cls: "status-pending" };
+  }
+
+ function getStatusConfig(status) {
+  status = (status || "pending").toLowerCase();
+  if (status === "completed") return { text: "Completed", cls: "status-completed" };
+  if (status === "progress" || status === "in_progress")
+    return { text: "In Progress", cls: "status-progress" };
+  return { text: "Pending", cls: "status-pending" };
+}
+
+async function loadTasks() {
+  const grid = document.getElementById("tasksGrid");
+  const noMsg = document.getElementById("noTasksMsg");
+
+  grid.innerHTML = "";
+  noMsg.style.display = "none";
+
+  try {
+    const res = await fetch(`/api/project_tasks/${projectId}`);
+    const data = await res.json();
+
+    if (!data.tasks || !data.tasks.length) {
+      noMsg.style.display = "block";
+      return;
+    }
+
+      data.tasks.forEach(t => {
+    const cfg = getStatusConfig(t.status);
+
+    const card = document.createElement("article");
+    card.className = "article-card";
+    card.dataset.status = (t.status || "pending").toLowerCase();
+    card.dataset.taskId = t.id;
+
+    const convType = (t.conversationType || "").toLowerCase();
+
+    let convText = "";
+    if (convType === "human-human") {
+      convText = `Human ↔ Human • ${t.turns || 2} turns`;
+    } else if (convType === "human-ai") {
+      convText = `Human ↔ LLM • ${t.turns || 2} turns`;
+    }
+
+    const examinerCount = t.examinerCount ?? 0;
+    const emails = (t.examinerEmails || []).join(", ") || "-";
+
+
+    const hasConv = convType === "human-human" || convType === "human-ai";
+
+    card.innerHTML = `
+      <div class="article-card-header">
+        <h4 class="article-title">${t.title || "Untitled task"}</h4>
+        <div class="article-actions">
+          <button class="article-icon-btn js-edit-task">
+            <img src="../static/images/img_button_black_900.svg">
+          </button>
+          <button class="article-icon-btn js-delete-task">
+            <img src="../static/images/img_button_black_900_32x36.svg">
+          </button>
+        </div>
+      </div>
+
+      <p class="article-description">${convText}</p>
+      <span class="status-pill ${cfg.cls}">
+        <span class="status-pill-dot"></span>
+        <span>${cfg.text}</span>
+      </span>
+
+      <div class="article-assigned-box">
+        <div class="article-assigned-label">Assigned to:</div>
+        <div class="article-assigned-email">
+          ${emails}
+        </div>
+      </div>
+
+      <div class="article-footer" style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <span class="article-footer-text">${examinerCount} examiners</span>
+
+        ${hasConv ? `
+          <button class="owner-task-btn"
+                  onclick="openConversation(
+                    '${t.id}',
+                    '${(t.title || "").replace(/'/g,"\\'")}',
+                    '${convType}'
+                  )">
+            View conversation
+          </button>
+        ` : ""}
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+    // ⭐ مهم: نناديه بعد إضافة الكروت ⭐
+    attachEditHandlers();
+
+    attachDeleteHandlers();
+
+  } catch (err) {
+    console.error("Failed to load tasks:", err);
+    noMsg.style.display = "block";
+  }
+}
+
+
+  function attachDeleteHandlers() {
+    document.querySelectorAll(".js-delete-task").forEach(btn => {
+      btn.onclick = async () => {
+        const card = btn.closest(".article-card");
+        const id = card.dataset.taskId;
+        if (!confirm("Delete this task?")) return;
+
+        const res = await fetch(`/api/tasks/${id}/delete`, { method: "POST" });
+        const data = await res.json();
+
+        if (data.success) card.remove();
+      };
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", loadTasks);
+</script>
+<script>
+  function goToCreateTask() {
+    window.location.href = `/projects/${projectId}/tasks/create`;
+  }
+  function goToEditProject() {
+    window.location.href = `/createproject?id=${projectId}&basic=1`;
+  }
+  
+
+  
+  </script>
+  <script>
+    async function deleteProject() {
+      if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) {
+        return;
+      }
+  
+      try {
+        const res = await fetch(`/api/delete_project/${projectId}`, {
+          method: "DELETE"
+        });
+  
+        const data = await res.json();
+  
+        if (data.message === "Project deleted successfully") {
+          alert("Project deleted successfully.");
+          window.location.href = "/ownerdashboard";
+        } else {
+          alert(data.error || "Something went wrong.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to delete project.");
+      }
+    }
+    function attachEditHandlers() {
+      document.querySelectorAll(".js-edit-task").forEach(btn => {
+        btn.onclick = () => {
+          const card = btn.closest(".article-card");
+          const tid = card.dataset.taskId;
+          window.location.href = `/projects/${projectId}/tasks/create?task_id=${tid}`;
+        };
+      });
+    }
+    
+  </script>
+  
+  <script>
+  const convBackdrop   = document.getElementById('convModalBackdrop');
+  const convMessagesEl = document.getElementById('convMessages');
+  const convTitleEl    = document.getElementById('convModalTitle');
+  const convSubEl      = document.getElementById('convModalSub');
+
+  function closeConversationModal(){
+    convBackdrop.classList.remove('show');
+    convMessagesEl.innerHTML = '';
+  }
+
+  async function openConversation(taskId, taskTitle, convType){
+    const type = (convType || '').toLowerCase();
+    const isHH = (type === 'human-human' || type === 'hh');
+
+    convTitleEl.textContent = taskTitle || 'Conversation';
+    convSubEl.textContent   = isHH
+      ? 'Human ↔ Human • Turns timeline'
+      : 'Human ↔ LLM • Turns timeline';
+
+    convMessagesEl.innerHTML = 'Loading…';
+    convBackdrop.classList.add('show');
+
+    let url;
+    if (isHH){
+  url = `/api/hh/messages_owner?taskId=${encodeURIComponent(taskId)}`;
+} else {
+  url = `/api/llm/messages_owner?taskId=${encodeURIComponent(taskId)}`;
+}
+
+
+    try{
+      const res = await fetch(url);
+      if (!res.ok){
+        const err = await res.json().catch(() => ({}));
+        convMessagesEl.innerHTML = `<p style="font-size:13px;color:#b91c1c;">
+          ${err.error || 'Failed to load conversation.'}
+        </p>`;
+        return;
+      }
+
+      const data = await res.json();
+      const msgs = data.messages || [];
+
+      if (!msgs.length){
+        convMessagesEl.innerHTML =
+          '<p style="font-size:13px;color:#64748b;">No messages yet for this task.</p>';
+        return;
+      }
+
+      convMessagesEl.innerHTML = '';
+
+      msgs.forEach(m => {
+        const side = (m.side === 'right') ? 'conv-right' : 'conv-left';
+        const row  = document.createElement('div');
+        row.className = `conv-row ${side}`;
+
+        const who  = m.authorLabel || m.author || 'Speaker';
+        const turn = (typeof m.turnIndex === 'number' && m.turnIndex > 0)
+          ? `Turn ${m.turnIndex}`
+          : '';
+
+        row.innerHTML = `
+          <div class="conv-bubble">
+            <div class="conv-meta">
+              ${who}${turn ? ' • ' + turn : ''}
+            </div>
+            <div class="conv-text">${m.text || ''}</div>
+          </div>
+        `;
+        convMessagesEl.appendChild(row);
+      });
+
+      convMessagesEl.scrollTop = convMessagesEl.scrollHeight;
+
+    } catch(e){
+      console.error('Network error while loading conversation for owner:', e);
+      convMessagesEl.innerHTML =
+        '<p style="font-size:13px;color:#b91c1c;">Network error. Please try again.</p>';
+    }
+  }
+
+  // إغلاق بالضغط على الخلفية
+  convBackdrop.addEventListener('click', (e) => {
+    if (e.target === convBackdrop){
+      closeConversationModal();
+    }
+  });
+
+  // إغلاق بالـ Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape'){
+      closeConversationModal();
+    }
+  });
+</script>
+
 </body>
-</html>
+</html>  

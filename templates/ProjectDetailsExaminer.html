@@ -421,7 +421,18 @@
       font-size: 14px;
       color: #717182;
     }
+    .status-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
 
+.status-pill.completed {
+  background-color: #D1FADF;  /* أخضر فاتح مثل اللي بالصورة */
+  color: #027A48;
+}
     .tag-blue {
       color: #1347e5;
       background-color: #2b7fff19;
@@ -592,6 +603,7 @@
     .task-button:active {
       transform: scale(0.95);
     }
+  
   </style>
   
   </head>
@@ -605,48 +617,35 @@
       <div class="header-right">
         <div class="language-selector">EN</div>
         <img src="../static/images/img_button.svg" alt="Settings" class="settings-icon">
-        <div class="user-profile">
-          <div class="user-avatar">L</div>
-          <div class="user-info">
-            <div class="user-name">Lina</div>
-            <div class="user-role">examiner</div>
-          </div>
-        </div>
+      
       </div>
     </header>
 
     <div class="content-wrapper">
       <section class="page-header">
         <h1 class="page-title">Project Details</h1>
-        <a href="ExaminerDashord" class="back-link">
+        <a href="/examinerdashboard" class="back-link">
           <img src="../static/images/img_icon.svg" alt="Back arrow" class="back-icon">
           Back to Dashboard
         </a>
 
         <div class="project-card">
-          <h2 class="project-title">Customer Service Chat Detection</h2>
-          <p class="project-description">Detecting AI-generated conversations in customer service and support interactions</p>
-          
+          <h2 class="project-title" id="projectName">...</h2>
+          <p class="project-description" id="projectDesc">...</p>
+        
           <div class="project-meta">
             <div class="meta-row">
-              <img src="../static/images/img_icon_blue_a700_01.svg" alt="Owner icon" class="meta-icon">
               <span class="meta-label">Owner:</span>
-              <span class="meta-value">Ahmed Al-Mansour</span>
-              <span class="meta-label">•</span>
-              <span class="meta-label">ahmed.mansour@example.com</span>
+              <span class="meta-value" id="ownerName">...</span> •
+              <span class="meta-value" id="ownerEmail">...</span>
             </div>
-            
             <div class="meta-row">
-              <img src="../static/images/img_icon_purple_a700.svg" alt="Domain icon" class="meta-icon">
               <span class="meta-label">Domain:</span>
-              <span class="tag tag-purple">Customer Service</span>
-              <span class="tag tag-purple">Technology</span>
+              <span id="domainTags"></span>
             </div>
-            
             <div class="meta-row">
-              <img src="../static/images/img_icon_green_a700.svg" alt="Category icon" class="meta-icon">
               <span class="meta-label">Category:</span>
-              <span class="tag tag-green">Conversation</span>
+              <span id="categoryTag"></span>
             </div>
           </div>
         </div>
@@ -656,18 +655,14 @@
             <img src="../static/images/img_container.png" alt="Team icon" class="team-icon">
             <div class="team-info">
               <h3>All Examiners</h3>
-              <p>Team members working on this project</p>
+              <p id="examinerCount">Team members working on this project</p>
             </div>
           </div>
-          
-          <div class="team-member">
-            <div class="member-avatar">L</div>
-            <div class="member-info">
-              <h4>Lina@hotmail.com</h4>
-              <span class="member-status">You</span>
-            </div>
-          </div>
+        
+          <!-- سيتم ملؤها بالـ JS -->
+          <div id="examinersList"></div>
         </div>
+           
       </section>
 
       <section class="tasks-section">
@@ -690,114 +685,15 @@
           </div>
         </div>
 
-        <div class="tasks-grid">
-          <article class="task-card" data-status="pending">
-            <h4 class="task-title">Customer Support Chat #1</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-blue">Human ↔ AI</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">5 Messages</span>
-              </div>
-            </div>
-            <button class="task-button primary join">Join</button>
-          </article>
-
-          <article class="task-card" data-status="progress">
-            <h4 class="task-title">Tech Support Dialogue #2</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-green-alt">Human ↔ Human</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">3 Messages</span>
-              </div>
-            </div>
-            <div class="assignment-box">
-              <div class="assignment-label">Assigned to:</div>
-              <div class="assignment-value">Lina@hotmail.com</div>
-            </div>
-            <button class="task-button primary continue">Continue</button>
-          </article>
-
-          <article class="task-card" data-status="completed">
-            <h4 class="task-title">Sales Chat #3</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-blue">Human ↔ AI</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">7 Messages</span>
-              </div>
-            </div>
-            <div class="assignment-box">
-              <div class="assignment-label">Assigned to:</div>
-              <div class="assignment-value">Lina@hotmail.com</div>
-            </div>
-            <button class="task-button completed completed-btn">Completed</button>
-          </article>
-
-          <article class="task-card" data-status="pending">
-            <h4 class="task-title">Help Desk Chat #4</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-blue">Human ↔ AI</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">4 Messages</span>
-              </div>
-            </div>
-            <button class="task-button primary join">Join</button>
-          </article>
-
-          <article class="task-card" data-status="pending">
-            <h4 class="task-title">Product Inquiry Chat #5</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-green-alt">Human ↔ Human</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">6 Messages</span>
-              </div>
-            </div>
-            <button class="task-button primary join">Join</button>
-          </article>
-
-          <article class="task-card" data-status="progress">
-            <h4 class="task-title">Complaint Resolution #6</h4>
-            <div class="task-meta">
-              <div class="task-meta-row">
-                <span class="task-meta-label">Type:</span>
-                <span class="tag tag-blue">Human ↔ AI</span>
-              </div>
-              <div class="task-meta-row">
-                <span class="task-meta-label">Turns:</span>
-                <span class="tag tag-purple">2 Messages</span>
-              </div>
-            </div>
-            <div class="assignment-box">
-              <div class="assignment-label">Assigned to:</div>
-              <div class="assignment-value">Lina@hotmail.com</div>
-            </div>
-            <button class="task-button primary continue">Continue</button>
-          </article>
-        </div>
+        <div class="tasks-grid"> </div>
       </section>
     </div>
   </main>
 
   <script>
+    
+  // 🟦 نجيب projectId من آخر جزء في الـ URL
+  const PROJECT_ID = window.location.pathname.split('/').pop();
     function filterTasks(status) {
       const buttons = document.querySelectorAll('.filter-btn');
       const cards = document.querySelectorAll('.task-card');
@@ -825,6 +721,223 @@
         // Add your task action logic here
       });
     });
+    
   </script>
+  <script>
+    
+    async function loadProjectDetails() {
+      // استخراج project_id من الـ URL
+      const pathParts = window.location.pathname.split('/');
+      const projectId = pathParts[pathParts.length - 1];
+    
+      const res = await fetch(`/api/project_json/${projectId}`);
+      if (!res.ok) { alert("Failed to load project details"); return; }
+    
+      const data = await res.json();
+    
+      document.getElementById("projectName").textContent = data.project_name;
+      document.getElementById("projectDesc").textContent = data.description;
+      document.getElementById("ownerName").textContent   = data.owner_name;
+      document.getElementById("ownerEmail").textContent  = data.owner_email;
+      window.projectCategory = data.category?.toLowerCase();
+
+      // domain tags
+      const domainContainer = document.getElementById("domainTags");
+      domainContainer.innerHTML = "";
+      data.domain.forEach(d => {
+        const tag = document.createElement("span");
+        tag.className = "tag tag-purple";
+        tag.textContent = d;
+        domainContainer.appendChild(tag);
+      });
+    
+      
+      // category tag
+      const categoryDiv = document.getElementById("categoryTag");
+categoryDiv.innerHTML = "";  
+      const catSpan = document.createElement("span");
+      catSpan.className = "tag tag-green";
+      catSpan.textContent = data.category;
+      document.getElementById("categoryTag").appendChild(catSpan);
+    }
+    
+  
+async function loadExaminers() {
+  const pathParts = window.location.pathname.split('/');
+  const projectId = pathParts[pathParts.length - 1];
+
+  const res = await fetch(`/api/project_examiners/${projectId}`);
+  if (!res.ok) { alert("Failed to load examiners"); return; }
+
+  const data = await res.json();
+
+  // عرض العدد
+  document.getElementById("examinerCount").textContent =
+    `${data.examiners.length} Team members working on this project`;
+
+  // عرض الأعضاء
+  const container = document.getElementById("examinersList");
+  container.innerHTML = "";
+
+  data.examiners.forEach(ex => {
+    const div = document.createElement("div");
+    div.className = "team-member";
+
+    // أول حرف الاسم للأفاتار
+    const initial = ex.email.charAt(0).toUpperCase();
+    const isYou   = ex.is_you ? '<span class="member-status">You</span>' : "";
+
+    div.innerHTML = `
+      <div class="member-avatar">${initial}</div>
+      <div class="member-info">
+        <h4>${ex.email}</h4>
+        ${isYou}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+
+  </script>
+ <script>
+ async function loadExaminerTasks() {
+  const pathParts = window.location.pathname.split('/');
+  const projectId = pathParts[pathParts.length - 1];
+
+  const res = await fetch(`/api/examiner_tasks/${projectId}`);
+  if (!res.ok) { 
+    console.error("Failed to load tasks");
+    return;
+  }
+
+  const data = await res.json();
+  const tasks = data.tasks || [];
+
+  const grid = document.querySelector(".tasks-grid");
+  grid.innerHTML = "";
+
+  tasks.forEach(task => {
+    const card = document.createElement("article");
+    card.className = "task-card";
+    card.setAttribute("data-status", task.status);
+
+    // 🔹 السطر الرمادي: Human ↔ Human • 2 turns
+    let metaHTML = "";
+    if (window.projectCategory !== "article") {
+      const typeLabel =
+        task.conversation_type === "human-ai" ? "Human ↔ AI" : "Human ↔ Human";
+      const turnsLabel = `${task.number_of_turns} turns`;
+
+      metaHTML = `
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <span class="task-meta-label">${typeLabel} • ${turnsLabel}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // 🔹 الزر / حالة المهمة
+    const assignedToYou = task.is_assigned_to_you;
+    let statusPillHTML = "";
+    let buttonHTML = "";
+
+    if (task.status === "completed") {
+      // حبة "Completed" فوق
+      statusPillHTML = `
+        <span class="status-pill completed">Completed</span>
+      `;
+
+      // لو هي مهمتك وفيها نوع محادثة، خليه يفتح المحادثة
+      if (assignedToYou && task.conversation_type) {
+        buttonHTML = `
+          <button 
+            class="task-button completed completed-btn"
+            onclick="goToTask('${task.task_id}', '${task.conversation_type}')">
+            Completed
+          </button>
+        `;
+      } else {
+        buttonHTML = `
+          <button class="task-button completed completed-btn">
+            Completed
+          </button>
+        `;
+      }
+    } else if (assignedToYou) {
+      buttonHTML = `
+        <button 
+          class="task-button primary ${task.status === 'progress' ? 'continue' : 'join'}"
+          onclick="goToTask('${task.task_id}', '${task.conversation_type}')">
+          ${task.status === "progress" ? "Continue" : "Join"}
+        </button>
+      `;
+    } else {
+      buttonHTML = `
+        <button class="task-button completed completed-btn">
+          Not Assigned
+        </button>
+      `;
+    }
+
+    // 🔹 نص "Assigned to:" و "2 examiners"
+    const emails = task.examiner_emails || [];
+    let assignedText = "Not assigned";
+
+    if (emails.length === 1) {
+      assignedText = emails[0];
+    } else if (emails.length > 1) {
+      assignedText = `${emails[0]} and ${emails.length - 1} more`;
+    }
+
+    card.innerHTML = `
+      <h4 class="task-title">${task.task_name}</h4>
+
+      ${metaHTML}
+
+      ${statusPillHTML}
+
+      <div class="assignment-box">
+        <div class="assignment-label">Assigned to:</div>
+        <div class="assignment-value">${assignedText}</div>
+        <div class="assignment-label" style="margin-top:4px;">
+          ${emails.length} examiner${emails.length === 1 ? "" : "s"}
+        </div>
+      </div>
+
+      ${buttonHTML}
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+loadProjectDetails().then(() => {
+  loadExaminers();
+  loadExaminerTasks();
+});
+  // نفس ما هو عندك
+  function goToTask(taskId, type) {
+    if (!type) {
+      alert("Invalid conversation type");
+      return;
+    }
+
+    let basePath = null;
+
+    if (type === "human-ai") {
+      basePath = "/conversation-ai";
+    } else if (type === "human-human") {
+      basePath = "/conversation-hh";
+    } else {
+      alert("Invalid conversation type");
+      return;
+    }
+
+    const url = `${basePath}?taskId=${encodeURIComponent(taskId)}&projectId=${encodeURIComponent(PROJECT_ID)}`;
+    window.location.href = url;
+  }
+</script>
 </body>
 </html>

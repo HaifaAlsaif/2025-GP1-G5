@@ -49,11 +49,11 @@
       height: 25px;
     }
     .header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;            /* أو 12px إذا تبين مسافة أكبر */
-  margin-left: auto;   /* هذا اللي يدزّه لليمين */
-}
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
 
     .language-selector {
       font-size: 12px;
@@ -374,7 +374,7 @@
       border: 1px solid #00000019;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s.ease;
     }
     
     .view-button:hover {
@@ -535,7 +535,7 @@
         min-width: 1000px;
       }
       
-      .table-header th:last-child {
+      .table-header th:last.child {
         text-align: right;
       }
     }
@@ -546,179 +546,186 @@
       }
     }
 
-
     /* غطاء البروفايل */
-.user-profile{
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
+    .user-profile{
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
 
-/* صورة الأفاتار (نفس شكل الـ Owner) */
-.user-avatar-img{
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display:block;
-}
+    .user-avatar-img{
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display:block;
+    }
 
-/* اسم + دور */
-.user-info h3.user-name{
-  font-size: 14px;
-  color: #0a0a0a;
-font-weight: 400;
-  margin: 0;
-}
-.user-info .user-role{
-  font-size: 12px;
-  color: #717182;
-  margin: 0;
-}
-/* جعل القائمة تميل لليمين وتطلع بشكل أنيق */
-.user-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 200px;
-  background: #fff;
-  border: 1px solid #00000019;
-  border-radius: 10px;
-  box-shadow: 0 10px 20px #0000001a;
-  padding: 6px 0;
-  display: none;
-  z-index: 1000;
-  transform: translateX(15px); /* يميلها لليمين شوي */
-}
+    .user-info h3.user-name{
+      font-size: 14px;
+      color: #0a0a0a;
+      font-weight: 400;
+      margin: 0;
+    }
+    .user-info .user-role{
+      font-size: 12px;
+      color: #717182;
+      margin: 0;
+    }
 
-/* لما تفتح */
-.user-dropdown.show {
-  display: block;
-}
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 200px;
+      background: #fff;
+      border: 1px solid #00000019;
+      border-radius: 10px;
+      box-shadow: 0 10px 20px #0000001a;
+      padding: 6px 0;
+      display: none;
+      z-index: 1000;
+      transform: translateX(15px);
+    }
 
-/* إزالة أي نقاط أو بولت */
-.user-dropdown ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-/* عناصر القائمة المنسدلة (روابط بشكل زر مع أيقونة) */
-.user-dropdown .dropdown-item{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  font-size: 14px;
-  color: #0a0a0a;        /* لون النص */
-  text-decoration: none; /* يشيل الخط */
-  line-height: 1;
-  white-space: nowrap;   /* يمنع الالتفاف */
-}
+    .user-dropdown.show {
+      display: block;
+    }
 
-.user-dropdown .dropdown-item:visited{
-  color: #0a0a0a;        /* لا تصير بنفسجي بعد الزيارة */
-}
+    .user-dropdown ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
 
-.user-dropdown .dropdown-item:hover{
-  background: #f3f4f6;   /* لون الهوفر مثل التصميم */
-}
+    .user-dropdown .dropdown-item{
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: #0a0a0a;
+      text-decoration: none;
+      line-height: 1;
+      white-space: nowrap;
+    }
 
-.user-dropdown .dropdown-divider{
-  height: 1px;
-  background: #00000019; /* خط فاصل خفيف */
-  margin: 4px 0;
-}
+    .user-dropdown .dropdown-item:visited{
+      color: #0a0a0a;
+    }
 
-/* صندوق القائمة: حواف وظل وميلان بسيط لليمين */
-.user-dropdown{
-  border-radius: 12px;
-  box-shadow: 0 10px 20px #0000001a;
-  transform: translateX(15px); /* يميل لليمين شوي */
-}
-.user-info h3.user-name { font-weight: 400 !important; }
+    .user-dropdown .dropdown-item:hover{
+      background: #f3f4f6;
+    }
+
+    .user-dropdown .dropdown-divider{
+      height: 1px;
+      background: #00000019;
+      margin: 4px 0;
+    }
+
+    .user-dropdown{
+      border-radius: 12px;
+      box-shadow: 0 10px 20px #0000001a;
+      transform: translateX(15px);
+    }
+    .user-info h3.user-name { font-weight: 400 !important; }
+
+    .projects-table {
+      width: 100% !important;
+      min-width: unset !important;
+      table-layout: auto;
+    }
+    .view-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #ffffff;
+      color: #0a0a0a;
+      font-size: 14px;
+      padding: 6px 12px;
+      border: 1px solid #00000019;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
 
   </style>
   
 <body>
   
   <div class="main-container">
- <header class="header">
-  <!-- اليسار: زر القائمة + لوقو -->
-  <div style="display:flex; align-items:center; gap:16px;">
-    <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
-    <img src="../static/images/img_header_logo.png" alt="TrustLens Logo" class="logo">
-  </div>
-
-  <!-- اليمين: EN + تبديل الثيم + بروفايل -->
-  <div class="header-right">
-    <span class="language-selector">EN</span>
-    <img src="../static/images/img_button.svg" alt="Theme toggle" class="theme-toggle">
-
-    <div class="user-profile" onclick="toggleUserDropdown()" id="userProfile">
-      <img src="../static/images/user-profile.png" alt="Avatar" class="user-avatar-img">
-      <div class="user-info">
-        <h3 class="user-name">{{ user_name }}</h3>
-        <p class="user-role">Examiner</p>
+    <header class="header">
+      <div style="display:flex; align.items:center; gap:16px;">
+        <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
+        <img src="../static/images/img_header_logo.png" alt="TrustLens Logo" class="logo">
       </div>
 
-      <!-- القائمة المنسدلة -->
-      <div class="user-dropdown" id="userDropdown" aria-hidden="true">
-        <a href="/" class="dropdown-item">
-          <img src="../static/images/img_iconhome.svg" width="16" height="16" alt=""> Home
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="/profile" class="dropdown-item">
-          <img src="../static/images/img_profile.svg" width="16" height="16" alt=""> Profile
-        </a>
-        <a href="/settings" class="dropdown-item">
-          <img src="../static/images/img_icon_Settings.svg" width="16" height="16" alt=""> Settings
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="/logout" class="dropdown-item">
-          <img src="../static/images/img_logout.png" width="16" height="16" alt=""> Logout
-        </a>
+      <div class="header-right">
+        <span class="language-selector">EN</span>
+        <img src="../static/images/img_button.svg" alt="Theme toggle" class="theme-toggle">
+
+        <div class="user-profile" onclick="toggleUserDropdown()" id="userProfile">
+          <img src="../static/images/user-profile.png" alt="Avatar" class="user-avatar">
+          <div class="user-info">
+            <h3 class="user-name">{{ user_name }}</h3>
+            <p class="user-role">Examiner</p>
+          </div>
+
+          <div class="user-dropdown" id="userDropdown" aria-hidden="true">
+            <a href="/" class="dropdown-item">
+              <img src="../static/images/img_iconhome.svg" width="16" height="16" alt=""> Home
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/profile" class="dropdown-item">
+              <img src="../static/images/img_profile.svg" width="16" height="16" alt=""> Profile
+            </a>
+            <a href="/settings" class="dropdown-item">
+              <img src="../static/images/img_icon_Settings.svg" width="16" height="16" alt=""> Settings
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/logout" class="dropdown-item">
+              <img src="../static/images/img_logout.png" width="16" height="16" alt=""> Logout
+            </a>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</header>
-
-
+    </header>
 
     <div class="content-wrapper">
       <nav class="sidebar" id="sidebar">
-  <div class="menu-item" id="menu-home">
-    <img src="../static/images/img_iconhome.svg" class="menu-icon" alt="">
-    <span class="menu-text">Home</span>
-  </div>
+        <div class="menu-item" id="menu-home">
+          <img src="../static/images/img_iconhome.svg" class="menu-icon" alt="">
+          <span class="menu-text">Home</span>
+        </div>
 
-  <div class="menu-item" id="menu-dashboard">
-    <img src="../static/images/img_File.svg" class="menu-icon" alt="">
-    <span class="menu-text">Dashboard</span>
-  </div>
+        <div class="menu-item" id="menu-dashboard">
+          <img src="../static/images/img_File.svg" class="menu-icon" alt="">
+          <span class="menu-text">Dashboard</span>
+        </div>
 
-  <div class="menu-item" id="menu-invitations"> <!-- تم حذف الـ inline-style -->
-    <img src="../static/images/img_icon_16x16_1.svg" class="menu-icon" alt="">
-    <span class="menu-text">Invitations</span>
-    <span class="notification-badge">2</span>
-  </div>
+        <div class="menu-item" id="menu-invitations">
+          <img src="../static/images/img_icon_16x16_1.svg" class="menu-icon" alt="">
+          <span class="menu-text">Invitations</span>
+        </div>
 
-  <div class="menu-item active" id="menu-myprojects">
-    <img src="../static/images/img_File.svg" class="menu-icon" alt="">
-    <span class="menu-text">My Projects</span>
-  </div>
+        <div class="menu-item active" id="menu-myprojects">
+          <img src="../static/images/img_File.svg" class="menu-icon" alt="">
+          <span class="menu-text">My Projects</span>
+        </div>
 
-  <div class="menu-item" id="menu-feedback">
-    <img src="../static/images/img_icon_16x16_2.svg" class="menu-icon" alt="">
-    <span class="menu-text">Feedback</span>
-  </div>
-</nav>
+        <div class="menu-item" id="menu-feedback">
+          <img src="../static/images/img_icon_16x16_2.svg" class="menu-icon" alt="">
+          <span class="menu-text">Feedback</span>
+        </div>
+      </nav>
 
       <main class="main-content">
         <section class="welcome-section">
           <img src="../static/images/img_container_white_a700_1.png" alt="User avatar" class="welcome-avatar">
           <div class="welcome-text">
-<h1>Welcome back, {{ user_name }}!</h1>
+            <h1>Welcome back, {{ user_name }}!</h1>
             <p>Examiner Dashboard</p>
           </div>
         </section>
@@ -732,7 +739,7 @@ font-weight: 400;
                 <p>All projects assigned to you</p>
               </div>
             </div>
-            <span class="projects-count">10 Projects</span>
+            <span class="projects-count" id="projects-count">0 Projects</span>
           </div>
 
           <div style="overflow-x: auto;">
@@ -747,309 +754,8 @@ font-weight: 400;
                   <th style="text-align: right;">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">AI Health Content Analysis</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Dr. Sarah Johnson</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Health</span>
-                      <span class="domain-tag">Nutrition</span>
-                      <span class="domain-tag more">+1</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-news">News Article</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select">
-                      <option value="in-progress" selected>In Progress</option>
-                      <option value="pending">Pending</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">Customer Service Chat Detection</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Ahmed Al-Mansour</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Customer Service</span>
-                      <span class="domain-tag">Technology</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-conversation">Conversation</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select pending">
-                      <option value="pending" selected>Pending</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">Automotive News Verification</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Maria Garcia</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Cars</span>
-                      <span class="domain-tag">Industry</span>
-                      <span class="domain-tag more">+1</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-news">News Article</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select">
-                      <option value="in-progress" selected>In Progress</option>
-                      <option value="pending">Pending</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">Science Education Content Review</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Prof. John Smith</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Science</span>
-                      <span class="domain-tag">Education</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-news">News Article</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select completed">
-                      <option value="completed" selected>Completed</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">Food & Recipe Blog Analysis</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Chef Hassan Ali</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Food</span>
-                      <span class="domain-tag">Entertainment</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-news">News Article</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select pending">
-                      <option value="pending" selected>Pending</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">Legal Document AI Detection</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Attorney Michael Brown</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Legal</span>
-                      <span class="domain-tag">Business</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-news">News Article</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select completed">
-                      <option value="completed" selected>Completed</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">E-commerce Product Reviews Analysis</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Emma Watson</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">E-commerce</span>
-                      <span class="domain-tag">Marketing</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-conversation">Conversation</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select completed">
-                      <option value="completed" selected>Completed</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">Academic Research Paper Verification</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Dr. Lisa Chen</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Education</span>
-                      <span class="domain-tag">Research</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-news">News Article</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select completed">
-                      <option value="completed" selected>Completed</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">Social Media Content Authenticity</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">James Rodriguez</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Social Media</span>
-                      <span class="domain-tag">Technology</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-conversation">Conversation</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select completed">
-                      <option value="completed" selected>Completed</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
-                <tr class="table-row">
-                  <td class="table-cell">
-                    <div class="project-name">Financial Reports Analysis</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="owner-name">Robert Kim</div>
-                  </td>
-                  <td class="table-cell">
-                    <div class="domain-tags">
-                      <span class="domain-tag">Finance</span>
-                      <span class="domain-tag">Business</span>
-                    </div>
-                  </td>
-                  <td class="table-cell">
-                    <span class="category-badge category-news">News Article</span>
-                  </td>
-                  <td class="table-cell">
-                    <select class="status-select completed">
-                      <option value="completed" selected>Completed</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="pending">Pending</option>
-                    </select>
-                  </td>
-                  <td class="table-cell" style="text-align: right;">
-                    <button class="view-button">
-                      <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-                      View
-                    </button>
-                  </td>
-                </tr>
+              <tbody id="projects-tbody">
+                <!-- يمليه الجافاسكربت -->
               </tbody>
             </table>
           </div>
@@ -1059,20 +765,13 @@ font-weight: 400;
   </div>
 
   <script>
-
     function toggleSidebar() {
-
       const sidebar = document.getElementById('sidebar');
-
       sidebar.classList.toggle('open');
-
     }
 
-    //
     document.addEventListener('click', function(event) {
-
       const sidebar = document.getElementById('sidebar');
-
       const hamburger = document.querySelector('.hamburger');
 
       if (window.innerWidth < 768 && 
@@ -1081,106 +780,166 @@ font-weight: 400;
           !hamburger.contains(event.target)) {
 
         sidebar.classList.remove('open');
-
       }
+    });
 
-    }
-);
-
-    //
     document.querySelectorAll('.status-select').forEach(select => {
-
       select.addEventListener('change', function() {
-
         this.className = 'status-select ' + this.value.replace('-', '');
+      });
+    });
 
-      }
-);
-
-    }
-);
-
-    //
     document.querySelectorAll('.table-row').forEach(row => {
-
       row.addEventListener('mouseenter', function() {
-
         this.style.backgroundColor = '#f9fafb';
-
-      }
-);
+      });
 
       row.addEventListener('mouseleave', function() {
-
         this.style.backgroundColor = '';
+      });
+    });
 
-      }
-);
-
-    }
-);
-
-    //
     document.querySelectorAll('.view-button').forEach(button => {
-
       button.addEventListener('click', function() {
-
         const projectName = this.closest('.table-row').querySelector('.project-name').textContent;
-
         console.log('Viewing project:', projectName);
+      });
+    });
 
-      }
-);
+    document.getElementById('menu-home')?.addEventListener('click', () => {
+      window.location.href = '/';
+    });
 
+    document.getElementById('menu-dashboard')?.addEventListener('click', () => {
+      window.location.href = '/examinerdashboard';
+    });
+
+    document.getElementById('menu-invitations')?.addEventListener('click', () => {
+      window.location.href = '/invitation';
+    });
+
+    document.getElementById('menu-myprojects')?.addEventListener('click', () => {
+      window.location.href = '/myprojectexaminer';
+    });
+
+    document.getElementById('menu-feedback')?.addEventListener('click', () => {
+      window.location.href = '/feedback';
+    });
+  </script>
+
+  <script>
+    function toggleUserDropdown(){
+      const dd = document.getElementById('userDropdown');
+      dd.classList.toggle('show');
+      dd.setAttribute('aria-hidden', dd.classList.contains('show') ? 'false' : 'true');
     }
-);
-// 🔗 روابط القوائم — عدّلي المسارات لتوافق مسارات Flask عندك
-document.getElementById('menu-home')?.addEventListener('click', () => {
-  window.location.href = '/';                         // الصفحة الرئيسية
-});
 
-document.getElementById('menu-dashboard')?.addEventListener('click', () => {
-  window.location.href = '/examinerdashboard';       // عدّلي للمسار الصحيح
-});
+    document.addEventListener('click', function(e){
+      const profile = document.getElementById('userProfile');
+      const dd = document.getElementById('userDropdown');
+      if (!profile.contains(e.target)) dd.classList.remove('show');
+    });
 
-document.getElementById('menu-invitations')?.addEventListener('click', () => {
-  window.location.href = '/invitation';     // عدّلي للمسار الصحيح
-});
+    document.getElementById('userProfile')?.addEventListener('click', function(e){
+      if (e.target.closest('.dropdown-item')) return;
+      e.stopPropagation();
+    });
+  </script>
 
-document.getElementById('menu-myprojects')?.addEventListener('click', () => {
-  window.location.href = '/myprojectexaminer';      // هذه صفحتك الحالية
-});
+  <!-- سكربت تحميل المشاريع + حفظ الحالة في localStorage -->
+  <script>
+    // نقرأ الحالات المحفوظة للـStatus من localStorage
+    function getStatusOverrides() {
+      try {
+        return JSON.parse(localStorage.getItem("tl_examiner_status") || "{}");
+      } catch (e) {
+        return {};
+      }
+    }
 
-document.getElementById('menu-feedback')?.addEventListener('click', () => {
-  window.location.href = '/feedback';        // عدّلي للمسار الصحيح
-});
+    async function loadAcceptedProjects() {
+      const res = await fetch("/api/accepted_projects", { credentials: "same-origin" });
+      if (!res.ok) return;
+      const data = await res.json();
 
+      const tbody = document.getElementById("projects-tbody");
+      tbody.innerHTML = "";
 
-</script>
+      const overrides = getStatusOverrides();
 
+      data.projects.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.className = "table-row";
 
-<script>
-  // فتح/إغلاق القائمة
-  function toggleUserDropdown(){
-    const dd = document.getElementById('userDropdown');
-    dd.classList.toggle('show');
-    dd.setAttribute('aria-hidden', dd.classList.contains('show') ? 'false' : 'true');
-  }
+        const baseStatus = (p.status || "in-progress").toLowerCase();
+        const overrideStatus = (overrides[p.project_id] || "").toLowerCase();
+        const currentStatus = overrideStatus || baseStatus;
 
-  // إغلاق عند الضغط خارجها
-  document.addEventListener('click', function(e){
-    const profile = document.getElementById('userProfile');
-    const dd = document.getElementById('userDropdown');
-    if (!profile.contains(e.target)) dd.classList.remove('show');
-  });
+        const selectClass =
+          currentStatus === "completed"
+            ? "status-select completed"
+            : currentStatus === "pending"
+            ? "status-select pending"
+            : "status-select";
 
-  // منع إغلاق فوري لو ضغطنا داخل البروفايل نفسه
-  document.getElementById('userProfile')?.addEventListener('click', function(e){
-    // لو ضغطتي على رابط داخل القائمة، خليه يشتغل بشكل طبيعي
-    if (e.target.closest('.dropdown-item')) return;
-    e.stopPropagation();
-  });
-</script>
+        tr.innerHTML = `
+          <td class="table-cell"><div class="project-name">${p.project_name}</div></td>
+          <td class="table-cell"><div class="owner-name">${p.owner_name}</div></td>
+          <td class="table-cell">
+            <div class="domain-tags">
+              ${p.domain.slice(0,2).map(d=>`<span class="domain-tag">${d}</span>`).join("")}
+              ${p.domain.length > 2 ? `<span class="domain-tag more">+${p.domain.length - 2}</span>` : ""}
+            </div>
+          </td>
+          <td class="table-cell">
+            <span class="category-badge ${p.category === "Conversation" ? "category-conversation" : "category-news"}">
+              ${p.category}
+            </span>
+          </td>
+          <td class="table-cell">
+            <select class="${selectClass}"
+                    onchange="handleStatusChange('${p.project_id}', this.value)">
+              <option value="in-progress" ${currentStatus === "in-progress" ? "selected" : ""}>In Progress</option>
+              <option value="pending" ${currentStatus === "pending" ? "selected" : ""}>Pending</option>
+              <option value="completed" ${currentStatus === "completed" ? "selected" : ""}>Completed</option>
+            </select>
+          </td>
+          <td class="table-cell" style="text-align:right;">
+            <button class="view-button" onclick="goToDetails('${p.project_id}')">
+              <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
+              View
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("projects-count").textContent =
+        `${data.projects.length} Projects`;
+    }
+
+    document.addEventListener("DOMContentLoaded", loadAcceptedProjects);
+  </script>
+
+  <script>
+    function goToDetails(id) {
+      window.location.href = "/projectdetailsexaminer/" + id;
+    }
+  </script>
+
+  <script>
+    function handleStatusChange(projectId, newStatus) {
+      let overrides = {};
+      try {
+        overrides = JSON.parse(localStorage.getItem("tl_examiner_status") || "{}");
+      } catch (e) {
+        overrides = {};
+      }
+
+      overrides[projectId] = newStatus;
+      localStorage.setItem("tl_examiner_status", JSON.stringify(overrides));
+    }
+  </script>
 
 </body>
 </html>

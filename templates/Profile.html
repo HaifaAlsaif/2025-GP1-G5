@@ -109,16 +109,6 @@
       <img src="../static/images/icon_logo.svg" alt="TrustLens logo">
       <div class="brand-name">TrustLens</div>
     </div>
-    <div class="mast-right">
-      <div class="lang">EN</div>
-      <div class="avatar-pill">
-        <div class="avatar-circle">{{ user_data.profile.firstName[:1] or 'U' }}</div>
-        <div class="user-meta">
-          <div id="headerName">{{ user_name }}</div>
-        
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Content -->
@@ -181,21 +171,34 @@
           </div>
 
           <div class="field">
-            <div class="label">Username</div>
-            <div class="value" data-k="username">@{{ user_data.profile.firstName or 'user' }}</div>
-            <input class="input" type="text" value="@{{ user_data.profile.firstName or 'user' }}" data-k="username" id="username">
-          </div>
-          <div class="field">
-            <div class="label">Email</div>
-            <div class="value" data-k="email">{{ user_data.email }}</div>
-            <input class="input" type="email" value="{{ user_data.email }}" data-k="email" id="email">
-          </div>
+  <div class="label">Username</div>
+  <div class="value" data-k="username">
+    @{{ user_data.profile.firstName or 'user' }}
+  </div>
+</div>
 
           <div class="field">
-            <div class="label">Gender</div>
-            <div class="value" data-k="gender">{{ user_data.profile.gender or 'Not specified' }}</div>
-            <input class="input" type="text" value="{{ user_data.profile.gender or '' }}" data-k="gender" id="gender">
-          </div>
+  <div class="label">Email</div>
+  <div class="value" data-k="email">
+    {{ user_data.email }}
+  </div>
+</div>
+
+
+          <div class="field">
+  <div class="label">Gender</div>
+  <div class="value" data-k="gender">
+    {{ user_data.profile.gender or 'Not specified' }}
+  </div>
+
+  <!-- select بدل input -->
+  <select class="input" data-k="gender" id="gender">
+    <option value="">Select gender</option>
+    <option value="Male"   {% if user_data.profile.gender == 'Male' %}selected{% endif %}>Male</option>
+    <option value="Female" {% if user_data.profile.gender == 'Female' %}selected{% endif %}>Female</option>
+  </select>
+</div>
+
           <div class="field">
             <div class="label">Specialization</div>
             <div class="value" data-k="spec">{{ user_data.profile.specialization or 'Not specified' }}</div>
@@ -226,143 +229,186 @@
         </div>
       </div>
 
-      <div class="separator"></div>
+            <div class="separator"></div>
 
       <!-- Bio -->
-      <!-- داخل قسم Bio -->
-<textarea class="textarea"
-placeholder="Tell us about yourself..."
-data-k="bio"
-id="description">{{ user_data.profile.description or '' }}</textarea>
+      <div>
+        <div class="sec-title">
+          <img class="ic20" src="../static/images/icon_info.svg" alt="">
+          <div>Bio</div>
+        </div>
+        <div class="field">
+          <div class="label">About you</div>
+          <div class="value" data-k="bio">
+            {{ user_data.profile.description or 'No bio added yet' }}
+          </div>
+          <textarea
+            class="textarea"
+            placeholder="Tell us about yourself..."
+            data-k="bio"
+            id="bio"
+          >{{ user_data.profile.description or '' }}</textarea>
+        </div>
+      </div>
 
-<!-- داخل قسم Interests -->
-<textarea class="textarea"
-placeholder="Enter interests separated by commas..."
-data-k="interests"
-style="display:none"
-id="interests">{{ user_data.profile.interests or '' }}</textarea>
+      <div class="separator"></div>
+
+      <!-- Interests -->
+      <div>
+        <div class="sec-title">
+          <img class="ic20" src="../static/images/icon_tag.svg" alt="">
+          <div>Interests</div>
+        </div>
+        <div class="field">
+          <div class="label">Interests</div>
+          <div class="value" data-k="interests">
+            {{ user_data.profile.interests or 'No interests added yet' }}
+          </div>
+          <textarea
+            class="textarea"
+            placeholder="Enter interests separated by commas..."
+            data-k="interests"
+            id="interests"
+          >{{ user_data.profile.interests or '' }}</textarea>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
 
 <!-- ========= JavaScript ========= -->
 <script>
-/* ======== نفس منطق التعديل السابق + الاتصال بالـ API ======== */
-const root = document.getElementById('profileRoot');
-const detail = document.getElementById('detailCard');
-const btnEdit = document.getElementById('btnEdit');
-const btnSave = document.getElementById('btnSave');
-const btnCancel = document.getElementById('btnCancel');
+const root      = document.getElementById("profileRoot");
+const detail    = document.getElementById("detailCard");
+const btnEdit   = document.getElementById("btnEdit");
+const btnSave   = document.getElementById("btnSave");
+const btnCancel = document.getElementById("btnCancel");
+const savebar   = document.querySelector(".savebar");
 
-const state = {};      // original values snapshot for Cancel
-const viewEls = {};    // map key -> view element
-const inputEls = {};   // map key -> input/textarea
+const state    = {};   // نسخة من القيم الأصلية
+const viewEls  = {};   // key -> div.value
+const inputEls = {};   // key -> input / textarea
 
-document.querySelectorAll('[data-k]').forEach(el=>{
-  const k = el.getAttribute('data-k');
-  if(el.classList.contains('value')) viewEls[k] = el;
-  else inputEls[k] = el;
-  if(!(k in state)){
-    state[k] = el.classList.contains('value') ? el.textContent.trim() :
-               (el.value ?? '').trim();
-  }
-});
+// نجمع كل العناصر اللي عليها data-k
+document.querySelectorAll("[data-k]").forEach(el => {
+  const k = el.getAttribute("data-k");
 
-/* interests chip helpers */
-const chipWrap = document.getElementById('chipWrap');
-function renderChips(list){
-  chipWrap.innerHTML = '';
-  if(!list || list.length===0){ chipWrap.style.display='none'; return; }
-  chipWrap.style.display='flex';
-  list.forEach(v=>{
-    const c = document.createElement('span'); c.className='chip'; c.textContent=v.trim();
-    chipWrap.appendChild(c);
-  });
-}
-
-/* enter edit mode */
-btnEdit.addEventListener('click', ()=>{
-  root.classList.add('editing');
-  document.querySelector('.savebar').style.display='flex';
-  btnEdit.style.display='none';
-
-  Object.keys(inputEls).forEach(k=>const input = inputEls[k];
-  const v = (viewEls[k]?.textContent || input.value || '').trim();
-  input.value = v.replace(/^No bio added yet$|^No interests added yet$|^Not specified$/i,'');
-  input.style.display = (input.tagName==='INPUT' || input.tagName==='TEXTAREA') ? '' : '';
-});
-inputEls['interests'].style.display='';
-});
-
-/* cancel -> restore snapshot */
-btnCancel.addEventListener('click', ()=>{
-Object.keys(viewEls).forEach(k=>{
-  viewEls[k].textContent = state[k] || '';
-});
-renderChips([]);
-document.querySelector('.savebar').style.display='none';
-btnEdit.style.display='';
-root.classList.remove('editing');
-});
-
-/* ======== الاتصال بالـ API عند الحفظ ======== */
-btnSave.addEventListener('click', async () => {
-/* ننسخ القيم إلى الـ view أولًا (UI فقط) */
-Object.keys(inputEls).forEach(k=>{
-  const val = (inputEls[k].value || '').trim();
-  if(k==='bio'){
-    viewEls[k].textContent = val || 'No bio added yet';
-    state[k] = viewEls[k].textContent;
-  }else if(k==='interests'){
-    const arr = val ? val.split(',').map(s=>s.trim()).filter(Boolean) : [];
-    if(arr.length){
-      viewEls[k].textContent = '';
-      renderChips(arr);
-    }else{
-      viewEls[k].textContent = 'No interests added yet';
-      renderChips([]);
+  if (el.classList.contains("value")) {
+    viewEls[k] = el;
+    if (!(k in state)) {
+      state[k] = el.textContent.trim();
     }
-    state[k] = val;
-  }else{
-    viewEls[k].textContent = val || (k==='github'||k==='linkedin' ? 'Not specified' : '');
-    state[k] = viewEls[k].textContent;
+  } else {
+    inputEls[k] = el;
+    if (!(k in state)) {
+      state[k] = (el.value || "").trim();
+    }
   }
 });
 
-/* نجهّز البيانات للإرسال */
-const payload = {
-  firstName: inputEls.firstName.value.trim(),
-  lastName:  inputEls.lastName.value.trim(),
-  gender:    inputEls.gender.value.trim(),
-  interests: inputEls.interests.value.trim(),
-  github:    inputEls.github.value.trim(),
-  linkedin:  inputEls.linkedin.value.trim(),
-  description: inputEls.description.value.trim()
+// زر Edit
+btnEdit.addEventListener("click", () => {
+  root.classList.add("editing");      // CSS يتكفّل بإظهار الحقول
+  savebar.style.display = "flex";
+  btnEdit.style.display = "none";
+
+  // نحط القيم الحالية في الحقول مع إزالة العبارات الافتراضية
+  Object.keys(inputEls).forEach(k => {
+    const input   = inputEls[k];
+    const current =
+      (viewEls[k]?.textContent || input.value || "").trim();
+
+    input.value = current.replace(
+      /^(No bio added yet|No interests added yet|Not specified)$/i,
+      ""
+    );
+  });
+});
+
+// زر Cancel
+btnCancel.addEventListener("click", () => {
+  // نرجّع نصوص العرض
+  Object.keys(viewEls).forEach(k => {
+    viewEls[k].textContent = state[k] ?? "";
+  });
+
+  // ونرجّع قيم الحقول
+  Object.keys(inputEls).forEach(k => {
+    inputEls[k].value = state[k] ?? "";
+  });
+
+  root.classList.remove("editing");
+  savebar.style.display = "none";
+  btnEdit.style.display = "inline-flex";
+});
+
+// زر Save
+btnSave.addEventListener("click", async () => {
+  const payload = {
+  firstName:      (inputEls.firstName?.value || "").trim(),
+  lastName:       (inputEls.lastName?.value  || "").trim(),
+  gender:         (inputEls.gender?.value    || "").trim(),
+  specialization: (inputEls.spec?.value      || "").trim(),
+  github:         (inputEls.github?.value    || "").trim(),
+  linkedin:       (inputEls.linkedin?.value  || "").trim(),
+  description:    (inputEls.bio?.value       || "").trim(),
+  interests:      (inputEls.interests?.value || "").trim(),
 };
 
-try {
-  const res = await fetch("/api/update-profile", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(payload)
-  });
-  if (!res.ok) throw new Error("update failed");
+  try {
+    const res = await fetch("/api/update-profile", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload),
+    });
 
-  /* تحديث الاسم في الهيدر دون إعادة تحميل */
-  document.getElementById('headerName').textContent =.h-title{display:flex;flex-direction:column;
-  document.getElementById('sideName').textContent   =tf-8" />
-<meta name="viewport" content="init
-} catch (e) {
-  alert("Update failed");
-  return;
-}
+    if (!res.ok) throw new Error("Update failed");
 
-/* الخروج من وضع التعديل */
-document.querySelector('.savebar').style.display='none';
-btnEdit.style.display='';
-root.classList.remove('editing');
+    // فن مساعد لتحديث واجهة العرض + state
+    function setView(keyView, value, kind) {
+      if (!viewEls[keyView]) return;
+      let v = (value || "").trim();
+
+      if (!v) {
+        if (kind === "link")       v = "Not specified";
+        if (kind === "bio")        v = "No bio added yet";
+        if (kind === "interests")  v = "No interests added yet";
+      }
+
+      viewEls[keyView].textContent = v;
+      state[keyView] = v;
+    }
+
+    setView("firstName", payload.firstName);
+    setView("lastName",  payload.lastName);
+    setView("gender",    payload.gender);
+    setView("spec",      payload.specialization);
+    setView("github",    payload.github,    "link");
+    setView("linkedin",  payload.linkedin,  "link");
+    setView("bio",       payload.description, "bio");
+    setView("interests", payload.interests, "interests");
+
+    // تحديث الاسم في أعلى الصفحة (الهيدر والسايد)
+    const displayName =
+      [payload.firstName, payload.lastName].filter(Boolean).join(" ") || "User";
+
+    const headerName = document.getElementById("headerName");
+    const sideName   = document.getElementById("sideName");
+    if (headerName) headerName.textContent = displayName;
+    if (sideName)   sideName.textContent   = displayName;
+
+    root.classList.remove("editing");
+    savebar.style.display = "none";
+    btnEdit.style.display = "inline-flex";
+    alert("Profile updated successfully");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to update profile. Please try again.");
+  }
 });
 </script>
+
 
 </body>
 </html>

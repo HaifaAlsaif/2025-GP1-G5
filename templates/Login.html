@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -586,6 +588,29 @@ body{background:var(--bg);color:var(--text);}
 }
 .home-btn:hover{ transform: translateY(-1px); }
 .home-btn img{ width: 24px; height: 24px; }
+
+.password-wrapper {
+  position: relative;
+}
+
+/* زر العين */
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* نخلي مساحة كافية بين النص والعين */
+#password.form-input {
+  padding-right: 40px;
+}
+
   </style>
   
   </head>
@@ -627,38 +652,71 @@ body{background:var(--bg);color:var(--text);}
       {% endif %}
 
       <form action="/api/signin" method="POST" class="login-form" role="form">
-        <div class="form-group">
-          <label for="email" class="form-label">Email or Username</label>
-          <div class="input-wrapper">
-            <img src="../static/images/img_icon.svg" alt="" class="input-icon">
-            <input 
-              type="text" 
-              id="email"
-              name="email"  
-              class="form-input" 
-              placeholder="Enter your email or username"
-              required
-            >
-          </div>
-        </div>
+  <!-- Email -->
+  <div class="form-group">
+    <label for="identifier" class="form-label">Email or Username</label>
+    <div class="input-wrapper">
+      <img src="../static/images/img_icon.svg" alt="" class="input-icon">
+      <input 
+        type="text" 
+        id="identifier"
+        name="identifier"  
+        class="form-input" 
+        placeholder="Enter your email or username"
+        required
+      >
+    </div>
+  </div>
 
-        <div class="form-group">
-          <label for="password" class="form-label">Password</label>
-          <div class="input-wrapper">
-            <img src="../static/images/img_icon_gray_600.svg" alt="" class="input-icon">
-            <input 
-              type="password" 
-              id="password"
-              name="password"  
-              class="form-input" 
-              placeholder="Enter your password"
-              required
-            >
-          </div>
-        </div>
+  <!-- Password (واحد فقط + زر العين) -->
+  <div class="form-group">
+    <label for="password" class="form-label">Password</label>
+    <div class="input-wrapper password-wrapper">
+      <img src="../static/images/img_icon_gray_600.svg" alt="" class="input-icon">
+      
+      <input 
+        type="password" 
+        id="password"
+        name="password"  
+        class="form-input" 
+        placeholder="Enter your password"
+        required
+      >
+      
+      <span
+        class="password-toggle"
+        onclick="togglePassword('password')"
+      >
+        <!-- نفس SVG العين -->
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M1.7181 10.2898C1.64865 10.1027 1.64865 9.89691 1.7181 9.70981C2.39452 8.06969 3.5427 6.66735 5.01708 5.68056C6.49146 4.69378 8.22564 4.16699 9.99977 4.16699C11.7739 4.16699 13.5081 4.69378 14.9825 5.68056C16.4568 6.66735 17.605 8.06969 18.2814 9.70981C18.3509 9.89691 18.3509 10.1027 18.2814 10.2898C17.605 11.9299 16.4568 13.3323 14.9825 14.3191C13.5081 15.3058 11.7739 15.8326 9.99977 15.8326C8.22564 15.8326 6.49146 15.3058 5.01708 14.3191C3.5427 13.3323 2.39452 11.9299 1.7181 10.2898Z"
+            stroke="#717182"
+            stroke-width="1.66667"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61929 11.3807 7.5 10 7.5C8.61929 7.5 7.5 8.61929 7.5 10C7.5 11.3807 8.61929 12.5 10 12.5Z"
+            stroke="#717182"
+            stroke-width="1.66667"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+    </div>
+  </div>
 
-        <button type="submit" class="login-btn">Log In</button>
-      </form>
+  <button type="submit" class="login-btn">Log In</button>
+</form>
+
 
       <div class="login-footer">
         <a href="/forgot" class="forgot-password">Forgot Password?</a>
@@ -789,6 +847,14 @@ form.addEventListener('submit', function(e) {
         });
       });
     });
+
+    // نفس دالة togglePassword المستخدمة في صفحة Create Account
+window.togglePassword = function(id) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  input.type = (input.type === "password") ? "text" : "password";
+};
+
 
       (()=>{
         const toggle = document.getElementById('theme-toggle');
