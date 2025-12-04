@@ -218,6 +218,7 @@
   async function handleInvitation(invId, action) {
     if (action === 'decline' && !confirm('Are you sure you want to decline this invitation?')) return;
 
+    
     try {
       const res = await fetch(`/api/invitations/${invId}`, {
         method: 'PATCH',

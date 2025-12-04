@@ -187,6 +187,7 @@
       flex:1;background:#fff;border:0.8px solid var(--line);color:#0a0a0a;
     }
     .btn-ghost:hover{background:#f9fafb}
+    
   </style>
 </head>
 
@@ -195,7 +196,7 @@
     <!-- ================== Header ================== -->
     <header class="mast">
       <div class="brand">
-        <img src="../static/images/icon_logo.svg" alt="TrustLens logo">
+        <img src="/static/images/icon_logo.svg" alt="TrustLens logo">
         <div class="brand-name">TrustLens</div>
       </div>
 
@@ -230,12 +231,19 @@
     </header>
 
     <!-- ================== Back Bar ================== -->
-    <div class="back-bar">
-      <a class="back" href="ProjectDetailsOwner.html">
-        <img class="icon-16" src="../static/images/icon_back.svg" alt="">
-        <span>Back to Project</span>
-      </a>
+    <div class="frame">
+      <div class="topbar">
+        <div class="back-bar">
+          <a class="back" href="/projectdetailsowner/{{ project_id }}">
+            <img class="icon-16" src="/static/images/icon_back.svg" alt="">
+
+            <span>Back to Project</span>
+          </a>
+        </div>
+      </div>
     </div>
+    
+    
 
     <!-- ================== Card (Centered) ================== -->
     <div class="content-wrapper">
@@ -244,36 +252,46 @@
           <h1 class="title">Create Task</h1>
           <p class="subtitle">Set up a new evaluation task</p>
         </div>
+<!-- Task Title -->
+<div class="field">
+  <div class="label">Task Title</div>
+  <input id="taskTitle" 
+         type="text" 
+         placeholder="Enter task title..."
+         style="
+           width:100%;
+           height:40px;
+           padding:8px 12px;
+           border-radius:8px;
+           border:1px solid #d4d4d8;
+           background:#f9f9fb;
+           font-size:14px;
+           outline:none;
+         ">
+         
+  <div id="titleErr" class="note error" style="display:none;">
+    Please enter a task title.
+  </div>
+</div>
 
         <div class="content">
           <!-- Task title -->
-          <div class="field">
-            <div class="label">Task Title / Topic</div>
-            <textarea id="taskTitle" class="textarea" placeholder="Enter task title or description..."></textarea>
-            <div id="titleErr" class="note error" style="display:none">Task title is required.</div>
-          </div>
-
           <!-- Examiners -->
-          <div class="field">
-            <div class="label">Assign Examiners</div>
-            <div class="ex-box" id="exBox">
-              <label class="ex-row">
-                <input type="checkbox" name="examiner" value="haifa@gmail.com">
-                <span>Haifa@gmail.com</span>
-              </label>
-              <label class="ex-row">
-                <input type="checkbox" name="examiner" value="ex@gmail.com">
-                <span>Ex@gmail.com</span>
-              </label>
-            </div>
-            <div class="ex-rule note info">
-              <span id="exRuleText">Select exactly 1 examiner</span>
-              <span id="exSelectedCount" class="count">(0 selected)</span>
-            </div>
-          </div>
+<div class="field">
+  <div class="label">Assign Examiners</div>
+
+  <!-- الصندوق الصحيح للـ checkboxes -->
+  <div class="ex-box" id="exBox"></div>
+
+  <div class="ex-rule note info">
+    <span id="exRuleText">Select exactly 1 examiner</span>
+    <span id="exSelectedCount" class="count">(0 selected)</span>
+  </div>
+</div>
+
 
           <!-- Number of turns -->
-          <div class="field">
+          <div class="field" id="turnsField">
             <div class="label">Number of Turns</div>
             <div class="stepper">
               <button type="button" class="step-btn" data-dir="-1">−</button>
@@ -284,7 +302,7 @@
           </div>
 
           <!-- Conversation type -->
-          <div class="field">
+          <div class="field" id="convField">
             <div class="label">Conversation Type</div>
             <div class="conv-toggle" id="convToggle">
               <button type="button" class="conv-pill active" data-value="human-ai">
@@ -312,13 +330,54 @@
   
   <!-- ================== JS ================== -->
   <script>
+    const taskId = new URLSearchParams(window.location.search).get("task_id");
+
+    if (taskId) {
+      
+      document.querySelector(".title").textContent = "Edit Task";
+      document.querySelector(".subtitle").textContent = "Update existing evaluation task";
+      document.getElementById("submitTask").textContent = "Update Task";
+    
+    }
+    async function loadTaskForEdit() {
+      if (!taskId) return;
+    
+      const res = await fetch(`/api/tasks/${taskId}`);
+      const data = await res.json();
+    
+      if (data.error) {
+        alert("Task not found");
+        return;
+      }
+    
+      // تعبئة عنوان المهمة
+      document.getElementById("taskTitle").value = data.task_name;
+    
+      // تحديد الممتحنين المختارين
+      const selectedIds = data.examiner_ids.map(String); // تحويل للسترنق
+    
+      document.querySelectorAll("input[name='examiner']").forEach(cb => {
+        if (selectedIds.includes(cb.value)) {
+          cb.checked = true;
+        }
+      });
+    
+      updateSelectedCount();
+    }
+    
+  
+    const projectId = "{{ project_id }}".trim();
+    const projectCategory = "{{ category|safe }}".trim().toLowerCase();
+if (projectCategory === "article") {
+  
+}
     const $=(s,e=document)=>e.querySelector(s);
     const $$=(s,e=document)=>Array.from(e.querySelectorAll(s));
 
     const titleEl=$("#taskTitle");
     const titleErr=$("#titleErr");
     const convTypeInput=$("#convType");
-    const exChecks=$$("input[name='examiner']");
+ 
     const exRuleText=$("#exRuleText");
     const exCountSpan=$("#exSelectedCount");
     const exBox=$("#exBox");
@@ -327,16 +386,26 @@
     const convToggle=$("#convToggle");
     const turnInput=$("#turns");
     const stepBtns=$$(".step-btn");
-
-    const userProfile=$("#userProfile");
-    const userDropdown=$("#userDropdown");
-    userProfile.addEventListener("click",()=>{
-      userDropdown.classList.toggle("show");
-    });
-    document.addEventListener("click",e=>{
-      if(!e.target.closest("#userProfile")) userDropdown.classList.remove("show");
-    });
-    function requiredCount(){return convTypeInput.value==="human-human"?2:1;}
+    const userProfile = $("#userProfile");
+    const userDropdown = $("#userDropdown");
+    
+    if (userProfile && userDropdown) {
+      userProfile.addEventListener("click", () => {
+        userDropdown.classList.toggle("show");
+      });
+    
+      document.addEventListener("click", e => {
+        if (!e.target.closest("#userProfile")) userDropdown.classList.remove("show");
+      });
+    }
+    
+  
+    function requiredCount() {
+      if (projectCategory === "article") return 1; 
+      return convTypeInput.value === "human-human" ? 2 : 1;
+    }
+    
+    let exChecks = [];   
 
 function updateRule(){
   const req=requiredCount();
@@ -366,7 +435,7 @@ convToggle.addEventListener("click",e=>{
   $$(".conv-pill",convToggle).forEach(b=>b.classList.toggle("active",b===btn));
   updateRule();
 });
-exChecks.forEach(cb=>cb.addEventListener("change",updateSelectedCount));
+
 
 stepBtns.forEach(btn=>{
   btn.addEventListener("click",()=>{
@@ -379,36 +448,149 @@ stepBtns.forEach(btn=>{
     turnInput.value=val;
   });
 });
-submitBtn.addEventListener("click",()=>{
-  const titleOk=!!titleEl.value.trim();
-  titleErr.style.display=titleOk?"none":"block";
+submitBtn.addEventListener("click", async () => {
+  const title = titleEl.value.trim();
+  const turns = parseInt(turnInput.value);
+  const convType = convTypeInput.value;
 
-  const selected=exChecks.filter(cb=>cb.checked).length;
-  const req=requiredCount();
+  const selectedExaminers = exChecks
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
 
-  if(!titleOk){titleEl.focus();return;}
-  if(selected!==req){
-    const msg=req===2
-      ?"For Human to Human, you must select exactly 2 examiners."
-      :"For Human to AI, you must select exactly 1 examiner.";
-    alert(msg);
+  const required = requiredCount();
+
+  if (!title) {
+    titleErr.style.display = "block";
     return;
   }
-  alert("Task created successfully!");
+
+  if (selectedExaminers.length !== required) {
+    if (projectCategory === "article") {
+      alert("Please assign exactly 1 examiner to evaluate the article.");
+    } else {
+      alert(required === 2
+        ? "Please select exactly 2 examiners for Human ↔ Human conversation."
+        : "Please select exactly 1 examiner for Human ↔ AI conversation."
+      );
+    }
+    return;
+  }
+
+  // Create payload
+  let payload = {
+    project_id: projectId,
+    task_name: title,
+    examiner_ids: selectedExaminers
+  };
+  
+
+  if (!taskId && projectCategory !== "article") {
+    // فقط عند إنشاء تاسك جديد وليس التعديل
+    payload.conversation_type = convType;
+    payload.number_of_turns = turns;
+  }
+  
+
+  // ⭐ تحديد URL و METHOD حسب الحالة (إنشاء / تعديل)
+  let url = "/api/create_task";
+  let method = "POST";
+
+  if (taskId) {
+    url = `/api/update_task/${taskId}`;
+    method = "PATCH";
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert("Error: " + data.error);
+      return;
+    }
+
+    alert(taskId ? "Task updated!" : "Task created!");
+    window.location.href = `/projectdetailsowner/${projectId}`;
+
+  } catch (err) {
+    console.error(err);
+    alert("Failed to save task.");
+  }
 });
 
-cancelBtn.addEventListener("click",()=>{
-  titleEl.value="";
-  titleErr.style.display="none";
-  exChecks.forEach(cb=>cb.checked=false);
-  convTypeInput.value="human-ai";
-  $$(".conv-pill",convToggle).forEach(b=>b.classList.toggle("active",b.dataset.value==="human-ai"));
-  turnInput.value="2";
-  updateRule();
-});
 
 updateRule();
-    
+
+
+
+
+  async function loadProjectExaminers() {
+    try {
+      const res = await fetch(`/api/project_examiners_for_task/${projectId}`);
+      const data = await res.json();
+  
+      if (data.error) {
+        console.error(data.error);
+        return;
+      }
+  
+      const box = document.getElementById("exBox");
+      box.innerHTML = "";
+  
+      data.examiners.forEach(ex => {
+        box.innerHTML += `
+          <label class="ex-row">
+            <input type="checkbox" name="examiner" value="${ex.uid}">
+            <span>${ex.email}</span>
+          </label>
+        `;
+        console.log("Loaded examiners:", data);  
+
+      })
+  
+        // تحديث الواجهة
+        updateSelectedCount();
+  
+    } catch (err) {
+      console.error("Failed to load examiners:", err);
+    }
+  }
+ 
+  document.addEventListener("DOMContentLoaded", async () => {
+    await loadProjectExaminers();
+  
+    // لازم بعد تحميل الـ checkboxes
+    exChecks = Array.from(document.querySelectorAll("input[name='examiner']"));
+  
+    // الآن نقدر نعبّي البيانات
+    await loadTaskForEdit();
+  
+    // إعادة حساب العداد
+    updateSelectedCount(); 
+  
+    // وبعدها نربط الأحداث
+   
+    exChecks.forEach(cb => cb.addEventListener("change", updateSelectedCount));
+    document.getElementById("userProfile").style.display = "none";
+  });
+  if (taskId) {
+    document.getElementById("convField").style.display = "none";
+  }
+  if (taskId) {
+    document.getElementById("turnsField").style.display = "none";
+  }
+  
+  
+  if (!taskId && projectCategory !== "article") {
+    payload.conversation_type = convType;
+    payload.number_of_turns = turns;
+}
+
   </script>
 </body>
-</html>
+</html> 

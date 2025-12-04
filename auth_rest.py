@@ -24,6 +24,7 @@ def send_password_reset(email: str):
     r = requests.post(url, json=payload); r.raise_for_status()
     return True
 
+
 def update_password(id_token: str, new_password: str):
     url = f"{BASE}/accounts:update?key={API_KEY}"
     payload = {"idToken": id_token, "password": new_password, "returnSecureToken": True}

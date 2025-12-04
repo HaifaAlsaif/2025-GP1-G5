@@ -8,6 +8,7 @@ if not firebase_admin._apps:
         "databaseURL": "https://trustlens-e9038-default-rtdb.firebaseio.com"
     })
 
+
 # Firestore client
 db = firestore.client()
 
