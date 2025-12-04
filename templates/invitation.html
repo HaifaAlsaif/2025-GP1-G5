@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrustLens | Project Invitations</title>
+
+  <!-- ستايل مدمج كامل -->
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;background:#fff;color:#0a0a0a;line-height:1.5}
+
+    /* ===== تنسيق الهيدر المطابق لـ Dashboard ===== */
+    .header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      width:calc(100% - 268px);   /* 140px+128px */
+      margin:16px auto 0;
+      padding:0;
+    }
+    .header-left,.header-right{display:flex;gap:8px;align-items:center}
+    .logo{width:32px;height:32px}
+    .brand-text{font-size:20px;font-weight:400;background:linear-gradient(90deg,#00b8da 0%,#155cfb 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .language-selector{padding:6px;font-size:14px;color:#0a0a0a}
+    .notification-btn{width:36px;height:36px;cursor:pointer}
+    .user-profile{display:flex;gap:8px;align-items:center;position:relative;cursor:pointer}
+    .user-avatar{width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#00b8da 0%,#155cfb 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:400}
+    .user-info h3{font-size:14px;font-weight:400;color:#0a0a0a}
+    .user-info p{font-size:12px;color:#717182;text-transform:capitalize}
+    .user-dropdown{
+      position:absolute;
+      top:100%;
+      right:0;
+      background:#ffffff;
+      border:0 solid #00000019;
+      border-radius:8px;
+      box-shadow:0 2px 4px #00000019;
+      padding:4px 0;
+      margin-top:4px;
+      width:190px;
+      display:none;
+      z-index:9999;
+    }
+    .user-dropdown.show{display:block}
+    .dropdown-item{display:flex;align-items:center;gap:16px;padding:4px 8px;font-size:14px;color:#0a0a0a;text-decoration:none;transition:background-color .3s}
+    .dropdown-item:hover{background-color:#f3f4f6}
+    .dropdown-icon{width:16px;height:16px}
+    .dropdown-divider{height:1px;background-color:#00000019;margin:4px 0}
+
+    /* ===== باقي التنسيقات كما هي ===== */
+    .main-container{display:flex;flex-direction:column;min-height:100vh}
+    .content-wrapper{display:flex;flex:1}
+    .sidebar{width:256px;background:#fff;border-right:1px solid #ddd;padding:16px}
+    .sidebar-menu{display:flex;flex-direction:column;gap:8px}
+    .menu-item{display:flex;align-items:center;padding:12px;gap:16px;cursor:pointer;transition:background .3s;border-radius:8px}
+    .menu-item:hover{background:#f3f4f6}
+    .menu-item.active{background:#f2f2f2;border-right:3px solid #4c84ff;cursor:default}
+    .menu-icon{width:16px;height:16px}
+    .menu-text{font-size:14px;color:#0a0a0a}
+    .main-content{flex:1;padding:32px;display:flex;flex-direction:column;gap:32px}
+    .welcome-section{background:linear-gradient(90deg,#00b8da19 0%,#2b7fff19 50%,#ac46ff19 100%);border-radius:16px;padding:24px;box-shadow:0 4px 128px #8888}
+    .welcome-title{font-size:24px;font-weight:400;line-height:28px;color:#0a0a0a;margin-bottom:8px}
+    .welcome-subtitle{font-size:16px;color:#717182}
+    .invitations-card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 4px 6px #00000019}
+    .invitations-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .invitations-info{display:flex;gap:12px;align-items:center}
+    .invitations-icon{width:48px;height:48px;border-radius:14px}
+    .invitations-details{display:flex;flex-direction:column}
+    .invitations-title{font-size:16px;color:#0a0a0a;margin-bottom:4px}
+    .invitations-description{font-size:14px;color:#717182}
+    .pending-badge{background:#ff69000c;color:#0a0a0a;font-size:12px;padding:4px 12px;border-radius:8px;border:0 solid #ff68004c}
+    .invitation-list{display:flex;flex-direction:column;gap:12px}
+    .invitation-item{background:#ffece7;border-radius:14px;padding:16px;border:0 solid #0000000d}
+    .invitation-content{display:flex;justify-content:space-between;align-items:center}
+    .invitation-info{display:flex;flex-direction:column;flex:1}
+    .invitation-project-title{font-size:16px;color:#0a0a0a;margin-bottom:6px}
+    .invitation-from{font-size:14px;color:#717182}
+    .invitation-actions{display:flex;gap:8px;align-items:center}
+    .btn-accept{background:linear-gradient(90deg,#00c850 0%,#009865 100%);color:#fff;font-size:14px;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;box-shadow:0 2px 4px #00000019;transition:transform .2s}
+    .btn-accept:hover{transform:translateY(-1px);box-shadow:0 4px 8px #00000019}
+    .btn-decline{background:#fff;color:#e7000b;font-size:14px;padding:6px 12px;border-radius:8px;border:0 solid #fa2b3666;cursor:pointer;transition:background .2s}
+    .btn-decline:hover{background:#fef2f2}
+  </style>
+</head>
+<body>
+<div class="main-container">
+  <!-- ===== Header المطابق لـ Dashboard ===== -->
+  <header class="header">
+    <div class="header-left">
+      <img src="{{ url_for('static', filename='images/img_header.svg') }}" alt="TrustLens Logo" class="logo">
+      <div class="brand-text">TrustLens</div>
+    </div>
+    <div class="header-right">
+      <div class="language-selector">EN</div>
+      <img src="{{ url_for('static', filename='images/img_buttonlight.png') }}" id="themeToggle" class="notification-btn" style="cursor:pointer;">
+      <div class="user-profile" onclick="toggleUserDropdown()">
+        <img src="{{ url_for('static', filename='images/user-profile.png') }}" alt="Avatar" class="user-avatar">
+        <div class="user-info">
+          <h3>{{ user_name }}</h3>
+          <p>Examiner</p>
+        </div>
+        <div class="user-dropdown" id="userDropdown">
+          <a href="/" class="dropdown-item"><img src="{{ url_for('static', filename='images/img_iconhome.svg') }}" class="dropdown-icon"> Home</a>
+          <div class="dropdown-divider"></div>
+          <a href="/profile" class="dropdown-item"><img src="{{ url_for('static', filename='images/img_profile.svg') }}" class="dropdown-icon"> Profile</a>
+          <a href="Settings.html" class="dropdown-item"><img src="{{ url_for('static', filename='images/img_icon_Settings.svg') }}" class="dropdown-icon"> Settings</a>
+          <div class="dropdown-divider"></div>
+          <a href="/" class="dropdown-item"><img src="{{ url_for('static', filename='images/img_logout.png') }}" class="dropdown-icon"> Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content-wrapper">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <nav class="sidebar-menu">
+        <div class="menu-item" onclick="window.location.href='/'"><img src="{{ url_for('static', filename='images/img_iconhome.svg') }}" class="menu-icon"><span class="menu-text">Home</span></div>
+        <div class="menu-item" onclick="window.location.href='Examinerdashboard.html'"><img src="{{ url_for('static', filename='images/img_File.svg') }}" class="menu-icon"><span class="menu-text">Dashboard</span></div>
+        <div class="menu-item active" onclick="window.location.href='/invitation'"><img src="{{ url_for('static', filename='images/img_invitation.svg') }}" class="menu-icon"><span class="menu-text">Invitations</span></div>
+        <div class="menu-item" onclick="window.location.href='/myprojectexaminer'"><img src="{{ url_for('static', filename='images/img_File.svg') }}" class="menu-icon"><span class="menu-text">My Projects</span></div>
+        <div class="menu-item" onclick="window.location.href='/feedback'"><img src="{{ url_for('static', filename='images/img_Explainability2.png') }}" class="menu-icon"><span class="menu-text">Feedback</span></div>
+      </nav>
+    </aside>
+
+    <!-- ===== المحتوى الرئيسي ===== -->
+    <main class="main-content">
+      <section class="welcome-section">
+        <h1 class="welcome-title">Welcome back, {{ user_name }}! 👋</h1>
+        <p class="welcome-subtitle">Manage your project invitations</p>
+      </section>
+
+      <section class="invitations-card">
+        <div class="invitations-header">
+          <div class="invitations-info">
+            <img src="{{ url_for('static', filename='images/img_container_white_a700.png') }}" alt="Project Invitations" class="invitations-icon">
+            <div class="invitations-details">
+              <h2 class="invitations-title">Project Invitations</h2>
+              <p class="invitations-description">Review and respond to invitations</p>
+            </div>
+          </div>
+          <div class="pending-badge" id="pendingCount">0 Pending</div>
+        </div>
+
+        <div class="invitation-list" id="invitationList">
+          <!-- يُملأ ديناميكياً -->
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ===== السكربتات ===== -->
+<script>
+  /* ===== dropdown + theme (نفس الكود السابق) ===== */
+  function toggleUserDropdown() {
+    document.getElementById('userDropdown').classList.toggle('show');
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.user-profile')) document.getElementById('userDropdown').classList.remove('show');
+  });
+
+  const themeBtn = document.getElementById('themeToggle');
+  const darkSrc = '../static/images/img_buttonlight.png';
+  const lightSrc = '../static/images/img_buttonDark.svg';
+  if (localStorage.theme === 'dark') {
+    document.body.classList.add('dark');
+    themeBtn.src = darkSrc;
+  }
+  themeBtn.addEventListener('click', () => {
+    const isDark = document.body.classList.toggle('dark');
+    themeBtn.src = isDark ? darkSrc : lightSrc;
+    localStorage.theme = isDark ? 'dark' : 'light';
+  });
+
+  /* ===== جلب الدعوات وعرضها ===== */
+  async function loadInvitations() {
+    try {
+      const res = await fetch('/api/invitations');
+      const data = await res.json();
+      const list = document.getElementById('invitationList');
+      const pendingBadge = document.getElementById('pendingCount');
+      list.innerHTML = '';
+
+      if (!data.invitations || data.invitations.length === 0) {
+        list.innerHTML = `<p style="text-align:center;color:#717182;">No pending invitations.</p>`;
+        pendingBadge.textContent = '0 Pending';
+        return;
+      }
+
+      const pending = data.invitations.filter(i => i.status === 'pending').length;
+      pendingBadge.textContent = `${pending} Pending`;
+
+      data.invitations.forEach(inv => {
+        const card = document.createElement('article');
+        card.className = 'invitation-item';
+        card.innerHTML = `
+          <div class="invitation-content">
+            <div class="invitation-info">
+              <h3 class="invitation-project-title">${inv.project_name}</h3>
+              <p class="invitation-from">From: ${inv.owner_name}</p>
+            </div>
+            <div class="invitation-actions">
+              <button class="btn-accept" onclick="handleInvitation('${inv.id}', 'accept')">Accept</button>
+              <button class="btn-decline" onclick="handleInvitation('${inv.id}', 'decline')">Decline</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    } catch (e) {
+      console.error('Error loading invitations:', e);
+    }
+  }
+
+  /* ===== معالج Accept / Decline ===== */
+  async function handleInvitation(invId, action) {
+    if (action === 'decline' && !confirm('Are you sure you want to decline this invitation?')) return;
+
+    try {
+      const res = await fetch(`/api/invitations/${invId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: action })
+      });
+      if (!res.ok) throw new Error('Failed');
+      alert(`Invitation ${action}ed successfully`);
+      loadInvitations(); // تحديث القائمة
+    } catch (e) {
+      alert('Error: ' + e.message);
+    }
+  }
+
+  /* ===== استدعاء الدالة عند فتح الصفحة ===== */
+  document.addEventListener('DOMContentLoaded', loadInvitations);
+</script>
+</body>
+</html>

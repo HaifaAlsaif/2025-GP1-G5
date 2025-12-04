@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feedback • TrustLens</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      color: #0a0a0a;
+      line-height: 1.5;
+    }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 16px 32px;
+      margin-top: 8px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+    }
+
+    .brand-text {
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 23px;
+      background: linear-gradient(90deg, #00b8da 0%, #155cfb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-right: 8px;
+    }
+
+    .language-selector {
+      padding: 6px;
+      font-size: 14px;
+      color: #0a0a0a;
+    }
+
+    .notification-btn {
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #00b8da 0%, #155cfb 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .user-info h3 {
+      font-size: 14px;
+      font-weight: 400;
+      color: #0a0a0a;
+    }
+
+    .user-info p {
+      font-size: 12px;
+      color: #717182;
+      text-transform: capitalize;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px #00000019;
+      padding: 4px 0;
+      width: 190px;
+      margin-top: 4px;
+      display: none;
+      z-index: 9999;
+    }
+
+    .user-dropdown.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 10px;
+      font-size: 14px;
+      color: #0a0a0a;
+      text-decoration: none;
+      transition: background 0.2s ease;
+    }
+
+    .dropdown-item:hover {
+      background: #f3f4f6;
+    }
+
+    .dropdown-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: #00000019;
+      margin: 4px 0;
+    }
+
+    /* ========== LAYOUT ========== */
+    .content-wrapper {
+      display: flex;
+      flex: 1;
+      width: 100%;
+    }
+
+    .sidebar {
+      width: 256px;
+      background-color: #ffffff;
+      padding: 16px;
+      min-height: calc(100vh - 64px);
+      border-right: 1px solid #ddd;
+    }
+
+    .sidebar-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .menu-item:hover {
+      background-color: #f3f4f6;
+      transform: translateY(-1px);
+    }
+
+    .menu-item:active {
+      transform: translateY(0);
+    }
+
+    .menu-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .menu-text {
+      font-size: 14px;
+      color: #0a0a0a;
+    }
+
+    .sidebar-menu .menu-item.active {
+      background-color: #f2f2f2;
+      border-right: 3px solid #4c84ff;
+      cursor: default;
+    }
+
+    .menu-badge {
+      margin-left: auto;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff8803 0%, #fa2b36 100%);
+      color: #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 24px 40px 40px;
+      background: linear-gradient(135deg, #f8f9fb 0%, #eef5fe 40%, #ebfdfe 100%);
+    }
+
+    /* ========== PAGE HEADER ========== */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .page-titles {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .welcome-title {
+      font-size: 24px;
+      font-weight: 500;
+      color: #0a0a0a;
+    }
+
+    .welcome-subtitle {
+      font-size: 13px;
+      color: #717182;
+    }
+
+    .role-pill {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #0a0a0a;
+    }
+
+    /* ========== PROVIDE FEEDBACK CARD ========== */
+    .provide-card {
+      margin-top: 8px;
+      background: linear-gradient(90deg, #ebfdfe 0%, #eef5fe 50%, #faf5ff 100%);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 10px #00000019;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .provide-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .provide-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #4f39f6 0%, #ac46ff 50%, #f6329a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(172, 70, 255, 0.35);
+    }
+
+    .provide-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: #0a0a0a;
+    }
+
+    .provide-subtitle {
+      font-size: 13px;
+      color: #717182;
+    }
+
+    .provide-badge {
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #faf5fe;
+      border: 1px solid #e5d0ff;
+      color: #4f39f6;
+      box-shadow: 0 2px 4px #00000019;
+      white-space: nowrap;
+    }
+
+    /* ========== LIST HEADER ========== */
+    .section-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #717182;
+      margin-bottom: 10px;
+    }
+
+    /* ========== REVIEW CARDS ========== */
+    .reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .review-card {
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .review-card.pending {
+      background: linear-gradient(90deg, #fff7ec 0%, #fff2e8 50%, #fff7eb 100%);
+      border: 1px solid #ffd7aa;
+    }
+
+    .review-card.completed {
+      background: linear-gradient(90deg, #f0fdf4 0%, #ebfcf4 50%, #eefdf6 100%);
+      border: 1px solid #b8f7cf;
+    }
+
+    .review-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .status-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .status-icon.pending {
+      border: 2px solid #ff8803;
+      background: #fff7ec;
+      color: #ff8803;
+      font-size: 16px;
+    }
+
+    .status-icon.completed {
+      border: 2px solid #00c850;
+      background: #f0fdf4;
+      color: #00a63e;
+      font-size: 16px;
+    }
+
+    .review-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .review-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .review-meta-label {
+      font-size: 10px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #a1a1aa;
+    }
+
+    .review-owner {
+      font-size: 12px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .review-description {
+      font-size: 12px;
+      color: #717182;
+      margin-top: 4px;
+    }
+
+    .review-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .feedback-btn {
+      min-width: 128px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+    }
+
+    .feedback-btn.pending {
+      background: linear-gradient(90deg, #ff8803 0%, #fa2b36 100%);
+    }
+
+    .feedback-btn.completed {
+      background: linear-gradient(90deg, #00c850 0%, #00bc7c 100%);
+    }
+
+    .status-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    .status-pill.pending {
+      color: #c93400;
+      border-color: #ffd6a7;
+      background: #fff7ec;
+    }
+
+    .status-pill.completed {
+      color: #008235;
+      border-color: #b8f7cf;
+      background: #f0fdf4;
+    }
+
+    /* ========== DARK MODE ========== */
+    body.dark {
+      --bg: #0a0a0a;
+      --card: #1c1c1e;
+      --text: #e5e5e5;
+      --border: #333;
+    }
+
+    body.dark {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body.dark .sidebar {
+      background: var(--bg);
+      border-right-color: var(--border);
+    }
+
+    body.dark .brand-text {
+      background: linear-gradient(90deg, #5decf6 0%, #6cbcff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    body.dark .menu-text,
+    body.dark .language-selector,
+    body.dark .user-info h3,
+    body.dark .welcome-title,
+    body.dark .welcome-subtitle,
+    body.dark .section-label {
+      color: var(--text);
+    }
+
+    body.dark .provide-card,
+    body.dark .review-card.pending,
+    body.dark .review-card.completed {
+      background: var(--card);
+      border-color: var(--border);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    body.dark .status-pill.pending {
+      background: #2a1f14;
+      border-color: #c26b33;
+    }
+
+    body.dark .status-pill.completed {
+      background: #122318;
+      border-color: #2f8c4f;
+    }
+
+    body.dark .sidebar-menu .menu-item.active {
+      background: #1f2933;
+      border-right-color: #4c84ff;
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 900px) {
+      .content-wrapper {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .main-content {
+        padding: 18px 16px 28px;
+      }
+
+      .review-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .review-right {
+        align-items: flex-start;
+      }
+    }
+    .page-titles-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.welcome-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 999px;
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="main-container">
+    <!-- ========== HEADER ========== -->
+    <header class="header">
+      <div class="header-left">
+        <img src="../static/images/img_header.svg" alt="TrustLens Logo" class="logo" />
+        <div class="brand-text">TrustLens</div>
+      </div>
+
+      <div class="header-right">
+        <div class="language-selector">EN</div>
+
+        <!-- Theme toggle -->
+        <img
+          src="../static/images/img_buttonDark.svg"
+          alt="Toggle Theme"
+          id="themeToggle"
+          class="notification-btn"
+        />
+
+        <!-- User profile -->
+        <div class="user-profile" onclick="toggleUserDropdown()">
+         <div class="user-avatar">
+  {{ (user_name or 'User')[0] }}
+</div>
+
+          <div class="user-info">
+            <h3>{{ user_name }}</h3>
+            <p>examiner</p>
+          </div>
+
+          <div class="user-dropdown" id="userDropdown">
+            <a href="/" class="dropdown-item">
+              <img src="../static/images/img_iconhome.svg" class="dropdown-icon" alt="Home" />
+              Home
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/profile" class="dropdown-item">
+              <img src="../static/images/img_profile.svg" class="dropdown-icon" alt="Profile" />
+              Profile
+            </a>
+            <a href="/settings" class="dropdown-item">
+              <img src="../static/images/img_icon_Settings.svg" class="dropdown-icon" alt="Settings" />
+              Settings
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="/logout" class="dropdown-item">
+              <img src="../static/images/img_logout.png" class="dropdown-icon" alt="Logout" />
+              Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========== CONTENT ========== -->
+    <div class="content-wrapper">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <nav class="sidebar-menu">
+          <!-- Home -->
+          <div class="menu-item" onclick="window.location.href='/'">
+            <img src="../static/images/img_iconhome.svg" class="menu-icon" alt="Home" />
+            <span class="menu-text">Home</span>
+          </div>
+
+          <!-- Dashboard -->
+          <div class="menu-item" onclick="window.location.href='/examinerdashboard'">
+            <img src="../static/images/img_File.svg" class="menu-icon" alt="Dashboard" />
+            <span class="menu-text">Dashboard</span>
+          </div>
+
+          <!-- Invitations -->
+          <div class="menu-item" onclick="window.location.href='/invitation'">
+            <img src="../static/images/img_icon_16x16_1.svg" class="menu-icon" alt="Invitations" />
+            <span class="menu-text">Invitations</span>
+          </div>
+
+          <!-- My Projects -->
+          <div class="menu-item" onclick="window.location.href='/myprojectexaminer'">
+            <img src="../static/images/img_File.svg" class="menu-icon" alt="My Projects" />
+            <span class="menu-text">My Projects</span>
+          </div>
+
+          <!-- Feedback (current page) -->
+          <div class="menu-item active" onclick="window.location.href='/feedback'">
+            <img src="../static/images/img_Explainability2.png" class="menu-icon" alt="Feedback" />
+            <span class="menu-text">Feedback</span>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main-content">
+        <!-- Page header -->
+       <div class="page-header">
+  <div class="page-titles-with-icon">
+    <img src="../static/images/img_container_white_a700_1.png" alt="icon" class="welcome-icon">
+    <div class="page-titles">
+      <h1 class="welcome-title">Welcome back, {{ user_name }}!</h1>
+      <p class="welcome-subtitle">Examiner Dashboard</p>
+    </div>
+  </div>
+  <span class="role-pill">Examiner</span>
+</div>
+
+
+        <!-- Provide feedback card -->
+        <section class="provide-card">
+          <div class="provide-left">
+            <div class="provide-icon">
+              <img src="../static/images/img_icon_1.svg" alt="Feedback" style="width: 20px; height: 20px;" />
+            </div>
+            <div>
+              <div class="provide-title">Provide Feedback</div>
+              <div class="provide-subtitle">Give feedback on reviewed projects</div>
+            </div>
+          </div>
+          <div class="provide-badge">
+            <span id="feedbackCount">0 Feedbacks</span>
+          </div>
+        </section>
+
+        <!-- Assigned reviews -->
+        <div class="section-label">Your Assigned Reviews</div>
+
+        <!-- الكروت تجي من الجافاسكربت -->
+<section class="reviews-list">
+       <!-- Feedback Given #1 -->
+<article class="review-card completed">
+  <div class="review-left">
+    <div class="status-icon completed">✓</div>
+    <div class="review-texts">
+      <div class="review-title">AI Medical Article Verification</div>
+      <div class="review-meta-label">PROJECT OWNER</div>
+      <div class="review-owner">Dr. Sarah Smith</div>
+      <p class="review-description">
+        Evaluating medical AI-generated articles and detecting factual inaccuracy risks.
+      </p>
+    </div>
+  </div>
+  <div class="review-right">
+    <button class="feedback-btn completed">View Feedback</button>
+    <span class="status-pill completed">Feedback Given</span>
+  </div>
+</article>
+
+<!-- Feedback Given #2 -->
+<article class="review-card completed">
+  <div class="review-left">
+    <div class="status-icon completed">✓</div>
+    <div class="review-texts">
+      <div class="review-title">AI-Generated Marketing Posts Audit</div>
+      <div class="review-meta-label">PROJECT OWNER</div>
+      <div class="review-owner">Ryan Cooper</div>
+      <p class="review-description">
+        Reviewing authenticity of AI-generated marketing content for brand compliance.
+      </p>
+    </div>
+  </div>
+  <div class="review-right">
+    <button class="feedback-btn completed">View Feedback</button>
+    <span class="status-pill completed">Feedback Given</span>
+  </div>
+</article>
+
+<!-- Feedback Given #3 -->
+<article class="review-card completed">
+  <div class="review-left">
+    <div class="status-icon completed">✓</div>
+    <div class="review-texts">
+      <div class="review-title">University Thesis Plagiarism Detection</div>
+      <div class="review-meta-label">PROJECT OWNER</div>
+      <div class="review-owner">Layla Al-Otaibi</div>
+      <p class="review-description">
+        Checking thesis content credibility and detecting AI-assisted writing patterns.
+      </p>
+    </div>
+  </div>
+  <div class="review-right">
+    <button class="feedback-btn completed">View Feedback</button>
+    <span class="status-pill completed">Feedback Given</span>
+  </div>
+</article>
+  <div id="reviewsListDynamic"></div>
+
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Toggle user dropdown
+    function toggleUserDropdown() {
+      const dropdown = document.getElementById("userDropdown");
+      dropdown.classList.toggle("show");
+    }
+
+    document.addEventListener("click", (e) => {
+      const userProfile = document.querySelector(".user-profile");
+      const dropdown = document.getElementById("userDropdown");
+      if (userProfile && !userProfile.contains(e.target)) {
+        dropdown.classList.remove("show");
+      }
+    });
+
+    // Dark / light theme toggle
+    const themeToggle = document.getElementById("themeToggle");
+    const darkSrc = "../static/images/img_buttonlight.png";
+    const lightSrc = "../static/images/img_buttonDark.svg";
+
+    function applyThemeFromStorage() {
+      if (
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.body.classList.add("dark");
+        themeToggle.src = darkSrc;
+      } else {
+        document.body.classList.remove("dark");
+        themeToggle.src = lightSrc;
+      }
+    }
+
+    applyThemeFromStorage();
+
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.body.classList.toggle("dark");
+      themeToggle.src = isDark ? darkSrc : lightSrc;
+      localStorage.theme = isDark ? "dark" : "light";
+    });
+
+    // ============================
+    // تحميل المشاريع الـ Complete فقط وعرضها كـ View Feedback (أخضر)
+    // ============================
+function getStatusOverrides() {
+  try {
+    return JSON.parse(localStorage.getItem("tl_examiner_status") || "{}");
+  } catch (e) {
+    return {};
+  }
+}
+
+
+
+
+    async function loadCompletedReviews() {
+const listEl = document.getElementById("reviewsListDynamic");
+      const countEl = document.getElementById("feedbackCount");
+
+      if (!listEl) return;
+
+      listEl.innerHTML = "<p>Loading...</p>";
+
+      try {
+        const res = await fetch("/api/accepted_projects");
+        const data = await res.json();
+
+        if (!res.ok) {
+          listEl.innerHTML = "<p>Failed to load reviews.</p>";
+          return;
+        }
+
+       const allProjects = data.projects || [];
+const overrides = getStatusOverrides();
+
+// نعتبر المشروع "completed" إذا:
+// 1) الoverride في localStorage = completed
+// أو 2) الstatus اللي جاي من الـ API = complete/completed
+const completed = allProjects.filter((p) => {
+  const override = overrides[p.project_id];
+
+  if (override) {
+    return override.toLowerCase() === "completed";
+  }
+
+  const s = (p.status || "").toLowerCase();
+  return s === "complete" || s === "completed";
+});
+
+
+        // نحدّث عدّاد الفيدباكات في الكرت البنفسجي
+        if (countEl) {
+          countEl.textContent = `${completed.length} Feedbacks`;
+        }
+
+        if (completed.length === 0) {
+          listEl.innerHTML = "<p>No completed projects yet.</p>";
+          return;
+        }
+
+        listEl.innerHTML = "";
+
+        completed.forEach((p) => {
+          const card = document.createElement("article");
+          card.className = "review-card completed";
+
+          const domains = Array.isArray(p.domain)
+            ? p.domain.join(", ")
+            : (p.domain || "");
+          const extraInfo = [p.category || "", domains]
+            .filter(Boolean)
+            .join(" • ");
+
+          card.innerHTML = `
+            <div class="review-left">
+              <div class="status-icon completed">✓</div>
+              <div class="review-texts">
+                <div class="review-title">${p.project_name || "Untitled Project"}</div>
+                <div class="review-meta-label">PROJECT OWNER</div>
+                <div class="review-owner">${p.owner_name || "Unknown Owner"}</div>
+                <p class="review-description">${extraInfo || "Completed project"}</p>
+              </div>
+            </div>
+            <div class="review-right">
+              <a class="feedback-btn completed" href="/projectdetailsexaminer/${p.project_id}">
+                View Feedback
+              </a>
+              <span class="status-pill completed">Feedback Given</span>
+            </div>
+          `;
+
+          listEl.appendChild(card);
+        });
+      } catch (err) {
+        console.error(err);
+        listEl.innerHTML = "<p>Something went wrong while loading reviews.</p>";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadCompletedReviews);
+  </script>
+</body>
+</html>
