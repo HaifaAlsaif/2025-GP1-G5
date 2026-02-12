@@ -1258,7 +1258,7 @@ def api_reset():
 
 
 # صحة الخادم
-@app.route("/health")
+@app.route("/health") 
 def health():
     return jsonify({"status": "ok"})
 
@@ -1272,10 +1272,14 @@ def api_update_profile():
     user_ref = db.collection("users").document(uid)
     snap = user_ref.get()
     if not snap.exists:
-        return jsonify({"error": 'User not found'}), 404
+        return jsonify({
+        "error": "USER_NOT_FOUND",
+        "message": "User not found"
+    }), 404
 
     data = request.get_json() or {}
-
+    new_email = (data.get("newEmail") or "").strip().lower()
+    username = (data.get("username") or "").strip()
     first_name     = (data.get("firstName") or "").strip()
     last_name      = (data.get("lastName") or "").strip()
     gender         = (data.get("gender") or "").strip()
@@ -1285,8 +1289,144 @@ def api_update_profile():
     description    = (data.get("description") or "").strip()
     interests      = (data.get("interests") or "").strip()
 
+    # ========================
+    # 3) username مطلوب
+    # ========================
+    if not username:
+        return jsonify({
+            "error": "USERNAME_REQUIRED",
+            "message": "Username is required"
+        }), 400
+
+    # ========================
+    # 4) username مو مكرر
+    # ========================
+    existing = (
+        db.collection("users")
+        .where("username", "==", username)
+        .stream()
+    )
+    for doc in existing:
+        if doc.id != uid:
+            return jsonify({
+                "error": "USERNAME_TAKEN",
+                "message": "This username is already taken."
+            }), 409
+
+    # ========================
+    # 5) الإيميل مطلوب (إذا الحقل موجود)
+    # ========================
+    if "newEmail" in data and not new_email:
+        return jsonify({
+            "error": "EMAIL_REQUIRED",
+            "message": "Email field cannot be empty."
+        }), 400
+    # ========================
+    # 6) تحقق الإيميل مو مكرر
+    # ========================
+    current_email_fs = (snap.to_dict().get("email") or "").lower()
+    email_to_save = None
+
+    # إذا نفس الإيميل الحالي → لا نعاملها كتغيير
+    if new_email and new_email == current_email_fs:
+        new_email = ""
+
+    if new_email:
+        # نجيب بيانات المستخدم من Firebase Auth
+        user = admin_auth.get_user(uid)
+
+        # إذا الإيميل موجود بنفسه في Auth
+        if user.email and user.email.lower() == new_email:
+            if not user.email_verified:
+                # إعادة إرسال رسالة التحقق
+                token = session.get("idToken")
+                if not token:
+                    current_password = (data.get("currentPassword") or "").strip()
+                    if not current_password:
+                        return jsonify({
+                            "error": "PASSWORD_REQUIRED",
+                            "message": "Password is required to resend verification."
+                        }), 400
+                    fresh = rest_signin(new_email, current_password)
+                    token = fresh["idToken"]
+                    session["idToken"] = token
+
+                send_verification_email(token)
+
+                return jsonify({
+                    "requireVerification": True,
+                    "message": "Please verify your new email to apply the changes."
+                }), 200
+
+            email_to_save = new_email
+
+        else:
+            # أول مرة تغيير الإيميل → نحتاج الباسورد
+            current_password = (data.get("currentPassword") or "").strip()
+            if not current_password:
+                return jsonify({
+                    "error": "PASSWORD_REQUIRED",
+                    "message": "Password is required to change email."
+                }), 400
+
+            email_q = (
+                db.collection("users")
+                .where("email", "==", new_email)
+                .stream()
+            )
+            for doc in email_q:
+                if doc.id != uid:
+                    return jsonify({
+                        "error": "EMAIL_EXISTS",
+                        "message": "This email is already in use."
+                    }), 409
+
+            # تحديث الإيميل في Auth
+            try:
+                admin_auth.update_user(uid, email=new_email, email_verified=False)
+            except admin_auth.EmailAlreadyExistsError:
+                return jsonify({
+                    "error": "EMAIL_EXISTS",
+                    "message": "This email is already in use."
+                }), 409
+            except Exception:
+                return jsonify({
+                    "error": "EMAIL_UPDATE_FAILED",
+                    "message": "Failed to update email."
+                }), 400
+
+            # نجيب توكن جديد
+            try:
+                fresh = rest_signin(new_email, current_password)
+                session["idToken"] = fresh["idToken"]
+            except Exception:
+                return jsonify({
+                    "error": "INVALID_PASSWORD",
+                    "message": "Wrong password."
+                }), 401
+
+            # إرسال التحقق
+            send_verification_email(fresh["idToken"])
+
+            return jsonify({
+                "requireVerification": True,
+                "message": "Please verify your new email to apply the changes."
+            }), 200
+
+    else:
+        # لو ما فيه new_email لكن Auth متحقق وإيميله مختلف عن Firestore → نزامن
+        auth_user = admin_auth.get_user(uid)
+        auth_email = (auth_user.email or "").lower()
+        if auth_user.email_verified and auth_email and auth_email != current_email_fs:
+            email_to_save = auth_email
+
+
+    # ========================
+    # 9) تحديث البيانات العادية
+    # ========================
     updates = {
         "updatedAt": SERVER_TIMESTAMP,
+        "username": username,
         "profile.firstName": first_name,
         "profile.lastName": last_name,
         "profile.gender": gender,
@@ -1297,16 +1437,24 @@ def api_update_profile():
         "profile.interests": interests,
     }
 
-   
+    if email_to_save:
+        updates["email"] = email_to_save
 
     user_ref.update(updates)
 
-    return jsonify({"message": "Profile updated successfully"}), 200
+    return jsonify({
+        "message": "Profile updated successfully",
+        "email": email_to_save or current_email_fs
+    }), 200
+
+
 
 
 
 @app.route("/forgot", methods=["GET", "POST"])
 def forgot_page():
+    oob = request.args.get("oobCode")
+
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
 
@@ -2518,11 +2666,58 @@ def api_llm_messages_owner():
     except Exception as e:
         app.logger.exception("Error in api_llm_messages_owner: %s", e)
         return jsonify({"error": "Server error while loading LLM conversation"}), 500
-    
+        
+@app.route("/api/hh/has-new", methods=["GET"])
+def hh_has_new_message():
+    uid = session.get("uid")
+    if not uid:
+        return jsonify({"hasNew": False})
 
+    last_notified = session.get(f"last_notified_msg_{uid}")
 
+    tasks = (
+        db.collection("tasks")
+        .where("examiner_ids", "array_contains", uid)
+        .where("status", "in", ["pending", "in_progress", "continue"])
+        .stream()
+    )
+
+    for task in tasks:
+        task_id = task.id
+
+        msgs = rtdb.reference(
+            f"hh_conversations/{task_id}/messages"
+        ).get()
+
+        if not msgs:
+            continue
+
+        rows = list(msgs.values()) if isinstance(msgs, dict) else msgs
+        if not rows:
+            continue
+
+        rows.sort(key=lambda m: m.get("created_at", ""))
+
+        last_msg = rows[-1]
+        msg_id = last_msg.get("turn_id") or last_msg.get("created_at")
+        sender = last_msg.get("examiner_id")
+
+        # ❌ لو أنا المرسل → لا إشعار
+        if sender == uid:
+            continue
+
+        # ❌ لو نفس الرسالة سبق نبهنا عليها
+        if last_notified == msg_id:
+            continue
+
+        # ✅ إشعار جديد
+        session[f"last_notified_msg_{uid}"] = msg_id
+        return jsonify({"hasNew": True})
+
+    # 👈 هذا السطر مهم: خارج الـ for
+    return jsonify({"hasNew": False})
 
 
 
 if __name__ == "__main__":
- app.run(debug=True)
+   app.run(debug=True)

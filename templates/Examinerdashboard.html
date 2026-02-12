@@ -1285,6 +1285,28 @@ body.dark {
  </head>
 <body>
  <div class="main-container">
+  
+  <div id="newMsgAlert" style="
+  display:none;
+  align-items:center;
+  gap:10px;
+  background:#FFECB5;
+  color:#6b4b00;
+  padding:14px 28px;
+  border-radius:14px;
+  font-size:18px;          /* 👈 كبرنا الخط */
+  font-weight:600;
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  box-shadow:0 8px 25px rgba(0,0,0,0.15);
+  z-index:9999;
+">
+  🔔 You have a new message
+</div>
+
+
  <!-- Header -->
  <header class="header">
  <div class="header-left">
@@ -1606,5 +1628,54 @@ themeToggle.addEventListener('click', () => {
 
 
  </script>
+
+<script>
+  let toastVisible = false;   // هل الإشعار معروض الآن؟
+  let notifiedOnce = false;  // هل نبهنا على الرسالة الحالية؟
+  
+  async function checkNewMessages() {
+    try {
+      const res = await fetch('/api/hh/has-new');
+      if (!res.ok) return;
+  
+      const data = await res.json();
+      const alertBox = document.getElementById("newMsgAlert");
+  
+      // 🔔 رسالة جديدة + ما نبهنا عليها من قبل
+      if (data.hasNew && !notifiedOnce && !toastVisible) {
+        toastVisible = true;
+        notifiedOnce = true;
+  
+        // يظهر فورًا
+        alertBox.style.display = "flex";
+  
+        // يختفي بعد 4 ثواني (زي الآيفون)
+        setTimeout(() => {
+          alertBox.style.display = "none";
+          toastVisible = false;
+        }, 4000);
+      }
+  
+      // 👈 لما السيرفر يقول: ما عاد فيه رسالة جديدة
+      // نسمح للإشعار القادم يطلع
+      if (!data.hasNew) {
+        notifiedOnce = false;
+      }
+  
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  
+  checkNewMessages();
+
+  // فحص كل 5 ثواني (عادي)
+  setInterval(checkNewMessages, 5000);
+  </script>
+  
+  
+  
+  
+
 </body>
 </html>

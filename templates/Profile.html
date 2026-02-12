@@ -7,97 +7,225 @@
 
 <!-- نفس الأنماط السابقة (بدون تغيير) -->
 <style>
-  :root{
-    --bg:#fff; --text:#0A0A0A; --muted:#717182; --line:rgba(0,0,0,.10);
-    --primary1:#00B8DB; --primary2:#155DFC; --card:rgba(255,255,255,.7);
-    --radius:14px; --r8:8px; --r10:10px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;font-family:Arial,Helvetica,sans-serif;line-height:1.45;background:#fff;color:var(--text)}
-  .page{min-height:100vh;background:linear-gradient(135deg,#fff 0 50%,rgba(0,184,219,.05) 50%), #fff;}
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap");
 
-  /* Masthead (logo + user) */
-  .mast{display:flex;align-items:center;justify-content:space-between;gap:20px;
-        height:40px;padding:16px clamp(16px,6vw,134.8px);}
-  .brand{display:flex;align-items:center;gap:10px}
-  .brand img{width:32px;height:32px}
-  .brand-name{font-size:20px;background:linear-gradient(90deg,var(--primary1),var(--primary2));
-              -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .mast-right{display:flex;align-items:center;gap:12px;font-size:14px}
-  .lang{height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;padding:0 12px}
-  .avatar-pill{position:relative;width:83px;height:40px}
-  .avatar-circle{position:absolute;inset:0;width:40px;height:40px;border-radius:9999px;
-                 background:linear-gradient(135deg,var(--primary1),var(--primary2));
-                 display:grid;place-items:center;color:#fff;font-weight:700}
-  .user-meta{position:absolute;left:48px;top:2px;display:flex;flex-direction:column}
-  .small{font-size:12px}
-  .muted{color:var(--muted)}
+:root{
+  --bg:#fff; --text:#0A0A0A; --muted:#717182; --line:rgba(0,0,0,.10);
+  --primary1:#00B8DB; --primary2:#155DFC; --card:rgba(255,255,255,.7);
+  --radius:14px; --r8:8px; --r10:10px;
+}
 
-  /* Content frame */
-  .wrap{padding:96px clamp(16px,6vw,246.8px) 40px;display:grid;gap:24px}
-  @media(min-width:980px){ .wrap{grid-template-columns:330px 1fr;align-items:start} }
-  @media(max-width:979px){ .wrap{grid-template-columns:1fr} }
+*{box-sizing:border-box}
+html,body{height:100%}
 
-  /* Title row */
-  .headrow{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:20px}
-  .h-title{display:flex;flex-direction:column;gap:8px}
-  .h-title h1{margin:0;font-size:24px;background:linear-gradient(90deg,var(--primary1),var(--primary2));
-              -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .h-title p{margin:0;color:var(--muted)}
+body{
+  margin:0;
+  font-family:"Manrope", sans-serif;
+  line-height:1.45;
+  background:#fff;
+  color:#0B1B2B;
+}
 
-  /* Buttons */
-  .btn{height:36px;border-radius:8px;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:10px;padding:0 14px;font-size:14px}
-  .btn-primary{color:#fff;background:linear-gradient(90deg,var(--primary1),var(--primary2))}
-  .btn-ghost{background:#fff;border:0.8px solid var(--line);color:var(--text)}
-  .btn .ic{width:16px;height:16px;display:block}
+.page{
+  min-height:100vh;
+  background:linear-gradient(135deg,#fff 0 50%,rgba(0,184,219,.05) 50%), #fff;
+}
 
-  /* Cards */
-  .card{box-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
-        background:var(--card);border:0.8px solid rgba(0,0,0,.05);border-radius:var(--radius)}
-  .card-pad{padding:24px}
+/* Masthead */
+.mast{
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+  height:40px; padding:16px clamp(16px,6vw,134.8px);
+}
+.brand{display:flex; align-items:center; gap:10px}
+.brand img{width:32px; height:32px}
+.brand-name{
+  font-size:20px;
+  background:linear-gradient(90deg,var(--primary1),var(--primary2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
 
-  /* Left: profile summary */
-  .p-sum{display:flex;flex-direction:column;gap:16px;text-align:center}
-  .p-avatar{width:128px;height:128px;border-radius:9999px;margin:0 auto;
-            border:4px solid rgba(0,184,219,.2);background:linear-gradient(135deg,var(--primary1),var(--primary2));
-            color:#fff;display:grid;place-items:center;font-size:30px}
-  .pill{display:inline-flex;align-items:center;justify-content:center;border-radius:8px;padding:2px 8px;height:20px;
-        background:linear-gradient(90deg,var(--primary1),var(--primary2));color:#fff;font-size:12px;text-transform:capitalize;margin:6px auto 0}
-  .p-line{height:1px;background:var(--line);margin:12px 0}
-  .row-center{display:flex;align-items:center;justify-content:center;gap:8px}
+/* Content frame */
+.wrap{
+  padding:96px clamp(16px,6vw,246.8px) 40px;
+  display:grid; gap:28px;
+}
+@media(min-width:980px){ .wrap{grid-template-columns:330px 1fr; align-items:start} }
+@media(max-width:979px){ .wrap{grid-template-columns:1fr} }
 
-  /* Right: details */
-  .section{display:flex;flex-direction:column;gap:24px}
-  .sec-title{display:flex;align-items:center;gap:8px}
-  .sec-title .ic20{width:20px;height:20px}
-  .grid-2{display:grid;gap:16px}
-  @media(min-width:720px){ .grid-2{grid-template-columns:1fr 1fr} }
-  .field{display:flex;flex-direction:column;gap:8px}
-  .label{font-size:14px}
-  .value{color:var(--muted)}
-  .separator{height:1px;background:var(--line)}
+/* Title row */
+.headrow{
+  grid-column:1/-1;
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+}
+.h-title{display:flex; flex-direction:column; gap:10px}
+.h-title h1{
+  margin:0; font-size:24px; font-weight:700; letter-spacing:.2px;
+  background:linear-gradient(90deg,var(--primary1),var(--primary2));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.h-title p{margin:0; color:#6B7280}
 
-  /* Inputs (edit mode) */
-  .input, .textarea{width:100%;height:36px;border-radius:8px;border:0.8px solid var(--line);
-                    background:#F3F3F5;padding:6px 10px;font-size:14px}
-  .textarea{height:auto;min-height:90px;resize:vertical}
-  .editing .value{display:none}
-  .editing .input, .editing .textarea{display:block}
-  .input, .textarea{display:none}
-  /* In view mode, we show text values only */
-  .actions{display:flex;gap:12px;align-items:center}
+/* Actions */
+.actions{
+  display:flex; gap:12px; align-items:center;
+  flex-wrap:wrap; justify-content:flex-end;
+}
 
-  /* Save bar (appears only in editing) */
-  .savebar{grid-column:1/-1;display:none;justify-content:flex-start;gap:10px}
-  .editing .savebar{display:flex}
+/* Buttons */
+.btn{
+  height:36px; border-radius:8px; border:0; cursor:pointer;
+  display:inline-flex; align-items:center; gap:10px; padding:0 14px; font-size:14px;
+}
+.btn-primary{
+  color:#fff;
+  background:linear-gradient(90deg,var(--primary1),var(--primary2));
+  font-weight:600;
+  box-shadow:0 10px 20px -10px rgba(21,93,252,.35);
+}
+.btn-ghost{
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  color:#0B1B2B;
+  font-weight:600;
+}
+.btn .ic{width:16px; height:16px; display:block}
 
-  /* Helper tag list for interests */
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{padding:4px 8px;border-radius:9999px;background:rgba(0,184,219,.08);border:1px solid rgba(0,184,219,.3);font-size:12px}
+/* Cards */
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.84));
+  border:1px solid rgba(10,15,30,.06);
+  box-shadow:0 14px 28px -18px rgba(15, 46, 99, .18);
+  border-radius:var(--radius);
+}
+.card-pad{padding:24px}
 
-  /* Icons img base */
-  img.ic, img.ic20{object-fit:contain}
+/* Left summary */
+.p-sum{display:flex; flex-direction:column; gap:16px; text-align:center}
+.p-avatar{
+  width:128px; height:128px; border-radius:9999px; margin:0 auto;
+  border:4px solid rgba(0,184,219,.2);
+  background:linear-gradient(135deg,var(--primary1),var(--primary2));
+  color:#fff; display:grid; place-items:center; font-size:30px;
+  box-shadow:0 12px 24px -14px rgba(21,93,252,.45);
+}
+.pill{
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:8px; padding:2px 8px; height:20px;
+  background:linear-gradient(90deg,var(--primary1),var(--primary2));
+  color:#fff; font-size:12px; text-transform:capitalize; margin:6px auto 0;
+  font-weight:600;
+}
+.p-line{height:1px; background:rgba(0,0,0,.06); margin:12px 0}
+.row-center{display:flex; align-items:center; justify-content:center; gap:8px}
+
+/* Right: details */
+.section{display:flex; flex-direction:column; gap:32px}
+.section-block{display:flex; flex-direction:column; gap:22px}
+.sec-title{
+  display:flex; align-items:center; gap:8px;
+  font-weight:600; color:#0B1B2B;
+  margin-bottom:6px;
+}
+.sec-title .ic20{width:20px; height:20px; opacity:.9}
+.section-block .grid-2{margin-top:6px}
+
+.grid-2{display:grid; gap:24px}
+@media(min-width:720px){ .grid-2{grid-template-columns:1fr 1fr} }
+
+.field{display:flex; flex-direction:column; gap:10px}
+.label{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#7A8699;
+}
+.value{color:#1B2A3A; font-weight:600}
+
+.separator{
+  height:1px;
+  background:rgba(0,0,0,.06);
+  margin:18px 0;
+}
+
+/* Inputs (edit mode) */
+.input, .textarea{
+  width:100%; height:36px; border-radius:8px;
+  border:1px solid rgba(0,0,0,.06);
+  background:#F6F7FA; padding:6px 10px; font-size:14px; color:#111827;
+}
+.textarea{height:auto; min-height:90px; resize:vertical}
+.input:focus, .textarea:focus{
+  background:#fff;
+  border-color:rgba(21,93,252,.35);
+  box-shadow:0 0 0 3px rgba(21,93,252,.12);
+}
+.editing .value{display:none}
+.editing .input, .editing .textarea{display:block}
+.input, .textarea{display:none}
+
+/* Save bar */
+.savebar{grid-column:1/-1; display:none; justify-content:flex-start; gap:10px}
+.editing .savebar{display:flex}
+
+/* Security card (متناسقة مع الباقي) */
+.security-card{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:16px 18px; border-radius:12px;
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 10px 18px -14px rgba(0,0,0,.15);
+  margin:6px 0;
+}
+.security-info{display:flex; align-items:center; gap:12px}
+.security-badge{
+  width:40px; height:40px; border-radius:10px; display:grid; place-items:center;
+  background:#F3F6FA;
+  border:1px solid rgba(0,0,0,.06);
+}
+.security-badge svg{width:20px; height:20px; fill:#155DFC}
+.security-title{font-weight:600; margin:0; font-size:14px}
+.security-desc{margin:2px 0 0; color:var(--muted); font-size:13px}
+
+/* زر reset بنفس أزرار الموقع (بدون خط أبيض) */
+.security-btn{
+  height:34px; padding:0 14px; border-radius:8px; border:1px solid rgba(0,0,0,.08);
+  background:#fff;
+  color:#0B1B2B;
+  font-size:13px; font-weight:600;
+  display:inline-flex; align-items:center; justify-content:center;
+  white-space:nowrap;
+  text-decoration:none;
+}
+.security-btn:hover{
+  border-color:rgba(21,93,252,.35);
+  box-shadow:0 6px 16px -10px rgba(21,93,252,.25);
+  text-decoration:none;
+}
+.security-btn:visited{color:#0B1B2B; text-decoration:none}
+
+@media (max-width:720px){
+  .security-card{flex-direction:column; align-items:flex-start;}
+}
+
+/* Back to dashboard */
+.back-link{
+  height:36px; padding:0 12px; border-radius:10px;
+  border:1px solid rgba(0,0,0,.08);
+  background:#fff; color:#0B1B2B;
+  font-size:13px; font-weight:600;
+  display:inline-flex; align-items:center; gap:8px;
+  box-shadow:0 6px 14px -10px rgba(21,93,252,.2);
+  text-decoration:none;
+}
+.back-link svg{width:16px; height:16px; color:#155DFC}
+.back-link:hover{
+  border-color:rgba(21,93,252,.35);
+  box-shadow:0 10px 20px -12px rgba(21,93,252,.35);
+  text-decoration:none;
+}
+.back-link:visited{color:#0B1B2B; text-decoration:none}
+
+  
 </style>
 </head>
 <body>
@@ -120,6 +248,14 @@
         <p>Manage your personal information and settings</p>
       </div>
       <div class="actions">
+        {% set dash_url = '/ownerdashboard' if user_data.role == 'owner' else '/examinerdashboard' if user_data.role == 'examiner' else '/profile' %}
+<a class="back-link" href="{{ dash_url }}">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M15.5 19 8.5 12l7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  Back to Dashboard
+</a>
+
         <!-- Edit button (hidden in editing) -->
         <button id="btnEdit" class="btn btn-primary">
           <img class="ic" src="../static/images/icon_edit.svg" alt=""> Edit Profile
@@ -153,8 +289,9 @@
     <main id="detailCard" class="card card-pad section">
       <!-- Personal info -->
       <div>
-        <div class="sec-title">
-          <img class="ic20" src="../static/images/icon_user.svg" alt="">
+        <div class="section-block">
+          <div class="sec-title sec-title--spaced">
+                  <img class="ic20" src="../static/images/icon_user.svg" alt="">
           <div>Personal Information</div>
         </div>
 
@@ -171,18 +308,54 @@
           </div>
 
           <div class="field">
-  <div class="label">Username</div>
-  <div class="value" data-k="username">
-    @{{ user_data.profile.firstName or 'user' }}
-  </div>
-</div>
+            <div class="label">Username</div>
+          
+            <div class="value" data-k="username">
+              {{ user_data.username }}
+            </div>
+          
+            <input
+              class="input"
+              type="text"
+              value="{{ user_data.username }}"
+              data-k="username"
+              id="username"
+            >
+          </div>
+          
 
           <div class="field">
-  <div class="label">Email</div>
-  <div class="value" data-k="email">
-    {{ user_data.email }}
-  </div>
-</div>
+            <div class="label">Email</div>
+          
+            <!-- العرض العادي -->
+            <div class="value" data-k="email">
+              {{ user_data.email }}
+            </div>
+          
+            <!-- التعديل فقط -->
+            <input
+              class="input"
+              type="email"
+              id="newEmail"
+              data-k="email"  
+              placeholder="Enter new email"
+            >
+
+            <div class="field" id="passwordField" style="display:none;">
+              <div class="label">Current Password</div>
+              <input
+                class="input"
+                type="password"
+                id="currentPassword"
+                data-k="currentPassword"
+                placeholder="Enter your password to change email"
+              >
+            </div>
+            
+
+          </div>
+      
+          
 
 
           <div class="field">
@@ -208,6 +381,24 @@
       </div>
 
       <div class="separator"></div>
+<!-- Security -->
+<div class="security-card">
+  <div class="security-info">
+    <div class="security-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+        <path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-6 8.73V18a1 1 0 0 0 2 0v-.27a2 2 0 1 0-2 0ZM10 9V7a2 2 0 1 1 4 0v2h-4Z"/>
+      </svg>
+    </div>
+    <div>
+      <p class="security-title">Security</p>
+      <p class="security-desc">Forgot your password? Reset it safely in seconds.</p>
+    </div>
+  </div>
+
+  <a href="/forgot" class="security-btn">Reset Password</a>
+</div>
+
+<div class="separator"></div>
 
       <!-- Professional Links -->
       <div>
@@ -285,6 +476,15 @@ const btnEdit   = document.getElementById("btnEdit");
 const btnSave   = document.getElementById("btnSave");
 const btnCancel = document.getElementById("btnCancel");
 const savebar   = document.querySelector(".savebar");
+const emailInput = document.getElementById("newEmail");
+const passwordField = document.getElementById("passwordField");
+
+if (emailInput) {
+  emailInput.addEventListener("input", () => {
+    const hasValue = emailInput.value.trim().length > 0;
+    passwordField.style.display = hasValue ? "block" : "none";
+  });
+}
 
 const state    = {};   // نسخة من القيم الأصلية
 const viewEls  = {};   // key -> div.value
@@ -315,6 +515,7 @@ btnEdit.addEventListener("click", () => {
 
   // نحط القيم الحالية في الحقول مع إزالة العبارات الافتراضية
   Object.keys(inputEls).forEach(k => {
+    if (k === "username") return; // 👈 هذا السطر
     const input   = inputEls[k];
     const current =
       (viewEls[k]?.textContent || input.value || "").trim();
@@ -346,6 +547,9 @@ btnCancel.addEventListener("click", () => {
 // زر Save
 btnSave.addEventListener("click", async () => {
   const payload = {
+  username:       (inputEls.username?.value || "")
+  .replace(/^@/, "")   // 👈 نشيل @ بالبداية
+  .trim(),
   firstName:      (inputEls.firstName?.value || "").trim(),
   lastName:       (inputEls.lastName?.value  || "").trim(),
   gender:         (inputEls.gender?.value    || "").trim(),
@@ -354,16 +558,37 @@ btnSave.addEventListener("click", async () => {
   linkedin:       (inputEls.linkedin?.value  || "").trim(),
   description:    (inputEls.bio?.value       || "").trim(),
   interests:      (inputEls.interests?.value || "").trim(),
+  newEmail:       (inputEls.email?.value || "").trim(),
+  currentPassword: (inputEls.currentPassword?.value || "").trim(),
 };
 
   try {
     const res = await fetch("/api/update-profile", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(payload),
-    });
+  method: "POST",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify(payload),
+});
 
-    if (!res.ok) throw new Error("Update failed");
+const data = await res.json();
+
+if (!res.ok) {
+  if (data.error === "USERNAME_REQUIRED") {
+    alert("Please enter a username.");
+    return;
+  }
+  if (data.error === "USERNAME_TAKEN") {
+    alert("This username is already taken. Please choose another one.");
+    return;
+  }
+  alert(data.message || "Failed to update profile.");
+  return;
+}
+
+// ✅ إذا يحتاج تحقق
+if (data.requireVerification) {
+  alert(data.message || "Please verify your new email.");
+  return;
+}
 
     // فن مساعد لتحديث واجهة العرض + state
     function setView(keyView, value, kind) {
@@ -382,6 +607,7 @@ btnSave.addEventListener("click", async () => {
 
     setView("firstName", payload.firstName);
     setView("lastName",  payload.lastName);
+    setView("username", payload.username);
     setView("gender",    payload.gender);
     setView("spec",      payload.specialization);
     setView("github",    payload.github,    "link");
@@ -401,7 +627,7 @@ btnSave.addEventListener("click", async () => {
     root.classList.remove("editing");
     savebar.style.display = "none";
     btnEdit.style.display = "inline-flex";
-    alert("Profile updated successfully");
+    alert(data.message || "Profile updated successfully");
   } catch (err) {
     console.error(err);
     alert("Failed to update profile. Please try again.");

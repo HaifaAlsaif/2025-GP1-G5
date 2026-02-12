@@ -1147,6 +1147,34 @@
 .team-top-row .team-card .team-member-avatar {
   margin: 0 auto 34px;
 }
+/* إخفاء شريط Google Translate والنافذة */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+#goog-gt-tt,
+.goog-te-balloon-frame,
+.goog-tooltip,
+.goog-tooltip:hover,
+.goog-te-gadget,
+.goog-te-gadget-simple,
+body > .skiptranslate {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+html, body {
+  top: 0 !important;
+}
+
+/* إزالة تظليل Google Translate عند المرور */
+.goog-text-highlight,
+.VIpgJd-yAWNEb,
+.VIpgJd-yAWNEb-VIpgJd-fmcmS,
+.VIpgJd-yAWNEb-tdfKsc {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
   </style>
   
   <!-- CSS Variables for Dark Mode (تم إضافته فقط هنا) -->
@@ -1159,6 +1187,18 @@
       --bg:#121212;--fg:#e2e2e2;--muted:#999aab;--card:#1e1e1eb2;
     }
     body{background:var(--bg)!important;color:var(--fg)!important;transition:background .3s,color .3s;}
+  
+    a {
+  text-decoration: none;
+}
+
+.signup-btn,
+.btn-primary,
+.btn-secondary {
+  text-decoration: none;
+}
+
+  
   </style>
 
 
@@ -1167,7 +1207,7 @@
   <div class="container">
     <!-- Header -->
     <header class="header">
-      <div class="logo-section">
+      <div class="logo-section notranslate" translate="no">
         <img src="../static/images/img_header.svg" alt="TrustLens Logo" class="logo">
         <div class="logo-text">TrustLens</div>
       </div>
@@ -1443,8 +1483,6 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <div class="footer-bg-circle-1"></div>
-      <div class="footer-bg-circle-2"></div>
       
       <div class="footer-content">
         <div class="footer-main">
@@ -1532,6 +1570,71 @@
     langText.style.color = isDark ? '#fff' : '#0a0a0a';
   });
   </script>
+  <div id="google_translate_element" style="display:none"></div>
+
+  <script>
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      { pageLanguage: 'en', autoDisplay: false },
+      'google_translate_element'
+    );
+  }
+  
+  (function initLang(){
+    const lang = localStorage.getItem('lang') || 'en';
+    document.documentElement.lang = lang;
+    document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+    document.cookie = "googtrans=/en/" + lang + "; path=/";
+  })();
+  </script>
+  
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script>
+    setInterval(() => {
+      document.querySelectorAll('.goog-text-highlight, .VIpgJd-yAWNEb').forEach(el => {
+        el.style.background = 'transparent';
+        el.style.boxShadow = 'none';
+      });
+    }, 300);
+  </script>
+  
+  <script>
+    const langBtn = document.querySelector('.language-selector');
+    
+    langBtn.addEventListener('click', () => {
+      const current = localStorage.getItem('lang') || 'en';
+      const next = current === 'ar' ? 'en' : 'ar';
+      localStorage.setItem('lang', next);
+      location.reload();
+    });
+    </script>
+    <style>
+      /* منع التظليل الأزرق تمامًا */
+      .goog-text-highlight,
+      .VIpgJd-yAWNEb,
+      .VIpgJd-yAWNEb-VIpgJd-fmcmS,
+      .VIpgJd-yAWNEb-tdfKsc,
+      font[style*="background-color"],
+      span[style*="background-color"] {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+      </style>
+      
+      <script>
+      (function(){
+        const kill = () => {
+          document.querySelectorAll('.goog-text-highlight, .VIpgJd-yAWNEb').forEach(el => {
+            el.style.background = 'transparent';
+            el.style.boxShadow = 'none';
+            el.classList.remove('goog-text-highlight');
+          });
+        };
+        setInterval(kill, 200);
+        document.addEventListener('mouseover', kill, true);
+      })();
+      </script>
+      
   </body>
   </html>
 </body>
