@@ -11,13 +11,32 @@ import uuid
 import json
 import csv
 import io
+import joblib
 import requests
 from llm_service import generate_reply
 from flask import abort
 
+
 # إعداد Flask
 app = Flask(__name__, template_folder="templates", static_folder="static")
-app.secret_key = "CHANGE_THIS_SECRET_IN_ENV_OR_CONFIG"  
+app.secret_key = "CHANGE_THIS_SECRET_IN_ENV_OR_CONFIG" 
+
+#------------- 
+news_pipeline = joblib.load('news_baseline_pipeline.pkl')
+
+def split_into_3_chunks(text):
+    words = text.split()
+    if len(words) <= 3:
+        return [text]
+    chunk_size = len(words) // 3
+    chunks = [
+        " ".join(words[:chunk_size]),
+        " ".join(words[chunk_size:2*chunk_size]),
+        " ".join(words[2*chunk_size:])
+    ]
+    return chunks
+
+#------------- 
 def get_current_user_doc():
     """
     ترجع وثيقة المستخدم الحالي من Firestore
@@ -2520,10 +2539,316 @@ def api_llm_messages_owner():
         app.logger.exception("Error in api_llm_messages_owner: %s", e)
         return jsonify({"error": "Server error while loading LLM conversation"}), 500
     
+    
+  
+# ===================================================================
+# المهم والجديد للارتكل
 
 
+@app.route("/api/project/<project_id>/dataset", methods=["GET"])
+def get_project_dataset(project_id):
+    """
+   
+يجيب كل مقالات الـ dataset حق مشروع معين
+    """
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uid = session.get("uid")
+
+    # 1️⃣ نجيب بيانات المشروع من Firestore
+    proj_doc = db.collection("projects").document(project_id).get()
+    if not proj_doc.exists:
+        return jsonify({"error": "Project not found"}), 404
+
+    proj_data = proj_doc.to_dict()
+    
+    # 2️⃣ نتحقق من الصلاحية (Owner أو Examiner مقبول)
+    is_owner = proj_data.get("owner_id") == uid
+    
+    is_examiner = False
+    if not is_owner:
+        # نشيك إذا هو examiner مقبول
+        inv_docs = list(
+            db.collection("invitations")
+            .where("project_id", "==", project_id)
+            .where("examiner_id", "==", uid)
+            .where("status", "==", "accepted")
+            .limit(1)
+            .stream()
+        )
+        is_examiner = len(inv_docs) > 0
+
+    if not is_owner and not is_examiner:
+        return jsonify({"error": "Forbidden"}), 403
+
+    # 3️⃣ نجيب dataset_id
+    dataset_id = proj_data.get("dataset_id")
+    if not dataset_id:
+        return jsonify({"error": "No dataset found for this project"}), 404
+
+    # 4️⃣ نسحب كل المقالات من Realtime Database
+    try:
+        ref = rtdb.reference(f"datasets/uploaded_news/{dataset_id}")
+        snapshot = ref.get()
+        
+        if not snapshot:
+            return jsonify({"articles": [], "total": 0}), 200
+
+        articles = []
+        for push_id, article_data in snapshot.items():
+            if not isinstance(article_data, dict):
+                continue
+                
+            payload = article_data.get("payload", {})
+            
+            # نستخرج النص (fallback)
+            title = (payload.get("title") or 
+                    payload.get("Title") or 
+                    payload.get("headline") or "")
+            
+            content = (payload.get("Article") or 
+                      payload.get("article") or 
+                      payload.get("content") or 
+                      payload.get("text") or "")
+            
+            articles.append({
+                "id": push_id,
+                "title": title,
+                "content": content,
+                "full_text": f"{title}. {content}" if title else content
+            })
+
+        return jsonify({
+            "articles": articles,
+            "total": len(articles),
+            "dataset_id": dataset_id
+        }), 200
+
+    except Exception as e:
+        app.logger.exception("Failed to fetch dataset: %s", e)
+        return jsonify({"error": "Failed to fetch dataset"}), 500
+
+@app.route("/api/project/<project_id>/analyze_all", methods=["POST"])
+def analyze_all_articles(project_id):
+    """
+    يحلل كل مقالات المشروع بالنموذج ويحفظ النتائج
+    """
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uid = session.get("uid")
+
+    # نتحقق إن المستخدم هو الـ Owner
+    proj_doc = db.collection("projects").document(project_id).get()
+    if not proj_doc.exists:
+        return jsonify({"error": "Project not found"}), 404
+
+    if proj_doc.to_dict().get("owner_id") != uid:
+        return jsonify({"error": "Only project owner can run batch analysis"}), 403
+
+    # نسحب الـ dataset
+    dataset_id = proj_doc.to_dict().get("dataset_id")
+    if not dataset_id:
+        return jsonify({"error": "No dataset found"}), 404
+
+    try:
+        # نجيب كل المقالات
+        ref = rtdb.reference(f"datasets/uploaded_news/{dataset_id}")
+        snapshot = ref.get()
+
+        if not snapshot:
+            return jsonify({"error": "Dataset is empty"}), 404
+
+        results = []
+        human_count = 0
+        ai_count = 0
+
+        # نحلل كل مقالة
+        for push_id, article_data in snapshot.items():
+            if not isinstance(article_data, dict):
+                continue
+
+            payload = article_data.get("payload", {})
+            
+            title = (payload.get("title") or 
+                    payload.get("Title") or 
+                    payload.get("headline") or "")
+            
+            content = (payload.get("Article") or 
+                      payload.get("article") or 
+                      payload.get("content") or "")
+            
+            full_text = f"{title}. {content}" if title else content
+
+            # تحليل بالنموذج
+            chunks = split_into_3_chunks(full_text)
+            
+            human_scores = []
+            ai_scores = []
+            
+            #  تحليل كل جزء
+            for chunk in chunks:
+                probabilities = news_pipeline.predict_proba([chunk])[0]
+                human_scores.append(probabilities[0])
+                ai_scores.append(probabilities[1])
+            
+            # المتوسط
+            final_human = sum(human_scores) / len(human_scores)
+            final_ai = sum(ai_scores) / len(ai_scores)
+          
+            #4 النتيجة النهائية
+            prediction = "AI" if final_ai > final_human else "Human"
+            
+            if prediction == "Human":
+                human_count += 1
+            else:
+                ai_count += 1
+
+            results.append({
+                "article_id": push_id,
+                "title": title[:100],  # نقص العنوان
+                "prediction": prediction,
+                "human_percentage": round(final_human * 100, 2),
+                "ai_percentage": round(final_ai * 100, 2)
+            })
+
+        # نحفظ النتائج في Firestore
+        analysis_doc = {
+            "project_id": project_id,
+            "dataset_id": dataset_id,
+            "total_articles": len(results),
+            "human_count": human_count,
+            "ai_count": ai_count,
+            "human_percentage": round((human_count / len(results)) * 100, 2),
+            "ai_percentage": round((ai_count / len(results)) * 100, 2),
+            "analyzed_at": datetime.utcnow().isoformat() + "Z",
+            "analyzed_by": uid
+        }
+
+        db.collection("project_analysis").document(project_id).set(analysis_doc)
+
+        # نحفظ النتائج التفصيلية في Realtime DB
+        results_ref = rtdb.reference(f"analysis_results/{project_id}")
+        results_ref.set({
+            "summary": analysis_doc,
+            "details": results
+        })
+
+        return jsonify({
+            "message": "Analysis complete",
+            "summary": analysis_doc,
+            "total_analyzed": len(results)
+        }), 200
+
+    except Exception as e:
+        app.logger.exception("Batch analysis failed: %s", e)
+        return jsonify({"error": "Analysis failed"}), 500
 
 
+# ===================================================================
+# #المهم ****
+# ===================================================================
 
+# 🔹 صفحة عرض نتائج التحليل
+@app.route("/project/<project_id>/analysis")
+def project_analysis_page(project_id):
+    """
+    صفحة عرض نتائج تحليل الـ News Baseline للمشروع
+    """
+    if not session.get("idToken"):
+        return redirect(url_for("login_page"))
+
+    uid = session.get("uid")
+
+    # نتحقق من الصلاحية (Owner أو Examiner مقبول)
+    proj_doc = db.collection("projects").document(project_id).get()
+    if not proj_doc.exists:
+        abort(404)
+
+    proj_data = proj_doc.to_dict()
+    
+    # Owner check
+    is_owner = proj_data.get("owner_id") == uid
+    
+    # Examiner check
+    is_examiner = False
+    if not is_owner:
+        inv_docs = list(
+            db.collection("invitations")
+            .where("project_id", "==", project_id)
+            .where("examiner_id", "==", uid)
+            .where("status", "==", "accepted")
+            .limit(1)
+            .stream()
+        )
+        is_examiner = len(inv_docs) > 0
+
+    if not is_owner and not is_examiner:
+        abort(403)
+
+    # نجيب اسم المستخدم
+    user_doc = db.collection("users").document(uid).get()
+    user_name = "User"
+    if user_doc.exists:
+        prof = user_doc.to_dict().get("profile", {})
+        user_name = f"{prof.get('firstName', '')} {prof.get('lastName', '')}".strip() or "User"
+
+    return render_template(
+        "ProjectAnalysisResults.html",
+        user_name=user_name,
+        project_id=project_id
+    )
+
+
+# 🔹 API لجلب النتائج المحفوظة من Realtime DB
+@app.route("/api/project/<project_id>/analysis_results", methods=["GET"])
+def get_analysis_results(project_id):
+    """
+    يرجع النتائج المحفوظة من Realtime DB
+    """
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uid = session.get("uid")
+
+    # نتحقق من الصلاحية
+    proj_doc = db.collection("projects").document(project_id).get()
+    if not proj_doc.exists:
+        return jsonify({"error": "Project not found"}), 404
+
+    proj_data = proj_doc.to_dict()
+    
+    is_owner = proj_data.get("owner_id") == uid
+    
+    is_examiner = False
+    if not is_owner:
+        inv_docs = list(
+            db.collection("invitations")
+            .where("project_id", "==", project_id)
+            .where("examiner_id", "==", uid)
+            .where("status", "==", "accepted")
+            .limit(1)
+            .stream()
+        )
+        is_examiner = len(inv_docs) > 0
+
+    if not is_owner and not is_examiner:
+        return jsonify({"error": "Forbidden"}), 403
+
+    try:
+        # نجيب النتائج من Realtime DB
+        results_ref = rtdb.reference(f"analysis_results/{project_id}")
+        data = results_ref.get()
+
+        if not data:
+            return jsonify({"error": "No analysis results found"}), 404
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        app.logger.exception("Failed to fetch analysis results: %s", e)
+        return jsonify({"error": "Failed to fetch results"}), 500
+    
 if __name__ == "__main__":
  app.run(debug=True)

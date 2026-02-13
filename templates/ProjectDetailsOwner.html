@@ -1158,7 +1158,10 @@
       Edit
     </button>
     
-    
+    <button class="icon-btn" onclick="goToAnalysis()">
+  <img src="../static/images/img_icon_blue_a700_01.svg" class="icon-img" alt="analysis icon">
+  View Analysis
+</button>
 
     <button class="icon-btn delete-btn" onclick="deleteProject()">
       <img src="../static/images/img_button_black_900_32x36.svg" class="icon-img" alt="delete icon">
@@ -1684,7 +1687,9 @@ async function loadTasks() {
   function goToEditProject() {
     window.location.href = `/createproject?id=${projectId}&basic=1`;
   }
-  
+  function goToAnalysis() {
+  window.location.href = `/project/${projectId}/analysis`;
+}
 
   
   </script>
