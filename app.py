@@ -12,6 +12,9 @@ import json
 import csv
 import io
 import joblib
+import tensorflow as tf
+import numpy as np
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 import requests
 from llm_service import generate_reply
 from flask import abort
@@ -23,6 +26,14 @@ app.secret_key = "CHANGE_THIS_SECRET_IN_ENV_OR_CONFIG"
 
 #------------- 
 news_pipeline = joblib.load('news_baseline_pipeline.pkl')
+# --- RNN (Baseline 2) ---
+RNN_MODEL_PATH = "news_rnn_baseline.keras"
+RNN_TOKENIZER_PATH = "news_rnn_tokenizer.pkl"
+RNN_MAX_LEN = 600  
+
+rnn_model = tf.keras.models.load_model(RNN_MODEL_PATH)
+rnn_tokenizer = joblib.load(RNN_TOKENIZER_PATH)
+
 
 def split_into_3_chunks(text):
     words = text.split()
@@ -35,6 +46,24 @@ def split_into_3_chunks(text):
         " ".join(words[2*chunk_size:])
     ]
     return chunks
+
+def rnn_predict_proba(texts):
+    if isinstance(texts, str):
+        texts = [texts]
+
+    seq = rnn_tokenizer.texts_to_sequences(texts)
+    x = pad_sequences(seq, maxlen=RNN_MAX_LEN, padding="post", truncating="post")
+
+    p_ai = rnn_model.predict(x, verbose=0).ravel()  # numpy array
+    p_h = 1.0 - p_ai
+
+    # ✅ رجّعي Python float (مو numpy.float32)
+    out = []
+    for h, a in zip(p_h, p_ai):
+        out.append([float(h), float(a)])
+    return out
+
+
 
 #------------- 
 def get_current_user_doc():
@@ -2646,6 +2675,11 @@ def analyze_all_articles(project_id):
 
     if proj_doc.to_dict().get("owner_id") != uid:
         return jsonify({"error": "Only project owner can run batch analysis"}), 403
+    
+    data = request.get_json(silent=True) or {}
+    selected_model = (data.get("model") or "logistic").lower()
+
+
 
     # نسحب الـ dataset
     dataset_id = proj_doc.to_dict().get("dataset_id")
@@ -2687,11 +2721,17 @@ def analyze_all_articles(project_id):
             human_scores = []
             ai_scores = []
             
-            #  تحليل كل جزء
             for chunk in chunks:
-                probabilities = news_pipeline.predict_proba([chunk])[0]
-                human_scores.append(probabilities[0])
-                ai_scores.append(probabilities[1])
+                if selected_model == "rnn":
+                    probabilities = rnn_predict_proba([chunk])[0]   # لاحظي [chunk]
+                else:
+                    probabilities = news_pipeline.predict_proba([chunk])[0]
+
+           #  نحولها إلى float عادي
+                human_scores.append(float(probabilities[0]))
+                ai_scores.append(float(probabilities[1]))
+
+
             
             # المتوسط
             final_human = sum(human_scores) / len(human_scores)
@@ -2717,6 +2757,7 @@ def analyze_all_articles(project_id):
         analysis_doc = {
             "project_id": project_id,
             "dataset_id": dataset_id,
+            "model_type": selected_model,
             "total_articles": len(results),
             "human_count": human_count,
             "ai_count": ai_count,
@@ -2729,11 +2770,12 @@ def analyze_all_articles(project_id):
         db.collection("project_analysis").document(project_id).set(analysis_doc)
 
         # نحفظ النتائج التفصيلية في Realtime DB
-        results_ref = rtdb.reference(f"analysis_results/{project_id}")
+        results_ref = rtdb.reference(f"analysis_results/{project_id}/{selected_model}")
         results_ref.set({
             "summary": analysis_doc,
             "details": results
         })
+
 
         return jsonify({
             "message": "Analysis complete",
@@ -2804,23 +2846,18 @@ def project_analysis_page(project_id):
 # 🔹 API لجلب النتائج المحفوظة من Realtime DB
 @app.route("/api/project/<project_id>/analysis_results", methods=["GET"])
 def get_analysis_results(project_id):
-    """
-    يرجع النتائج المحفوظة من Realtime DB
-    """
     if not session.get("idToken"):
         return jsonify({"error": "Unauthorized"}), 401
 
     uid = session.get("uid")
 
-    # نتحقق من الصلاحية
     proj_doc = db.collection("projects").document(project_id).get()
     if not proj_doc.exists:
         return jsonify({"error": "Project not found"}), 404
 
     proj_data = proj_doc.to_dict()
-    
     is_owner = proj_data.get("owner_id") == uid
-    
+
     is_examiner = False
     if not is_owner:
         inv_docs = list(
@@ -2837,8 +2874,9 @@ def get_analysis_results(project_id):
         return jsonify({"error": "Forbidden"}), 403
 
     try:
-        # نجيب النتائج من Realtime DB
-        results_ref = rtdb.reference(f"analysis_results/{project_id}")
+        selected_model = (request.args.get("model") or "logistic").lower()
+
+        results_ref = rtdb.reference(f"analysis_results/{project_id}/{selected_model}")
         data = results_ref.get()
 
         if not data:
@@ -2849,6 +2887,7 @@ def get_analysis_results(project_id):
     except Exception as e:
         app.logger.exception("Failed to fetch analysis results: %s", e)
         return jsonify({"error": "Failed to fetch results"}), 500
+
     
 if __name__ == "__main__":
  app.run(debug=True)
