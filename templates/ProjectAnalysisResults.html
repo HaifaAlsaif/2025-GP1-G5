@@ -191,6 +191,35 @@
       gap: 16px;
     }
 
+    .model-select {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.model-label {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.model-dropdown {
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f9f9fb;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.model-dropdown:focus {
+  outline: none;
+  border-color: var(--primary1);
+}
+
+
     .search-box {
       flex: 1;
       min-width: 280px;
@@ -459,6 +488,16 @@
         <input type="text" class="search-input" id="searchInput" placeholder="Search articles...">
       </div>
 
+      <div class="model-select">
+        <label for="modelSelect" class="model-label">Model:</label>
+        <select id="modelSelect" class="model-dropdown">
+          <option value="logistic" selected>Logistic Regression (TF-IDF)</option>
+          <option value="rnn">RNN (BiGRU)</option>
+
+        </select>
+     </div>
+
+
       <div class="action-buttons">
         <button class="btn btn-primary" id="runAnalysisBtn">
           🔍 Run Analysis
@@ -517,22 +556,25 @@ const projectId = pathParts[2]; // project_id هو الجزء الثالث
 
     // Load initial data
     async function loadAnalysisResults() {
-      try {
-        // Try to load existing analysis from RTDB
-        const response = await fetch(`/api/project/${projectId}/analysis_results`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          displayResults(data);
-        } else {
-          // No analysis yet
-          showEmptyState();
-        }
-      } catch (error) {
-        console.error('Error loading results:', error);
-        showEmptyState();
-      }
+  try {
+    const modelType = document.getElementById('modelSelect').value;
+
+    const response = await fetch(
+      `/api/project/${projectId}/analysis_results?model=${modelType}`
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      displayResults(data);
+    } else {
+      showEmptyState();
     }
+  } catch (error) {
+    console.error('Error loading results:', error);
+    showEmptyState();
+  }
+}
+
 
     function showEmptyState() {
       document.getElementById('loadingState').style.display = 'none';
@@ -554,7 +596,14 @@ const projectId = pathParts[2]; // project_id هو الجزء الثالث
       document.getElementById('aiCount').textContent = summary.ai_count || 0;
       document.getElementById('humanPercentage').textContent = `${summary.human_percentage || 0}% of total`;
       document.getElementById('aiPercentage').textContent = `${summary.ai_percentage || 0}% of total`;
-      document.getElementById('datasetInfo').textContent = `Dataset analyzed on ${new Date(summary.analyzed_at).toLocaleString()}`;
+
+      const modelName = (summary.model_type === "rnn")
+        ? "RNN (BiGRU)"
+        : "Logistic Regression (TF-IDF)";
+
+      document.getElementById('datasetInfo').textContent =
+       `Dataset analyzed using ${modelName} on ${new Date(summary.analyzed_at).toLocaleString()}`;
+
 
       // Populate table
       const tbody = document.getElementById('resultsTable');
@@ -591,8 +640,14 @@ const projectId = pathParts[2]; // project_id هو الجزء الثالث
       btn.textContent = '⏳ Analyzing...';
 
       try {
+        const modelType = document.getElementById('modelSelect').value;
+
         const response = await fetch(`/api/project/${projectId}/analyze_all`, {
-          method: 'POST'
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: modelType })
+
+
         });
 
         const data = await response.json();
