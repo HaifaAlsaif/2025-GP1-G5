@@ -2746,12 +2746,21 @@ def analyze_all_articles(project_id):
                 ai_count += 1
 
             results.append({
-                "article_id": push_id,
-                "title": title[:100],  # نقص العنوان
-                "prediction": prediction,
-                "human_percentage": round(final_human * 100, 2),
-                "ai_percentage": round(final_ai * 100, 2)
-            })
+    "article_id": push_id,
+    "title": title[:100] if title else "",
+    "content": full_text[:500] if full_text else "",
+    "prediction": prediction,
+    "human_percentage": round(final_human * 100, 2),
+    "ai_percentage": round(final_ai * 100, 2),
+    "chunks": [
+        {
+            "label": f"F{i+1}",
+            "human": round(float(human_scores[i]) * 100, 2),
+            "ai": round(float(ai_scores[i]) * 100, 2)
+        }
+        for i in range(len(chunks))
+    ]
+})
 
         # نحفظ النتائج في Firestore
         analysis_doc = {
