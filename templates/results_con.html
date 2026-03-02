@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conversation Analysis Results</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+    :root {
+      --bg: #f6f7fb; --ink: #0e162b; --muted: #6f7483; --line: #e7e9f0;
+      --card: #ffffff; --primary: #2f66ff; --green: #2fbf71; --orange: #ff9f43;
+      --shadow: 0 14px 40px rgba(20, 22, 35, 0.08); --pill: #e6e9f5; --chip: #eef2ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: "Space Grotesk", system-ui, sans-serif; color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #e8f0ff 0%, transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, #fff0db 0%, transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+    }
+    .app { max-width: 1200px; margin: 0 auto; padding: 24px 22px 60px; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 18px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .logo { width: 32px; height: 32px; }
+    .brand-text { font-size: 20px; font-weight: 500; background: linear-gradient(90deg,#00b8da 0%,#155cfb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .moon { width: 30px; height: 30px; }
+    .user-badge { display: flex; align-items: center; gap: 8px; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #2f66ff; color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+    .user-meta { font-size: 12px; color: var(--muted); line-height: 1.1; }
+    .user-name { font-size: 13px; color: #0a0a0a; font-weight: 600; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; color: #0a0a0a; text-decoration: none; font-size: 14px; margin: 6px 0 10px; }
+    .page-title { font-size: 28px; font-weight: 700; margin: 6px 0 6px; }
+    .selected-model { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow); margin-top: 8px; }
+
+    .summary-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 10px; }
+    .summary-title { font-size: 14px; font-weight: 600; }
+    .summary-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .summary-actions { display: flex; gap: 10px; }
+    .btn { border: 1px solid var(--line); background: #f4f6ff; color: #1a1b1f; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn.primary { background: #2f66ff; color: #fff; border-color: #2f66ff; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+    .stat-card { border-radius: 14px; padding: 14px 16px; background: #f6f7fb; border: 1px solid #e9ecf5; }
+    .stat-card.blue { border-left: 4px solid #2f66ff; }
+    .stat-card.green { border-left: 4px solid #2fbf71; }
+    .stat-card.orange { border-left: 4px solid #ff9f43; }
+    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+    .stat-value { margin-top: 6px; font-size: 22px; font-weight: 700; }
+    .mini-line { margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+    .metrics-row { margin-top: 18px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric-card { background: #f6f7fb; border: 1px solid #e9ecf5; border-radius: 12px; padding: 10px 12px; }
+    .metric-title { font-size: 11px; color: var(--muted); }
+    .metric-value { margin-top: 6px; font-size: 16px; font-weight: 700; }
+
+    .matrix-link {
+      margin-top: 10px;
+      width: 100%;
+      display: inline-flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 0;
+    }
+    .matrix-link:hover { color: #2f66ff; }
+    .matrix-link .line { width: 18px; height: 2px; background: #c9ceda; border-radius: 999px; }
+
+    .bottom-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; margin-top: 16px; }
+    .box { background: #f6f7fb; border: 1px solid #e9ecf5; border-radius: 14px; padding: 14px; }
+
+    .tabs { display: flex; gap: 8px; margin-top: 8px; }
+    .tab { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: #fff; border: 1px solid #e1e5f0; }
+    .tab.active { background: #dfe6ff; border-color: #c7d2ff; color: #2f66ff; font-weight: 600; }
+
+    .bar-wrap { display: flex; gap: 16px; justify-content: center; margin-top: 16px; }
+    .vbar { width: 60px; border-radius: 12px; display: flex; align-items: flex-end; justify-content: center; background: #eef2ff; height: 140px; padding-bottom: 6px; }
+    .vbar.green { background: #e8f7ef; }
+    .vbar.blue { background: #e7ecff; }
+    .vbar-inner { width: 40px; border-radius: 10px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 12px; height: 0%; }
+    .vbar-inner.green { background: #2fbf71; }
+    .vbar-inner.blue { background: #2f66ff; }
+    .dist-note { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: center; background: #eef2ff; border-radius: 10px; padding: 6px; }
+
+    .table-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .table-title { font-size: 14px; font-weight: 600; }
+    .filters { display: flex; gap: 8px; align-items: center; }
+    .input, .select { border: 1px solid #e1e5f0; border-radius: 10px; padding: 6px 8px; font-size: 12px; background: #fff; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid #e9ecf5; text-align: left; }
+    th { color: var(--muted); font-weight: 600; }
+
+    .pill { padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--pill); color: #3b4b6b; display: inline-block; }
+    .pill.ai { background: #e1e7ff; color: #2f66ff; }
+    .pill.mix { background: #e8e3ff; color: #6a4bff; }
+    .pill.human { background: #e8f7ef; color: #2fbf71; }
+
+    .view-btn { background: #eef2ff; border: 1px solid #d8e1ff; color: #2f66ff; font-size: 12px; padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+
+    .details-box { background: #eef1f7; border-radius: 12px; padding: 8px 10px; margin: 6px 0 8px; border: 1px solid #e2e7f0; }
+    .details-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: var(--muted); }
+    .details-row {
+  display: grid;
+  grid-template-columns: 32px 70px 1fr 160px 90px 70px 90px;
+  gap: 10px;
+  font-size: 12px;
+  align-items: center;
+  padding: 6px 0;
+}
+    .chip { padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--chip); color: #2f66ff; display: inline-block; text-align: center; }
+    .details-scroll { max-height: 110px; overflow: auto; padding-right: 4px; }
+    .scrollbar { height: 6px; background: #dde2ef; border-radius: 999px; margin-top: 8px; }
+
+    .prev-btn { border: 1px solid #d8e1ff; background: #eef2ff; color: #2f66ff; font-size: 11px; padding: 2px 8px; border-radius: 999px; cursor: pointer; }
+
+    .cm-modal { position: fixed; inset: 0; display: none; z-index: 40; }
+    .cm-modal.active { display: block; }
+    .cm-backdrop { position: absolute; inset: 0; background: rgba(14, 22, 43, 0.25); backdrop-filter: blur(2px); }
+    .cm-card {
+      position: relative;
+      width: min(520px, 92vw);
+      margin: 12vh auto 0;
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #e1e5f0;
+      box-shadow: 0 22px 60px rgba(20, 22, 35, 0.2);
+      padding: 14px 16px 18px;
+    }
+    .cm-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+    .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cm-item { background: #f2f4f9; border: 1px solid #e4e7f0; border-radius: 10px; padding: 12px; }
+    .cm-label { font-size: 12px; color: var(--muted); }
+    .cm-value { font-size: 20px; font-weight: 700; margin-top: 6px; }
+    .cm-close {
+      position: absolute; top: 10px; right: 10px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid #e1e5f0;
+      background: #fff; cursor: pointer; font-size: 16px; line-height: 26px;
+    }
+
+    @media (max-width: 980px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .metrics-row { grid-template-columns: 1fr 1fr; }
+      .summary-bar { flex-direction: column; align-items: flex-start; }
+      .bottom-grid { grid-template-columns: 1fr; }
+      .details-row { grid-template-columns: 32px 1fr; }
+    }
+
+    .lang-btn, .icon-btn {
+      border: 0; background: transparent; font: inherit; cursor: pointer; color: #0a0a0a;
+    }
+    .icon-btn { padding: 0; display: grid; place-items: center; }
+
+    .user-avatar {
+      background: linear-gradient(135deg, #4a6bff, #00c6ff);
+    }
+
+    /* Dark mode */
+    body.dark {
+      --bg: #0b1020; --ink: #eef2ff; --muted: #a6b0c2; --line: #1f2a44;
+      --card: #111827; --pill: #1c253b; --chip: #1e2a44; --primary: #4f8cff;
+      --green: #3bd18a; --orange: #ffb45c; --shadow: 0 18px 55px rgba(0,0,0,0.45);
+    }
+    body.dark {
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #162036 0%, transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, #1b1a2d 0%, transparent 60%),
+        #0b1020;
+    }
+    body.dark .panel,
+    body.dark .box,
+    body.dark .stat-card,
+    body.dark .metric-card { background: #0f172a; border-color: #1f2a44; }
+    body.dark .btn { background: #1c253b; color: #e6ebff; border-color: #27324b; }
+    body.dark .btn.primary { background: var(--primary); color: #fff; }
+    body.dark .input, body.dark .select { background: #0f172a; border-color: #1f2a44; color: var(--ink); }
+    body.dark th, body.dark td { border-color: #1f2a44; }
+    body.dark .details-box { background: #0f172a; border-color: #1f2a44; }
+    body.dark .prev-btn, body.dark .view-btn { background: #16213a; border-color: #27324b; color: #8bb3ff; }
+    body.dark .lang-btn { color: #eef2ff; }
+
+    /* Profile dropdown */
+    .profile-wrap { position: relative; display: flex; align-items: center; }
+    .profile-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: transparent; border: 0; cursor: pointer;
+      padding: 4px 6px; border-radius: 12px;
+    }
+    .profile-btn:focus { outline: 2px solid #c7d2ff; }
+    .profile-caret { font-size: 12px; color: var(--muted); }
+
+    .profile-menu {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      width: 180px; background: var(--card);
+      border: 1px solid var(--line); border-radius: 12px;
+      box-shadow: var(--shadow); padding: 6px;
+      display: none; z-index: 30;
+    }
+    .profile-menu.show { display: block; }
+    .profile-menu a {
+      display: flex; gap: 8px; align-items: center;
+      padding: 8px 10px; border-radius: 8px;
+      color: var(--ink); text-decoration: none; font-size: 13px;
+    }
+    .profile-menu a:hover { background: #f2f4ff; }
+    .profile-divider { height: 1px; background: var(--line); margin: 6px 0; }
+    [dir="rtl"] .profile-menu { right: auto; left: 0; }
+    [dir="rtl"] .header-right { flex-direction: row-reverse; }
+    [dir="rtl"] .back-link { flex-direction: row-reverse; }
+    [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+    .prev-inline {
+  grid-column: 1 / -1;
+  background: #f7f8fb;
+  border: 1px solid #e1e3ea;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #6f7483;
+  margin-top: 6px;
+}
+
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="brand notranslate" translate="no">
+      <img src="../static/images/img_header.svg" alt="TrustLens logo" class="logo">
+      <div class="brand-text">TrustLens</div>
+    </div>
+    <div class="header-right">
+      <button class="lang-btn" id="langToggle" type="button">EN</button>
+      <button class="icon-btn" id="themeToggle" type="button" aria-pressed="false">
+        <img src="../static/images/img_buttonDark.svg" alt="Dark mode" class="moon">
+      </button>
+      <div class="profile-wrap">
+        <button class="profile-btn" id="profileBtn" type="button" aria-expanded="false">
+          <div class="user-badge">
+            <div class="user-avatar">{{ user_name[0] if user_name else "E" }}</div>
+            <div class="user-meta">
+              <div class="user-name">{{ user_name }}</div>
+              {{ user_role or "Examiner" }}
+            </div>
+          </div>
+          <span class="profile-caret">▾</span>
+        </button>
+
+        <div class="profile-menu" id="profileMenu" role="menu">
+          <a href="/examinerdashboard" role="menuitem">Home</a>
+          <a href="/profile" role="menuitem">Profile</a>
+          <a href="/profile" role="menuitem">Settings</a>
+          <div class="profile-divider"></div>
+          <a href="/logout" role="menuitem">Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <a href="#" id="backToProject" class="back-link" data-i18n="back">← Back to Project</a>
+
+  <div class="page-title" data-i18n="title">Conversation Analysis</div>
+  <div class="selected-model" id="selectedModelLine" data-i18n="selected_model">Selected model: —</div>
+
+  <section class="panel">
+    <div class="summary-bar">
+      <div>
+        <div class="summary-title" data-i18n="summary_title">Analysis Summary</div>
+        <div class="summary-sub" id="summaryMeta" data-i18n="summary_sub">Model: — • Time: — • GT: —</div>
+      </div>
+      <div class="summary-actions">
+        <button class="btn" data-i18n="download">Download ▾</button>
+        <button class="btn" data-i18n="advanced">Advanced</button>
+        <button class="btn primary" data-i18n="submit">Submit Results</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-label" data-i18n="total_dialogues">Total Dialogues</div><div class="stat-value" id="totalDialogs">—</div></div>
+      <div class="stat-card blue"><div class="stat-label" data-i18n="total_turns">Total Turns</div><div class="stat-value" id="totalTurns">—</div></div>
+      <div class="stat-card green"><div class="stat-label" data-i18n="human_turns">Human Turns</div><div class="stat-value" id="humanTurns">—</div></div>
+      <div class="stat-card orange"><div class="stat-label" data-i18n="machine_turns">Machine Turns</div><div class="stat-value" id="machineTurns">—</div></div>
+      <div class="stat-card green"><div class="stat-label" data-i18n="human_pct">Human %</div><div class="stat-value" id="humanPct">—</div></div>
+      <div class="stat-card orange"><div class="stat-label" data-i18n="machine_pct">Machine %</div><div class="stat-value" id="machinePct">—</div></div>
+    </div>
+
+    <div class="mini-line" id="miniLine">Avg Turns/Dialogue: — • AI‑heavy Dialogues: — • Mixed: — • Human: —</div>
+
+    <div style="margin-top:14px;font-size:14px;font-weight:600;" data-i18n="eval_metrics">Evaluation Metrics</div>
+    <button class="matrix-link" id="cmOpen" type="button">
+      <span class="line"></span> <span data-i18n="confusion_matrix">Confusion Matrix</span>
+    </button>
+
+    <div class="metrics-row">
+      <div class="metric-card"><div class="metric-title" data-i18n="accuracy">Accuracy</div><div class="metric-value" id="accVal">—</div></div>
+      <div class="metric-card"><div class="metric-title" data-i18n="f1_macro">F1 Macro</div><div class="metric-value" id="f1Val">—</div></div>
+      <div class="metric-card"><div class="metric-title" data-i18n="precision_macro">Precision Macro</div><div class="metric-value" id="precVal">—</div></div>
+      <div class="metric-card"><div class="metric-title" data-i18n="recall_macro">Recall Macro</div><div class="metric-value" id="recVal">—</div></div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="box">
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px;" data-i18n="distribution">Distribution</div>
+        <div class="tabs">
+          <div class="tab active" data-i18n="turn_level">Turn-level</div>
+          <div class="tab" data-i18n="dialogue_level">Dialogue-level</div>
+        </div>
+
+        <div class="bar-wrap">
+          <div>
+            <div class="vbar green"><div class="vbar-inner green" id="humanBarVal">0</div></div>
+            <div style="text-align:center;font-size:12px;margin-top:6px;" data-i18n="human">Human</div>
+          </div>
+          <div>
+            <div class="vbar blue"><div class="vbar-inner blue" id="machineBarVal">0</div></div>
+            <div style="text-align:center;font-size:12px;margin-top:6px;" data-i18n="machine">Machine</div>
+          </div>
+        </div>
+
+        <div class="dist-note" id="distNote">Machine turns are —</div>
+        <div class="mini-line" id="distLine" style="text-align:center;">Avg Turns/Dialogue: — • Highest AI%: —</div>
+      </div>
+
+      <div class="box">
+        <div class="table-head">
+          <div class="table-title" data-i18n="dialogues">Dialogues</div>
+          <div class="filters">
+            <input class="input" id="searchInput" placeholder="Search Dialogue ID..." />
+            <select class="select" id="labelFilter">
+              <option value="all">All labels</option>
+              <option value="ai">AI-heavy</option>
+              <option value="mix">Mixed</option>
+              <option value="human">Human</option>
+            </select>
+            <select class="select" id="sortSelect">
+              <option value="ai_desc">Sort: AI% (desc)</option>
+              <option value="human_desc">Sort: Human% (desc)</option>
+            </select>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="th_dialogue_id">Dialogue ID</th>
+              <th data-i18n="th_turns">#Turns</th>
+              <th data-i18n="th_human">#Human</th>
+              <th data-i18n="th_machine">#Machine</th>
+              <th data-i18n="th_machine_pct">Machine %</th>
+              <th data-i18n="th_human_pct">Human %</th>
+              <th data-i18n="th_final_label">Final Label</th>
+              <th data-i18n="th_action">Action</th>
+            </tr>
+          </thead>
+          <tbody id="dialogueBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="cm-modal" id="cmModal" aria-hidden="true">
+  <div class="cm-backdrop" data-close></div>
+  <div class="cm-card" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
+    <button class="cm-close" data-close type="button">×</button>
+    <div class="cm-title" id="cmTitle" data-i18n="confusion_matrix">Confusion Matrix</div>
+    <div class="cm-grid">
+      <div class="cm-item"><div class="cm-label" data-i18n="tn">True Negative</div><div class="cm-value" id="cmTN">—</div></div>
+      <div class="cm-item"><div class="cm-label" data-i18n="fp">False Positive</div><div class="cm-value" id="cmFP">—</div></div>
+      <div class="cm-item"><div class="cm-label" data-i18n="fn">False Negative</div><div class="cm-value" id="cmFN">—</div></div>
+      <div class="cm-item"><div class="cm-label" data-i18n="tp">True Positive</div><div class="cm-value" id="cmTP">—</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const projectId = new URLSearchParams(location.search).get("projectId");
+  const backLink = document.getElementById("backToProject");
+  if (projectId) backLink.href = "/projectdetailsexaminer/" + projectId;
+  else if (document.referrer) backLink.href = document.referrer;
+  else backLink.href = "/myprojectexaminer";
+
+  const themeToggle = document.getElementById("themeToggle");
+  const langToggle = document.getElementById("langToggle");
+  const profileBtn = document.getElementById("profileBtn");
+  const profileMenu = document.getElementById("profileMenu");
+
+  let dialogues = [];
+  let openId = null;
+  let currentLang = "en";
+  let lastSummary = { avg: "—", ai: "—", mixed: "—", human: "—", pct: "—" };
+
+  const i18n = {
+    en: {
+      back: "← Back to Project",
+      title: "Conversation Analysis",
+      selected_model: "Selected model: —",
+      summary_title: "Analysis Summary",
+      summary_sub: "Model: — • Time: — • GT: —",
+      download: "Download ▾",
+      advanced: "Advanced",
+      submit: "Submit Results",
+      total_dialogues: "Total Dialogues",
+      total_turns: "Total Turns",
+      human_turns: "Human Turns",
+      machine_turns: "Machine Turns",
+      human_pct: "Human %",
+      machine_pct: "Machine %",
+      eval_metrics: "Evaluation Metrics",
+      confusion_matrix: "Confusion Matrix",
+      accuracy: "Accuracy",
+      f1_macro: "F1 Macro",
+      precision_macro: "Precision Macro",
+      recall_macro: "Recall Macro",
+      distribution: "Distribution",
+      turn_level: "Turn-level",
+      dialogue_level: "Dialogue-level",
+      dialogues: "Dialogues",
+      search_dialogue: "Search Dialogue ID...",
+      all_labels: "All labels",
+      ai_heavy: "AI-heavy",
+      mixed: "Mixed",
+      human: "Human",
+      sort_ai_desc: "Sort: AI% (desc)",
+      sort_human_desc: "Sort: Human% (desc)",
+      th_dialogue_id: "Dialogue ID",
+      th_turns: "#Turns",
+      th_human: "#Human",
+      th_machine: "#Machine",
+      th_machine_pct: "Machine %",
+      th_human_pct: "Human %",
+      th_final_label: "Final Label",
+      th_action: "Action",
+      details_title: "Dialogue Details:",
+      all_turns: "All turns",
+      sender: "Sender",
+      text: "Text",
+      prev: "Prev",
+      prediction: "Prediction",
+      gt: "GT",
+      confidence: "Confidence",
+      show: "Show",
+      hide: "Hide",
+      view: "View",
+      close: "Close",
+      tn: "True Negative",
+      fp: "False Positive",
+      fn: "False Negative",
+      tp: "True Positive",
+      mini_line: "Avg Turns/Dialogue: {avg} • AI‑heavy Dialogues: {ai} • Mixed: {mixed} • Human: {human}",
+      dist_note: "Machine turns are {pct}% of all turns.",
+      dist_line: "Avg Turns/Dialogue: {avg} • Highest AI%: —"
+    },
+    ar: {
+      back: "العودة إلى المشروع ←",
+      title: "تحليل المحادثة",
+      selected_model: "النموذج المحدد: —",
+      summary_title: "ملخص التحليل",
+      summary_sub: "النموذج: — • الوقت: — • الحقيقة الأرضية: —",
+      download: "تنزيل ▾",
+      advanced: "متقدم",
+      submit: "إرسال النتائج",
+      total_dialogues: "إجمالي الحوارات",
+      total_turns: "إجمالي الأدوار",
+      human_turns: "أدوار البشر",
+      machine_turns: "أدوار الآلة",
+      human_pct: "نسبة البشر",
+      machine_pct: "نسبة الآلة",
+      eval_metrics: "مقاييس التقييم",
+      confusion_matrix: "مصفوفة الالتباس",
+      accuracy: "الدقة",
+      f1_macro: "F1 متوسط",
+      precision_macro: "الإحكام المتوسط",
+      recall_macro: "الاسترجاع المتوسط",
+      distribution: "التوزيع",
+      turn_level: "مستوى الدور",
+      dialogue_level: "مستوى الحوار",
+      dialogues: "الحوارات",
+      search_dialogue: "ابحث عن معرف الحوار...",
+      all_labels: "كل التصنيفات",
+      ai_heavy: "AI‑كثيف",
+      mixed: "مختلط",
+      human: "بشري",
+      sort_ai_desc: "ترتيب: %الآلة (تنازلي)",
+      sort_human_desc: "ترتيب: %البشر (تنازلي)",
+      th_dialogue_id: "معرف الحوار",
+      th_turns: "#الأدوار",
+      th_human: "#بشري",
+      th_machine: "#آلة",
+      th_machine_pct: "نسبة الآلة",
+      th_human_pct: "نسبة البشر",
+      th_final_label: "التصنيف النهائي",
+      th_action: "إجراء",
+      details_title: "تفاصيل الحوار:",
+      all_turns: "كل الأدوار",
+      sender: "المرسل",
+      text: "النص",
+      prev: "السابق",
+      prediction: "التنبؤ",
+      gt: "الحقيقة",
+      confidence: "الثقة",
+      show: "عرض",
+      hide: "إخفاء",
+      view: "عرض",
+      close: "إغلاق",
+      tn: "سالب صحيح",
+      fp: "موجب كاذب",
+      fn: "سالب كاذب",
+      tp: "موجب صحيح",
+      mini_line: "متوسط الأدوار/حوار: {avg} • حوارات AI‑كثيف: {ai} • مختلط: {mixed} • بشري: {human}",
+      dist_note: "تبادلات الآلة تمثل {pct}% من جميع التبادلات.",
+      dist_line: "متوسط الأدوار/حوار: {avg} • أعلى نسبة AI: —"
+    }
+  };
+
+  function format(str, vars) {
+    return str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  }
+
+  function applyLang(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.dataset.i18n;
+      el.textContent = i18n[lang][key] || el.textContent;
+    });
+
+    document.getElementById("searchInput").placeholder = i18n[lang].search_dialogue;
+
+    const labelFilter = document.getElementById("labelFilter");
+    labelFilter.options[0].text = i18n[lang].all_labels;
+    labelFilter.options[1].text = i18n[lang].ai_heavy;
+    labelFilter.options[2].text = i18n[lang].mixed;
+    labelFilter.options[3].text = i18n[lang].human;
+
+    const sortSelect = document.getElementById("sortSelect");
+    sortSelect.options[0].text = i18n[lang].sort_ai_desc;
+    sortSelect.options[1].text = i18n[lang].sort_human_desc;
+
+    langToggle.textContent = lang === "ar" ? "AR" : "EN";
+
+    document.getElementById("miniLine").textContent =
+      format(i18n[lang].mini_line, lastSummary);
+
+    document.getElementById("distNote").textContent =
+      format(i18n[lang].dist_note, { pct: lastSummary.pct });
+
+    document.getElementById("distLine").textContent =
+      format(i18n[lang].dist_line, { avg: lastSummary.avg });
+
+    renderTable();
+  }
+
+  function esc(val){
+    return String(val ?? "").replace(/[&<>"']/g, (c) => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  function labelFor(d){
+    if (d.machinePct >= 60) return "ai";
+    if (d.humanPct >= 60) return "human";
+    return "mix";
+  }
+
+  function renderTable(){
+    const q = (document.getElementById("searchInput").value || "").toLowerCase();
+    const label = document.getElementById("labelFilter").value;
+    const sort = document.getElementById("sortSelect").value;
+
+    let list = dialogues.filter(d => String(d.id).toLowerCase().includes(q));
+    if (label !== "all") list = list.filter(d => d.label === label);
+
+    list.sort((a,b) => {
+      if (sort === "human_desc") return b.humanPct - a.humanPct;
+      return b.machinePct - a.machinePct;
+    });
+
+    const tbody = document.getElementById("dialogueBody");
+    tbody.innerHTML = list.map(d => {
+      const idStr = String(d.id);
+      const pillClass = d.label === "ai" ? "ai" : d.label === "human" ? "human" : "mix";
+      const pillText = d.label === "ai" ? i18n[currentLang].ai_heavy :
+                       d.label === "human" ? i18n[currentLang].human : i18n[currentLang].mixed;
+      const actionText = openId === idStr ? i18n[currentLang].close : i18n[currentLang].view;
+
+      const details = openId === idStr ? `
+        <tr>
+          <td colspan="8">
+            <div class="details-box">
+              <div class="details-head">
+                <div><strong>${i18n[currentLang].details_title} ${esc(idStr)}</strong></div>
+                <div>Total: ${d.total} | Human: ${d.human} | Machine: ${d.machine} | Machine%: ${d.machinePct.toFixed(1)}</div>
+              </div>
+
+              <div class="details-head" style="justify-content:flex-end;">
+                <select class="select"><option>${i18n[currentLang].all_turns}</option></select>
+              </div>
+
+              <div class="details-row">
+                <strong>#</strong><strong>${i18n[currentLang].sender}</strong><strong>${i18n[currentLang].text}</strong><strong>${i18n[currentLang].prev}</strong><strong>${i18n[currentLang].prediction}</strong><strong>${i18n[currentLang].gt}</strong><strong>${i18n[currentLang].confidence}</strong>
+              </div>
+
+              <div class="details-scroll">
+                ${d.turns.map((t,i)=> {
+                  const prev = (t.prev_text || t.prev || "").trim();
+                  const prevCell = prev
+                    ? `<button class="prev-btn" type="button" data-prev="${esc(prev)}">${i18n[currentLang].show}</button>`
+                    : "—";
+                    const sender = "—";
+                  const predLabel = t.prediction === "AI" ? "Machine" : (t.prediction || "—");
+                  const gtLabel = t.gt === "AI" ? "Machine" : (t.gt || "—");
+                  const conf = (t.confidence === 0 || t.confidence) ? (t.confidence * 100).toFixed(1) + "%" : "—";
+                  return `
+                    <div class="details-row">
+                      <div>${i + 1}</div>
+                      <div>${esc(sender)}</div>
+                      <div>${esc(t.text || "")}</div>
+                      <div>${prevCell}</div>
+                      <div><span class="chip">${esc(predLabel)}</span></div>
+                      <div><span class="chip">${esc(gtLabel)}</span></div>
+                      <div><span class="chip">${esc(conf)}</span></div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+
+              <div class="scrollbar"></div>
+            </div>
+          </td>
+        </tr>` : "";
+
+      return `
+        <tr>
+          <td>${esc(idStr)}</td><td>${d.total}</td><td>${d.human}</td><td>${d.machine}</td>
+          <td>${d.machinePct.toFixed(1)}%</td><td>${d.humanPct.toFixed(1)}%</td>
+          <td><span class="pill ${pillClass}">${pillText}</span></td>
+          <td><button class="view-btn" data-id="${esc(idStr)}">${actionText}</button></td>
+        </tr>
+        ${details}
+      `;
+    }).join("");
+  }
+
+  document.getElementById("dialogueBody").addEventListener("click", (e) => {
+  const prevBtn = e.target.closest(".prev-btn");
+  if (prevBtn) {
+    const row = prevBtn.closest(".details-row");
+    const next = row.nextElementSibling;
+
+    if (next && next.classList.contains("prev-inline")) {
+      next.remove();
+      prevBtn.textContent = i18n[currentLang].show;
+      return;
+    }
+
+    const prevText = prevBtn.dataset.prev || "";
+    const inline = document.createElement("div");
+    inline.className = "prev-inline";
+    inline.textContent = prevText;
+    row.insertAdjacentElement("afterend", inline);
+    prevBtn.textContent = i18n[currentLang].hide;
+    return;
+  }
+
+    const btn = e.target.closest("button[data-id]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    openId = openId === id ? null : id;
+    renderTable();
+  });
+
+  document.getElementById("searchInput").addEventListener("input", renderTable);
+  document.getElementById("labelFilter").addEventListener("change", renderTable);
+  document.getElementById("sortSelect").addEventListener("change", renderTable);
+
+  const cmModal = document.getElementById("cmModal");
+  const cmOpen = document.getElementById("cmOpen");
+  function openCM() { cmModal.classList.add("active"); cmModal.setAttribute("aria-hidden", "false"); }
+  function closeCM() { cmModal.classList.remove("active"); cmModal.setAttribute("aria-hidden", "true"); }
+  cmOpen.addEventListener("click", openCM);
+  cmModal.addEventListener("click", (e) => { if (e.target.matches("[data-close]")) closeCM(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCM(); });
+
+  function setCmValue(id, val){
+    document.getElementById(id).textContent = (val === 0 || val) ? val : "—";
+  }
+
+  async function loadSummary() {
+    if (!projectId) return;
+    const res = await fetch(`/api/analysis_project/${projectId}`);
+    const data = await res.json();
+
+    const cm = data.confusion_matrix || {};
+    const metrics = data.metrics || {};
+
+    setCmValue("cmTN", cm.true_negative ?? cm.tn ?? cm.TN);
+    setCmValue("cmFP", cm.false_positive ?? cm.fp ?? cm.FP);
+    setCmValue("cmFN", cm.false_negative ?? cm.fn ?? cm.FN);
+    setCmValue("cmTP", cm.true_positive ?? cm.tp ?? cm.TP);
+
+    const fmt = (v) => (v === 0 || v ? (v * 100).toFixed(2) + "%" : "—");
+    document.getElementById("accVal").textContent = fmt(metrics.accuracy);
+    document.getElementById("f1Val").textContent = fmt(metrics.f1_macro);
+    document.getElementById("precVal").textContent = fmt(metrics.precision_macro);
+    document.getElementById("recVal").textContent = fmt(metrics.recall_macro);
+
+    const results = data.results || [];
+
+    let totalDialogs = results.length;
+    let totalTurns = 0, humanTurns = 0, machineTurns = 0;
+    let aiHeavy = 0, mixed = 0, humanHeavy = 0;
+
+    dialogues = results.map((r, i) => {
+      const turns = r.turns || [];
+      let human = 0, machine = 0;
+      turns.forEach(t => t.prediction === "AI" ? machine++ : human++);
+      const total = turns.length || (r.turns_count || 0);
+      const machinePct = total ? (machine / total) * 100 : 0;
+      const humanPct = total ? (human / total) * 100 : 0;
+      const label = labelFor({machinePct, humanPct});
+
+      totalTurns += total; humanTurns += human; machineTurns += machine;
+      if (label === "ai") aiHeavy++; else if (label === "human") humanHeavy++; else mixed++;
+
+      const rawId = r.task_id || r.task_name || String(i+1);
+      const displayId = /^\d+$/.test(String(rawId)) ? String(rawId) : String(i+1);
+
+      return { id: displayId, turns, total, human, machine, machinePct, humanPct, label };
+    });
+
+    const humanPct = totalTurns ? (humanTurns/totalTurns*100) : 0;
+    const machinePct = totalTurns ? (machineTurns/totalTurns*100) : 0;
+    const avgTurns = totalDialogs ? (totalTurns/totalDialogs) : 0;
+
+    document.getElementById("totalDialogs").textContent = totalDialogs || "—";
+    document.getElementById("totalTurns").textContent = totalTurns || "—";
+    document.getElementById("humanTurns").textContent = humanTurns || "—";
+    document.getElementById("machineTurns").textContent = machineTurns || "—";
+    document.getElementById("humanPct").textContent = humanPct.toFixed(1) + "%";
+    document.getElementById("machinePct").textContent = machinePct.toFixed(1) + "%";
+
+    lastSummary = {
+      avg: avgTurns.toFixed(2),
+      ai: aiHeavy,
+      mixed: mixed,
+      human: humanHeavy,
+      pct: machinePct.toFixed(1)
+    };
+
+    document.getElementById("miniLine").textContent =
+      format(i18n[currentLang].mini_line, lastSummary);
+
+    document.getElementById("distNote").textContent =
+      format(i18n[currentLang].dist_note, { pct: lastSummary.pct });
+
+    document.getElementById("distLine").textContent =
+      format(i18n[currentLang].dist_line, { avg: lastSummary.avg });
+
+    const maxBar = Math.max(humanTurns, machineTurns, 1);
+    const hBar = document.getElementById("humanBarVal");
+    const mBar = document.getElementById("machineBarVal");
+    hBar.textContent = humanTurns;
+    mBar.textContent = machineTurns;
+    hBar.style.height = (humanTurns / maxBar * 100) + "%";
+    mBar.style.height = (machineTurns / maxBar * 100) + "%";
+
+    renderTable();
+  }
+
+  profileBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = profileMenu.classList.toggle("show");
+    profileBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.addEventListener("click", (e) => {
+    if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+      profileMenu.classList.remove("show");
+      profileBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      profileMenu.classList.remove("show");
+      profileBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    const on = document.body.classList.contains("dark");
+    themeToggle.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+
+  langToggle.addEventListener("click", () => {
+    const next = currentLang === "en" ? "ar" : "en";
+    applyLang(next);
+  });
+
+  applyLang("en");
+  loadSummary();
+</script>
+</body>
+</html>

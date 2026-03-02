@@ -14,6 +14,28 @@ import io
 import requests
 from llm_service import generate_reply
 from flask import abort
+import joblib
+import os
+from sklearn.base import BaseEstimator, TransformerMixin
+import pandas as pd
+
+
+
+MODEL_PATH = os.path.join("Model-con", "conversation_logistic_regression.joblib")
+class ItemSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, key):
+        self.key = key
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, data_dict):
+        return data_dict[self.key]
+
+model = joblib.load(MODEL_PATH)
+
+ANALYSIS_ROOT = "analysis_results/conversation_gen"
+MODEL_KEY = "tfidf_logreg"
 
 # إعداد Flask
 app = Flask(__name__, template_folder="templates", static_folder="static")
@@ -2716,6 +2738,258 @@ def hh_has_new_message():
 
     # 👈 هذا السطر مهم: خارج الـ for
     return jsonify({"hasNew": False})
+
+@app.route("/results_con")
+def show_results():
+    if not session.get("idToken"):
+        return redirect(url_for("login_page"))
+
+    user_doc = get_current_user_doc()
+    user_name = get_user_full_name(user_doc) if user_doc else "Examiner"
+
+    return render_template("results_con.html", user_name=user_name, user_role="Examiner")
+
+def _get_conversation_messages(task_id, conversation_type):
+    if conversation_type == "human-ai":
+        ref = rtdb.reference(f"llm_conversations/{task_id}/messages")
+    else:
+        ref = rtdb.reference(f"hh_conversations/{task_id}/messages")
+
+    raw = ref.get() or {}
+    rows = list(raw.values()) if isinstance(raw, dict) else raw
+    rows.sort(key=lambda m: m.get("created_at", ""))
+
+    speaker_side = {}
+    sides = ["left", "right"]
+
+    messages = []
+    for m in rows:
+        if not isinstance(m, dict):
+            continue
+
+        text = (m.get("message") or "").strip()
+        if not text:
+            continue
+
+        sender_type = (m.get("sender_type") or "").lower()
+        ex_id = m.get("examiner_id") or m.get("sender_id")
+
+        if conversation_type == "human-ai":
+            side = "right" if sender_type in ("llm", "ai", "assistant", "model") else "left"
+        else:
+            if not ex_id:
+                continue
+            if ex_id not in speaker_side:
+                speaker_side[ex_id] = sides[len(speaker_side) % 2]
+            side = speaker_side[ex_id]
+
+        messages.append({
+            "text": text,
+            "side": side,
+            "sender_type": sender_type
+        })
+
+    return messages
+
+def _compute_turns_count(messages, conversation_type):
+    if conversation_type == "human-ai":
+        # turn = كل رسالة من الـ Examiner فقط
+        return sum(1 for m in messages if m.get("sender_type") not in ("llm", "ai", "assistant", "model"))
+
+    # HH: turn = بلوكين متتاليين (left+right أو right+left)
+    seq = [m.get("side") for m in messages if m.get("side")]
+    runs = []
+    for s in seq:
+        if not runs or s != runs[-1]:
+            runs.append(s)
+
+    return len(runs) // 2
+
+
+def _gt_label_from_sender(sender_type, conversation_type):
+    st = (sender_type or "").lower()
+    if conversation_type == "human-ai":
+        return "AI" if st in ("llm", "ai", "assistant", "model") else "Human"
+    return "Human"
+
+def _sender_label(sender_type, conversation_type):
+    st = (sender_type or "").lower()
+    if conversation_type == "human-ai":
+        return "Machine" if st in ("llm", "ai", "assistant", "model") else "Human"
+    return "Human"
+
+
+
+@app.route("/api/run_analysis_project/<project_id>", methods=["POST"])
+def api_run_analysis_project(project_id):
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uid = session.get("uid")
+
+    proj_doc = db.collection("projects").document(project_id).get()
+    if not proj_doc.exists:
+        return jsonify({"error": "Project not found"}), 404
+    proj = proj_doc.to_dict()
+
+    is_owner = proj.get("owner_id") == uid
+    if not is_owner:
+        inv = (
+            db.collection("invitations")
+            .where("project_id", "==", project_id)
+            .where("examiner_id", "==", uid)
+            .where("status", "==", "accepted")
+            .limit(1)
+            .get()
+        )
+        if not inv:
+            return jsonify({"error": "Forbidden"}), 403
+
+    tasks = db.collection("tasks").where("project_ID", "==", project_id).stream()
+
+    out_ref = rtdb.reference(f"{ANALYSIS_ROOT}/{MODEL_KEY}/{project_id}")
+    out_ref.delete()
+
+    for t in tasks:
+        data = t.to_dict()
+        task_id = data.get("task_ID")
+        task_name = data.get("task_name", "Conversation")
+        conv_type = data.get("conversation_type", "human-human")
+
+        msgs = _get_conversation_messages(task_id, conv_type)
+        if not msgs:
+            continue
+
+        texts = [m["text"] for m in msgs]
+        prev_texts = [""] + texts[:-1]
+
+        df = pd.DataFrame({"text": texts, "prev_text": prev_texts})
+        preds = model.predict(df)
+        labels = ["Human" if p == 0 else "AI" for p in preds]
+
+        # نحسب confidence إذا الموديل يدعم predict_proba
+        probs = None
+        try:
+            probs = model.predict_proba(df)
+        except Exception:
+            probs = None
+
+        turns_count = _compute_turns_count(msgs, conv_type)
+
+        task_ref = out_ref.child(task_id)
+        task_ref.child("meta").set({
+            "task_id": task_id,
+            "task_name": task_name,
+            "conversation_type": conv_type,
+            "turns_count": turns_count,
+            "model_key": MODEL_KEY
+        })
+
+        turns_ref = task_ref.child("turns")
+        for idx, (m, label) in enumerate(zip(msgs, labels), start=1):
+            gt = _gt_label_from_sender(m.get("sender_type"), conv_type)
+
+            conf = None
+            if probs is not None:
+                conf = float(max(probs[idx - 1]))
+
+            turns_ref.push({
+                "turn_index": idx,
+                "text": m["text"],
+                "prev_text": prev_texts[idx - 1],
+                "prediction": label,
+                "gt": gt,
+                "sender": _sender_label(m.get("sender_type"), conv_type),
+                "confidence": conf,
+            })
+
+
+
+    return jsonify({"success": True}), 200
+
+def _compute_confusion_and_metrics(results):
+    tn = fp = fn = tp = 0
+
+    for r in results:
+        for t in r.get("turns", []):
+            gt = t.get("gt")
+            pred = t.get("prediction")
+            if not gt or not pred:
+                continue
+
+            if gt == "AI" and pred == "AI":
+                tp += 1
+            elif gt == "AI" and pred != "AI":
+                fn += 1
+            elif gt != "AI" and pred == "AI":
+                fp += 1
+            else:
+                tn += 1
+
+    total = tp + tn + fp + fn
+    acc = (tp + tn) / total if total else 0
+
+    prec_ai = tp / (tp + fp) if (tp + fp) else 0
+    rec_ai  = tp / (tp + fn) if (tp + fn) else 0
+    f1_ai   = (2 * prec_ai * rec_ai / (prec_ai + rec_ai)) if (prec_ai + rec_ai) else 0
+
+    prec_h = tn / (tn + fn) if (tn + fn) else 0
+    rec_h  = tn / (tn + fp) if (tn + fp) else 0
+    f1_h   = (2 * prec_h * rec_h / (prec_h + rec_h)) if (prec_h + rec_h) else 0
+
+    metrics = {
+        "accuracy": acc,
+        "precision_macro": (prec_ai + prec_h) / 2 if total else 0,
+        "recall_macro": (rec_ai + rec_h) / 2 if total else 0,
+        "f1_macro": (f1_ai + f1_h) / 2 if total else 0,
+    }
+
+    cm = {
+        "true_negative": tn,
+        "false_positive": fp,
+        "false_negative": fn,
+        "true_positive": tp
+    }
+
+    return cm, metrics
+
+
+
+@app.route("/api/analysis_project/<project_id>", methods=["GET"])
+def api_analysis_project(project_id):
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    raw = rtdb.reference(f"{ANALYSIS_ROOT}/{MODEL_KEY}/{project_id}").get() or {}
+    results = []
+
+    for task_id, node in raw.items():
+        meta = node.get("meta", {})
+        turns_raw = node.get("turns", {}) or {}
+        turns = list(turns_raw.values()) if isinstance(turns_raw, dict) else turns_raw
+        turns.sort(key=lambda x: x.get("turn_index", 0))
+
+        results.append({
+            "task_id": task_id,
+            "task_name": meta.get("task_name", "Conversation"),
+            "turns_count": meta.get("turns_count", len(turns)),
+            "turns": turns
+        })
+
+    cm, metrics = _compute_confusion_and_metrics(results)
+
+    return jsonify({
+        "count": len(results),
+        "results": results,
+        "confusion_matrix": cm,
+        "metrics": metrics
+    }), 200
+
+
+@app.route("/conversation-analysis")
+def conversation_analysis():
+    return render_template("conversation_analysis.html")
+
 
 
 

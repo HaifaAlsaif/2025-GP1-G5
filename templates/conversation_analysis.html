@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Conversation Analysis</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+      :root {
+        --bg: #f5f7fb;
+        --ink: #0e162b;
+        --muted: #6f7483;
+        --line: #e7e9f0;
+        --card: #ffffff;
+        --primary: #2f66ff;
+        --shadow: 0 14px 40px rgba(20, 22, 35, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(1100px 500px at 10% -10%, #e8f0ff 0%, transparent 55%),
+          radial-gradient(900px 500px at 90% 0%, #fff0db 0%, transparent 60%),
+          var(--bg);
+        min-height: 100vh;
+      }
+
+      .app { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0 18px;
+      }
+
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .logo { width: 32px; height: 32px; }
+      .brand-text {
+        font-size: 20px;
+        font-weight: 500;
+        background: linear-gradient(90deg, #00b8da 0%, #155cfb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .header-right { display: flex; align-items: center; gap: 12px; }
+      .language { font-size: 14px; color: #0a0a0a; }
+      .moon { width: 36px; height: 36px; }
+
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #0a0a0a;
+        text-decoration: none;
+        font-size: 14px;
+        margin: 6px 0 8px;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+
+      .panel-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: #e7e9f0;
+      }
+
+      .title { font-size: 26px; font-weight: 700; }
+
+      .selected-model {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 6px 0 14px;
+      }
+
+      .divider { height: 1px; background: var(--line); margin: 10px 0 16px; }
+
+      .content {
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 12px 0 6px;
+      }
+
+      .content h3 { margin: 0 0 6px; font-size: 16px; }
+      .content p { margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+
+      .model-box {
+        width: 420px;
+        max-width: 100%;
+        text-align: left;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: #fff;
+        margin-bottom: 12px;
+      }
+
+      .model-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        background: #fff;
+      }
+
+      .btn {
+        border: none;
+        background: var(--primary);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+      .loader { display: none; text-align: center; }
+
+      .bar {
+        height: 8px;
+        width: 60%;
+        margin: 0 auto 12px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+      }
+
+      .bar span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: var(--primary);
+        border-radius: 999px;
+        animation: load 2.2s linear infinite;
+      }
+
+      .bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+      @media (max-width: 768px) {
+        .model-box { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="brand notranslate" translate="no">
+          <img src="../static/images/img_header.svg" alt="TrustLens logo" class="logo">
+          <div class="brand-text">TrustLens</div>
+        </div>
+        <div class="header-right">
+          <div class="language">EN</div>
+          <img src="../static/images/img_buttonDark.svg" alt="Dark mode" class="moon">
+        </div>
+      </header>
+
+      <a href="#" id="backToProject" class="back-link">← Back to Project</a>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-icon"></div>
+          <div class="title">Conversation Analysis</div>
+        </div>
+
+        <div class="selected-model" id="modelDesc">Selected model: —</div>
+
+        <div class="divider"></div>
+
+        <div class="content" id="selectArea">
+          <h3>Ready to Analyze</h3>
+          <p>This will analyze the uploaded conversations dataset using the selected model.</p>
+
+          <div class="model-box">
+            <div class="model-label">MODEL</div>
+            <select id="modelSelect">
+              <option value="">Select a model…</option>
+              <option value="logreg">Baseline — TF‑IDF + Logistic Regression (LR)</option>
+              <option value="rnn">Baseline — RNN (Coming soon)</option>
+              <option value="sota">State‑of‑the‑Art (SOTA) — LLM‑based (Coming soon)</option>
+            </select>
+          </div>
+
+          <button class="btn" id="runBtn" disabled>Run Detection</button>
+        </div>
+
+        <div class="loader" id="loaderArea">
+          <div class="bar"><span></span></div>
+          <div style="font-size:13px;color:var(--muted);">Processing Dataset…</div>
+          <div style="margin-top:4px;color:var(--muted);font-size:13px;">Starting analysis on server…</div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const projectId = new URLSearchParams(location.search).get("projectId");
+      const backLink = document.getElementById("backToProject");
+      backLink.href = projectId ? "/projectdetailsexaminer/" + projectId : "/myprojectexaminer";
+
+      const modelSelect = document.getElementById("modelSelect");
+      const runBtn = document.getElementById("runBtn");
+      const modelDesc = document.getElementById("modelDesc");
+      const barFill = document.querySelector(".bar span");
+      const selectArea = document.getElementById("selectArea");
+      const loaderArea = document.getElementById("loaderArea");
+
+      const descMap = {
+        logreg: "Selected model: Baseline — TF‑IDF + Logistic Regression (LR) — Fast classical baseline for turn‑level detection.",
+        rnn: "Selected model: Baseline — RNN — Coming soon.",
+        sota: "Selected model: State‑of‑the‑Art (SOTA) — LLM‑based — Coming soon."
+      };
+
+      modelSelect.addEventListener("change", () => {
+        const val = modelSelect.value;
+        runBtn.disabled = !val || val !== "logreg";
+        modelDesc.textContent = val ? (descMap[val] || "Selected model: —") : "Selected model: —";
+      });
+
+      runBtn.addEventListener("click", async () => {
+  if (!projectId) return;
+
+  selectArea.style.display = "none";
+  loaderArea.style.display = "block";
+
+  // يبدأ يمشي مرة وحدة لحد 85% ويثبت
+  barFill.style.width = "12%";
+  requestAnimationFrame(() => { barFill.style.width = "85%"; });
+
+  try {
+    await fetch(`/api/run_analysis_project/${projectId}`, { method: "POST" });
+
+    // اكتمل التحليل -> يكمّل 100% ثم يفتح الصفحة
+    barFill.style.width = "100%";
+    barFill.addEventListener("transitionend", () => {
+      location.href = `/results_con?projectId=${projectId}`;
+    }, { once: true });
+
+  } catch (e) {
+    barFill.style.width = "0%";
+    loaderArea.innerHTML = "<div style='color:#c00;font-size:13px;'>حدث خطأ أثناء التحليل</div>";
+  }
+});
+
+    </script>
+  </body>
+</html>
