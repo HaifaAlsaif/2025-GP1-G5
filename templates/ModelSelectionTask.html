@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="initial-scale=1, width=device-width"/>
+  <title>Model Selection • TrustLens</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --text: #0a0a0a;
+      --muted: #717182;
+      --line: rgba(0,0,0,.10);
+      --primary1: #00B8DB;
+      --primary2: #155DFC;
+      --radius: 14px;
+      --success: #0A7A39;
+      --warning: #F59E0B;
+      --danger: #B42318;
+      --human-bg: rgba(10, 122, 57, 0.1);
+      --human-border: #84fab0;
+      --ai-bg: rgba(245, 158, 11, 0.1);
+      --ai-border: #fbbf24;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: #fafafa;
+    }
+
+    .mast {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(16px, 6vw, 134.8px);
+      z-index: 100;
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand img { width: 32px; height: 32px; }
+    .brand-name {
+      font-size: 20px;
+      background: linear-gradient(90deg, var(--primary1), var(--primary2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 600;
+    }
+
+    .user-info { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary1), var(--primary2));
+      display: grid; place-items: center;
+      color: #fff; font-weight: 700;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 80px auto 40px;
+      padding: 0 clamp(16px, 4vw, 40px);
+    }
+
+    .page-header { margin-bottom: 32px; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none;
+      font-size: 14px; margin-bottom: 16px;
+    }
+    .back-link:hover { color: var(--text); }
+
+    .page-title { font-size: 28px; font-weight: 600; margin: 0 0 8px 0; }
+    .page-subtitle { color: var(--muted); font-size: 16px; margin: 0; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .summary-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .summary-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary1), var(--primary2));
+    }
+    .summary-card.human::before { background: linear-gradient(90deg, #0A7A39, #84fab0); }
+    .summary-card.ai::before    { background: linear-gradient(90deg, #F59E0B, #fbbf24); }
+
+    .card-label    { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+    .card-value    { font-size: 36px; font-weight: 700; margin-bottom: 4px; }
+    .card-subtitle { font-size: 14px; color: var(--muted); }
+
+    .action-bar {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .model-select { display: flex; align-items: center; gap: 10px; }
+    .model-label  { font-size: 14px; color: var(--muted); font-weight: 600; }
+    .model-dropdown {
+      height: 40px; padding: 0 14px;
+      border: 1px solid var(--line); border-radius: 8px;
+      background: #f9f9fb; font-size: 14px;
+      color: var(--text); cursor: pointer;
+    }
+    .model-dropdown:focus { outline: none; border-color: var(--primary1); }
+
+    .search-box { flex: 1; min-width: 280px; max-width: 400px; position: relative; }
+    .search-input {
+      width: 100%; height: 40px;
+      padding: 0 16px 0 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f9f9fb;
+      font-size: 14px;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary1); }
+    .search-icon {
+      position: absolute; left: 12px; top: 12px;
+      width: 16px; height: 16px; opacity: 0.5;
+    }
+
+    .action-buttons { display: flex; gap: 12px; }
+
+    .btn {
+      height: 40px; padding: 0 20px;
+      border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none;
+      display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, var(--primary1), var(--primary2));
+      color: #fff;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,184,219,0.3); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: #fff; border: 1px solid var(--line); color: var(--text); }
+    .btn-secondary:hover { background: #f9f9fb; }
+
+    .results-container {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: #f9f9fb; border-bottom: 1px solid var(--line); }
+    th {
+      padding: 16px; text-align: left;
+      font-size: 13px; font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    td { padding: 16px; border-bottom: 1px solid var(--line); font-size: 14px; }
+    tbody tr:hover { background: #f9f9fb; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .article-title {
+      font-weight: 500; color: var(--text);
+      max-width: 400px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 9999px;
+      font-size: 13px; font-weight: 600;
+    }
+    .badge.human { background: var(--human-bg); border: 1px solid var(--human-border); color: var(--success); }
+    .badge.ai    { background: var(--ai-bg);    border: 1px solid var(--ai-border);    color: var(--warning); }
+
+    .percentage { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+    .loading, .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary1);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: var(--radius); padding: 32px;
+      max-width: 700px; width: 90%; max-height: 85vh;
+      overflow-y: auto; position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: none; border: none; font-size: 20px;
+      cursor: pointer; color: var(--muted);
+    }
+    .modal-title { font-size: 18px; font-weight: 600; margin: 0 0 16px 0; padding-right: 32px; }
+    .modal-section { margin-bottom: 24px; }
+    .modal-section-title {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+    }
+    .modal-content-text {
+      font-size: 14px; line-height: 1.6; color: var(--text);
+      background: #f9f9fb; padding: 12px; border-radius: 8px;
+      max-height: 150px; overflow-y: auto;
+    }
+    .chunk-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--line);
+    }
+    .chunk-row:last-child { border-bottom: none; }
+    .chunk-label { font-weight: 600; font-size: 14px; min-width: 40px; }
+    .chunk-bar { flex: 1; height: 8px; background: #f0f0f0; border-radius: 99px; overflow: hidden; }
+    .chunk-bar-fill { height: 100%; border-radius: 99px; }
+    .chunk-bar-fill.human { background: #0A7A39; }
+    .chunk-bar-fill.ai    { background: #F59E0B; }
+    .chunk-stats { font-size: 13px; color: var(--muted); min-width: 160px; text-align: right; }
+    .overall-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; background: #f9f9fb; border-radius: 8px; margin-top: 12px;
+    }
+    .overall-label { font-weight: 600; font-size: 14px; }
+    .btn-details {
+      height: 32px; padding: 0 14px; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--line); background: #fff; color: var(--text);
+    }
+    .btn-details:hover { background: #f9f9fb; }
+
+    .btn-success {
+      background: linear-gradient(90deg, #0A7A39, #84fab0);
+      color: #fff;
+    }
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(10, 122, 57, 0.3);
+    }
+    .btn-success:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @media (max-width: 768px) {
+      .summary-grid { grid-template-columns: 1fr; }
+      .action-bar { flex-direction: column; align-items: stretch; }
+      .search-box { max-width: none; }
+      .action-buttons { justify-content: stretch; }
+      .btn { flex: 1; }
+      th, td { padding: 12px; }
+      .article-title { max-width: 200px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="mast">
+    <div class="brand">
+      <img src="/static/images/icon_logo.svg" alt="TrustLens">
+      <div class="brand-name">TrustLens</div>
+    </div>
+    <div class="user-info">
+      <span id="userName">{{ user_name }}</span>
+      <div class="avatar" id="userAvatar">{{ user_name[0] if user_name else 'E' }}</div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <a href="/projectdetailsexaminer/{{ project_id }}" class="back-link">← Back to Project</a>
+      <h1 class="page-title">{{ task_name }}</h1>
+      <p class="page-subtitle" id="datasetInfo">Run both models and select the best one</p>
+<p class="page-subtitle" id="taskDescription" style="margin-top:4px;color:#717182;font-size:14px;">{{ task_description }}</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="card-label">Total Articles</div>
+        <div class="card-value" id="totalArticles">-</div>
+        <div class="card-subtitle">Analyzed articles</div>
+      </div>
+      <div class="summary-card human">
+        <div class="card-label">Human Written</div>
+        <div class="card-value" id="humanCount">-</div>
+        <div class="card-subtitle" id="humanPercentage">-% of total</div>
+      </div>
+      <div class="summary-card ai">
+        <div class="card-label">AI Generated</div>
+        <div class="card-value" id="aiCount">-</div>
+        <div class="card-subtitle" id="aiPercentage">-% of total</div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+        </svg>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search articles...">
+      </div>
+
+      <div class="model-select">
+        <label for="modelSelect" class="model-label">Model:</label>
+        <select id="modelSelect" class="model-dropdown">
+          <option value="logistic" selected>Logistic Regression (TF-IDF)</option>
+          <option value="rnn">RNN (BiGRU)</option>
+        </select>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="runAnalysisBtn">🔍 Run Analysis</button>
+        <button class="btn btn-success" id="selectModelBtn" style="display:none;">✅ Select This Model</button>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="results-container">
+      <div class="loading" id="loadingState">
+        <div class="spinner"></div>
+        <p>Loading analysis results...</p>
+      </div>
+
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <p>📊 No analysis results yet</p>
+        <p style="margin-top:8px;">Click "Run Analysis" to analyze all articles in this dataset</p>
+      </div>
+
+      <div class="table-wrapper" id="tableWrapper" style="display:none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Article Title</th>
+              <th>Prediction</th>
+              <th>Human %</th>
+              <th>AI %</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="resultsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Details Modal -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2 class="modal-title" id="modalTitle">Article Details</h2>
+      
+      <div class="modal-section">
+        <div class="modal-section-title">📄 Content</div>
+        <div class="modal-content-text" id="modalContent"></div>
+      </div>
+      
+      <div class="modal-section">
+        <div class="modal-section-title">📊 Analysis by Chunk</div>
+        <div id="modalChunks"></div>
+        <div class="overall-row">
+          <span class="overall-label">Overall</span>
+          <span id="modalOverall"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const taskId = "{{ task_id }}";
+    const projectId = "{{ project_id }}";
+
+    let allDetails = [];
+    let modelsRan = { logistic: false, rnn: false };
+
+   async function loadAnalysisResults() {
+  try {
+    const modelType = document.getElementById('modelSelect').value;
+    const response = await fetch(`/api/task/${taskId}/run_model`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: modelType })
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      displayResults(data);
+      modelsRan[modelType] = true;
+      
+      // ✅ نظهر الزر من أول Run
+      document.getElementById('selectModelBtn').style.display = 'inline-flex';
+    } else {
+      showEmptyState();
+    }
+  } catch (error) {
+    console.error('Error loading results:', error);
+    showEmptyState();
+  }
+}
+     
+    
+
+    function showEmptyState() {
+      document.getElementById('loadingState').style.display  = 'none';
+      document.getElementById('emptyState').style.display   = 'block';
+      document.getElementById('tableWrapper').style.display = 'none';
+    }
+
+    function displayResults(data) {
+      document.getElementById('loadingState').style.display  = 'none';
+      document.getElementById('emptyState').style.display   = 'none';
+      document.getElementById('tableWrapper').style.display = 'block';
+
+      const summary = data.summary || {};
+      const details = data.sample_results || [];
+      allDetails = details;
+
+      document.getElementById('totalArticles').textContent   = summary.total_articles    || 0;
+      document.getElementById('humanCount').textContent      = summary.human_count        || 0;
+      document.getElementById('aiCount').textContent         = summary.ai_count           || 0;
+      document.getElementById('humanPercentage').textContent = `${summary.human_percentage || 0}% of total`;
+      document.getElementById('aiPercentage').textContent    = `${summary.ai_percentage   || 0}% of total`;
+
+      const modelName = (summary.model_type === "rnn") ? "RNN (BiGRU)" : "Logistic Regression (TF-IDF)";
+      document.getElementById('datasetInfo').textContent = `Results from ${modelName}`;
+
+      const tbody = document.getElementById('resultsTable');
+      tbody.innerHTML = '';
+
+      details.forEach((article, idx) => {
+        const row     = document.createElement('tr');
+        const isHuman = article.prediction === 'Human';
+
+        row.innerHTML = `
+          <td><div class="article-title" title="${article.title}">${article.title || 'Untitled'}</div></td>
+          <td>
+            <span class="badge ${isHuman ? 'human' : 'ai'}">
+              ${isHuman ? '✍️' : '🤖'} ${article.prediction}
+            </span>
+          </td>
+          <td><span class="percentage">${article.human_percentage}%</span></td>
+          <td><span class="percentage">${article.ai_percentage}%</span></td>
+          <td><button class="btn-details" data-idx="${idx}">🔍 Show Details</button></td>
+        `;
+
+        row.querySelector('.btn-details').addEventListener('click', () => {
+          showDetails(allDetails[idx]);
+        });
+
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('modelSelect').addEventListener('change', () => {
+      const modelType = document.getElementById('modelSelect').value;
+      if (modelsRan[modelType]) {
+        // لو المودل اشتغل قبل، نعرض نتائجه المحفوظة
+        // بس الحين API ما يحفظ، فنخليه يشغل مرة ثانية
+      }
+    });
+
+    document.getElementById('runAnalysisBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('runAnalysisBtn');
+      btn.disabled    = true;
+      btn.textContent = '⏳ Analyzing...';
+
+      await loadAnalysisResults();
+
+      btn.disabled    = false;
+      btn.textContent = '🔍 Run Analysis';
+    });
+
+    document.getElementById('selectModelBtn').addEventListener('click', async () => {
+      const modelType = document.getElementById('modelSelect').value;
+      const btn = document.getElementById('selectModelBtn');
+      
+      btn.disabled = true;
+      btn.textContent = '⏳ Saving...';
+
+      try {
+        const res = await fetch(`/api/task/${taskId}/select_model`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ selected_model: modelType })
+        });
+        
+        const data = await res.json();
+        
+        if (data.error) {
+          alert('Error: ' + data.error);
+          btn.disabled = false;
+          btn.textContent = '✅ Select This Model';
+          return;
+        }
+        
+        alert('✅ Model selected successfully!');
+        window.location.href = `/projectdetailsexaminer/${projectId}`;
+        
+      } catch (err) {
+        console.error(err);
+        alert('Failed to save selection');
+        btn.disabled = false;
+        btn.textContent = '✅ Select This Model';
+      }
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      document.querySelectorAll('#resultsTable tr').forEach(row => {
+        const titleEl = row.querySelector('.article-title');
+        if (titleEl) {
+          row.style.display = titleEl.textContent.toLowerCase().includes(query) ? '' : 'none';
+        }
+      });
+    });
+
+    function showDetails(article) {
+  document.getElementById('modalTitle').textContent = article.title || 'Untitled';
+  document.getElementById('modalContent').textContent = article.content || 'No content available';
+
+  const chunksDiv = document.getElementById('modalChunks');
+  chunksDiv.innerHTML = '';
+
+  if (article.chunks && article.chunks.length > 0) {
+    article.chunks.forEach(chunk => {
+      const isHumanChunk = chunk.human > chunk.ai;
+      chunksDiv.innerHTML += `
+        <div class="chunk-row">
+          <span class="chunk-label">${chunk.label}</span>
+          <div class="chunk-bar">
+            <div class="chunk-bar-fill ${isHumanChunk ? 'human' : 'ai'}"
+                 style="width:${isHumanChunk ? chunk.human : chunk.ai}%"></div>
+          </div>
+          <span class="chunk-stats">✍️ ${chunk.human}% &nbsp; 🤖 ${chunk.ai}%</span>
+        </div>
+      `;
+    });
+  } else {
+    chunksDiv.innerHTML = '<p style="color:var(--muted);font-size:14px;">No chunk data.</p>';
+  }
+
+  const isHuman = article.prediction === 'Human';
+  document.getElementById('modalOverall').innerHTML = `
+    <span class="badge ${isHuman ? 'human' : 'ai'}">
+      ${isHuman ? '✍️' : '🤖'} ${article.prediction}
+    </span>
+    &nbsp; ✍️ ${article.human_percentage}% &nbsp; 🤖 ${article.ai_percentage}%
+  `;
+
+  document.getElementById('detailsModal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('detailsModal').classList.remove('open');
+}
+function closeModal() {
+  document.getElementById('detailsModal').classList.remove('open');
+}
+
+  </script>
+</body>
+</html>

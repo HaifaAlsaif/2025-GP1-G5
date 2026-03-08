@@ -301,6 +301,22 @@
             <div class="step-hint">Choose between 2 and 7 turns.</div>
           </div>
 
+          <!-- =====Article Type === -->
+<div class="field" id="taskTypeField" style="display:none;">
+  <div class="label">Task Type</div>
+  <div class="conv-toggle" id="taskTypeToggle">
+    <button type="button" class="conv-pill" data-value="model_selection">
+      <div class="pill-title">Model Selection</div>
+      <div class="pill-sub">Choose best model for dataset</div>
+    </button>
+    <button type="button" class="conv-pill" data-value="labeling">
+      <div class="pill-title">Labeling & Feedback</div>
+      <div class="pill-sub">Add labels and explanations</div>
+    </button>
+  </div>
+  <input type="hidden" id="taskType" value="model_selection">
+</div>
+
           <!-- Conversation type -->
           <div class="field" id="convField">
             <div class="label">Conversation Type</div>
@@ -367,9 +383,23 @@
     
   
     const projectId = "{{ project_id }}".trim();
-    const projectCategory = "{{ category|safe }}".trim().toLowerCase();
+const projectCategory = "{{ category|safe }}".trim().toLowerCase();
+
+// ========== إظهار/إخفاء الحقول حسب نوع المشروع ==========
 if (projectCategory === "article") {
+  // إخفاء حقول Conversation
+  document.getElementById("convField").style.display = "none";
+  document.getElementById("turnsField").style.display = "none";
   
+  // إظهار حقل Task Type
+  document.getElementById("taskTypeField").style.display = "block";
+} else {
+  // إخفاء حقل Task Type
+  document.getElementById("taskTypeField").style.display = "none";
+  
+  // إظهار حقول Conversation
+  document.getElementById("convField").style.display = "block";
+  document.getElementById("turnsField").style.display = "block";
 }
     const $=(s,e=document)=>e.querySelector(s);
     const $$=(s,e=document)=>Array.from(e.querySelectorAll(s));
@@ -401,17 +431,40 @@ if (projectCategory === "article") {
     
   
     function requiredCount() {
-      if (projectCategory === "article") return 1; 
-      return convTypeInput.value === "human-human" ? 2 : 1;
+  if (projectCategory === "article") {
+    const taskType = document.getElementById("taskType").value;
+    
+    if (taskType === "model_selection") {
+      return { exact: 1 };  // ✅ بالضبط 1
+    } else {
+      return { min: 1 };     // ✅ على الأقل 1
     }
+  } 
+  
+  return { exact: convTypeInput.value === "human-human" ? 2 : 1 };
+}
     
     let exChecks = [];   
 
 function updateRule(){
-  const req=requiredCount();
-  exRuleText.textContent=req===2?"Select exactly 2 examiners":"Select exactly 1 examiner";
+  if (projectCategory === "article") {
+    const exRule = document.querySelector(".ex-rule");
+    if (exRule) exRule.style.display = "none";
+
+    const modelPill = document.querySelector("#taskTypeToggle [data-value='model_selection'] .pill-sub");
+    const labelPill = document.querySelector("#taskTypeToggle [data-value='labeling'] .pill-sub");
+    if (modelPill) modelPill.textContent = "Exactly 1 examiner";
+    if (labelPill) labelPill.textContent = "1+ examiner";
+
+    updateSelectedCount();
+    return;
+  }
+
+  const req = requiredCount();
+  exRuleText.textContent = req.exact === 2 ? "Select exactly 2 examiners" : "Select exactly 1 examiner";
   updateSelectedCount();
 }
+
 function updateSelectedCount(){
   const selected=exChecks.filter(cb=>cb.checked).length;
   const req=requiredCount();
@@ -436,6 +489,26 @@ convToggle.addEventListener("click",e=>{
   updateRule();
 });
 
+// ========== Task Type Toggle ==========
+const taskTypeToggle = document.getElementById("taskTypeToggle");
+const taskTypeInput = document.getElementById("taskType");
+
+if (taskTypeToggle) {
+  taskTypeToggle.addEventListener("click", e => {
+    const btn = e.target.closest(".conv-pill");
+    if (!btn) return;
+    
+    const value = btn.dataset.value;
+    taskTypeInput.value = value;
+    
+    // تحديث الأزرار
+    document.querySelectorAll("#taskTypeToggle .conv-pill").forEach(b => 
+      b.classList.toggle("active", b === btn)
+    );
+    
+    updateRule();
+  });
+}
 
 stepBtns.forEach(btn=>{
   btn.addEventListener("click",()=>{
@@ -464,31 +537,50 @@ submitBtn.addEventListener("click", async () => {
     return;
   }
 
-  if (selectedExaminers.length !== required) {
-    if (projectCategory === "article") {
-      alert("Please assign exactly 1 examiner to evaluate the article.");
-    } else {
-      alert(required === 2
-        ? "Please select exactly 2 examiners for Human ↔ Human conversation."
-        : "Please select exactly 1 examiner for Human ↔ AI conversation."
-      );
-    }
-    return;
-  }
+  const requirement = requiredCount();
 
+let isValid = false;
+if (requirement.exact !== undefined) {
+  isValid = selectedExaminers.length === requirement.exact;
+} else if (requirement.min !== undefined) {
+  isValid = selectedExaminers.length >= requirement.min;
+}
+
+if (!isValid) {
+  if (projectCategory === "article") {
+    const taskType = document.getElementById("taskType").value;
+    if (taskType === "model_selection") {
+      alert(`Please assign exactly 1 examiner for Model Selection. You selected ${selectedExaminers.length}.`);
+    } else {
+      alert(`Please assign at least 1 examiner for Labeling & Feedback. You selected ${selectedExaminers.length}.`);
+    }
+  } else {
+    alert(requirement.exact === 2
+      ? `Please select exactly 2 examiners for Human ↔ Human conversation. You selected ${selectedExaminers.length}.`
+      : `Please select exactly 1 examiner for Human ↔ AI conversation. You selected ${selectedExaminers.length}.`
+    );
+  }
+  return;
+}
+  
   // Create payload
-  let payload = {
-    project_id: projectId,
-    task_name: title,
-    examiner_ids: selectedExaminers
-  };
+let payload = {
+  project_id: projectId,
+  task_name: title,
+  examiner_ids: selectedExaminers
+};
   
 
-  if (!taskId && projectCategory !== "article") {
-    // فقط عند إنشاء تاسك جديد وليس التعديل
+  // ========== إضافة البيانات حسب نوع المشروع ==========
+if (!taskId) { // فقط عند الإنشاء
+  if (projectCategory === "article") {
+    const taskType = document.getElementById("taskType").value;
+    payload.task_type = taskType;
+  } else {
     payload.conversation_type = convType;
     payload.number_of_turns = turns;
   }
+}
   
 
   // ⭐ تحديد URL و METHOD حسب الحالة (إنشاء / تعديل)
@@ -522,10 +614,6 @@ submitBtn.addEventListener("click", async () => {
     alert("Failed to save task.");
   }
 });
-
-
-updateRule();
-
 
 
 
@@ -585,11 +673,8 @@ updateRule();
     document.getElementById("turnsField").style.display = "none";
   }
   
-  
-  if (!taskId && projectCategory !== "article") {
-    payload.conversation_type = convType;
-    payload.number_of_turns = turns;
-}
+  updateRule();
+ 
 
   </script>
 </body>

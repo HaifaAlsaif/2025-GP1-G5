@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="initial-scale=1, width=device-width"/>
+  <title>Feedback Task • TrustLens</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --text: #0a0a0a;
+      --muted: #717182;
+      --line: rgba(0,0,0,.10);
+      --primary1: #00B8DB;
+      --primary2: #155DFC;
+      --radius: 14px;
+      --success: #0A7A39;
+      --warning: #F59E0B;
+      --human-bg: rgba(10, 122, 57, 0.1);
+      --human-border: #84fab0;
+      --ai-bg: rgba(245, 158, 11, 0.1);
+      --ai-border: #fbbf24;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background: #fafafa;
+    }
+
+    .mast {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(16px, 6vw, 134.8px);
+      z-index: 100;
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand img { width: 32px; height: 32px; }
+    .brand-name {
+      font-size: 20px;
+      background: linear-gradient(90deg, var(--primary1), var(--primary2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 600;
+    }
+
+    .user-info { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary1), var(--primary2));
+      display: grid; place-items: center;
+      color: #fff; font-weight: 700;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 80px auto 40px;
+      padding: 0 clamp(16px, 4vw, 40px);
+    }
+
+    .page-header { margin-bottom: 32px; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none;
+      font-size: 14px; margin-bottom: 16px;
+    }
+    .back-link:hover { color: var(--text); }
+
+    .page-title { font-size: 28px; font-weight: 600; margin: 0 0 8px 0; }
+    .page-subtitle { color: var(--muted); font-size: 16px; margin: 0; }
+
+    .progress-bar {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .progress-label { font-size: 14px; color: var(--muted); margin-bottom: 8px; }
+
+    .progress-track {
+      height: 8px;
+      background: #f0f0f0;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary1), var(--primary2));
+      border-radius: 99px;
+      transition: width 0.3s;
+    }
+
+    .progress-text { font-size: 13px; color: var(--muted); text-align: right; }
+
+    /* Filter Section */
+    .filter-section {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .filter-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .filter-select {
+      flex: 1;
+      max-width: 400px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--primary1);
+    }
+
+    .article-accordion {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .accordion-header:hover { background: #f9f9fb; }
+
+    .accordion-title { flex: 1; font-size: 16px; font-weight: 600; margin-right: 16px; }
+
+    .accordion-badges { display: flex; align-items: center; gap: 8px; margin-right: 12px; flex-wrap: wrap; }
+
+    .accordion-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .accordion-badge.reviewed { background: #d1fae5; color: var(--success); }
+    .accordion-badge.pending { background: #fef3c7; color: var(--warning); }
+    .accordion-badge.human { background: var(--human-bg); border: 1px solid var(--human-border); color: var(--success); }
+    .accordion-badge.ai { background: var(--ai-bg); border: 1px solid var(--ai-border); color: var(--warning); }
+    .accordion-badge.confidence { background: #e0e7ff; color: #4338ca; font-weight: 700; }
+
+    .accordion-icon { font-size: 20px; transition: transform 0.3s; }
+    .accordion-header.active .accordion-icon { transform: rotate(180deg); }
+
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      border-top: 1px solid var(--line);
+    }
+    .accordion-body.active { max-height: 2000px; }
+
+    .accordion-content { padding: 24px; }
+
+    .article-content {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      background: #f9f9fb;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .detection-results {
+      background: linear-gradient(135deg, rgba(21, 93, 252, 0.05), rgba(0, 184, 219, 0.05));
+      border: 1px solid var(--primary1);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .detection-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--primary2); }
+
+    .chunks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .chunk-card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .chunk-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+    .chunk-bars { display: flex; flex-direction: column; gap: 6px; }
+    .chunk-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .chunk-bar-label { min-width: 50px; font-weight: 600; }
+    .chunk-bar-track { flex: 1; height: 6px; background: #f0f0f0; border-radius: 99px; overflow: hidden; }
+    .chunk-bar-fill { height: 100%; border-radius: 99px; }
+    .chunk-bar-fill.human { background: var(--success); }
+    .chunk-bar-fill.ai { background: var(--warning); }
+    .chunk-bar-value { min-width: 40px; text-align: right; font-weight: 600; }
+
+    .feedback-exists {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+      border: 2px solid var(--ai-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .feedback-warning {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 16px; font-weight: 600;
+      color: var(--warning); margin-bottom: 16px;
+    }
+
+    .feedback-info { background: #fff; border-radius: 8px; padding: 16px; }
+
+    .feedback-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+    }
+
+    .feedback-author { font-weight: 600; font-size: 14px; }
+    .feedback-date { font-size: 12px; color: var(--muted); }
+
+    .feedback-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 9999px;
+      font-size: 13px; font-weight: 600; margin-bottom: 12px;
+    }
+    .feedback-label.human { background: var(--human-bg); border: 1px solid var(--human-border); color: var(--success); }
+    .feedback-label.ai { background: var(--ai-bg); border: 1px solid var(--ai-border); color: var(--warning); }
+    .feedback-text { font-size: 14px; line-height: 1.6; color: var(--text); }
+
+    .form-section { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+    .form-title { font-size: 18px; font-weight: 600; margin-bottom: 24px; }
+    .form-group { margin-bottom: 24px; }
+    .form-label { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: block; }
+
+    .radio-group { display: flex; gap: 16px; }
+    .radio-option { flex: 1; position: relative; }
+    .radio-option input { position: absolute; opacity: 0; }
+
+    .radio-label {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 16px; border: 2px solid var(--line); border-radius: 8px;
+      cursor: pointer; transition: all 0.2s; font-weight: 600; font-size: 16px;
+    }
+
+    .radio-option input:checked + .radio-label.human {
+      background: var(--human-bg); border-color: var(--human-border); color: var(--success);
+    }
+    .radio-option input:checked + .radio-label.ai {
+      background: var(--ai-bg); border-color: var(--ai-border); color: var(--warning);
+    }
+    .radio-label:hover { border-color: var(--primary1); }
+
+    textarea {
+      width: 100%; min-height: 120px; padding: 12px;
+      border: 1px solid var(--line); border-radius: 8px;
+      font-size: 14px; font-family: inherit; resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: var(--primary1); }
+
+    .char-count { font-size: 12px; color: var(--muted); text-align: right; margin-top: 4px; }
+
+    .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+
+    .btn {
+      height: 44px; padding: 0 24px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer; border: none;
+      display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;
+    }
+    .btn-primary { background: linear-gradient(90deg, var(--primary1), var(--primary2)); color: #fff; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,184,219,0.3); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .loading { text-align: center; padding: 60px 20px; color: var(--muted); }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary1);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+
+    .toast {
+      position: fixed; top: 80px; right: 24px;
+      background: #d1fae5; border: 1px solid var(--success); color: var(--success);
+      padding: 16px 24px; border-radius: 8px; font-weight: 600;
+      opacity: 0; transform: translateY(-20px); transition: all 0.3s; z-index: 1000;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      .radio-group { flex-direction: column; }
+      .form-actions { flex-direction: column; }
+      .btn { width: 100%; justify-content: center; }
+      .chunks-grid { grid-template-columns: 1fr; }
+      .filter-section { flex-direction: column; align-items: stretch; }
+      .filter-select { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="mast">
+    <div class="brand">
+      <img src="/static/images/icon_logo.svg" alt="TrustLens">
+      <div class="brand-name">TrustLens</div>
+    </div>
+    <div class="user-info">
+      <span>{{ user_name }}</span>
+      <div class="avatar">{{ user_name[0] if user_name else 'E' }}</div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="page-header">
+      <a href="/projectdetailsexaminer/{{ project_id }}" class="back-link">← Back to Project</a>
+      <h1 class="page-title">{{ task_name }}</h1>
+      <p class="page-subtitle">Review articles and provide feedback</p>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-label">Progress</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-text" id="progressText">0 / 0 articles reviewed</div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section" id="filterSection" style="display: none;">
+      <span class="filter-label">📊 Sort by Confidence:</span>
+      <select class="filter-select" id="confidenceFilter" onchange="applySorting()">
+        <option value="default">Default Order</option>
+        <option value="low-first">Low Confidence First (Review Priority)</option>
+        <option value="high-first">High Confidence First</option>
+      </select>
+    </div>
+
+    <div class="toast" id="toast">✅ Feedback submitted successfully!</div>
+
+    <div class="loading" id="loadingState">
+      <div class="spinner"></div>
+      <p>Loading articles...</p>
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <p>📭 No articles available</p>
+    </div>
+
+    <div id="articlesList"></div>
+
+  </div>
+
+  <script>
+    const taskId = "{{ task_id }}";
+    const projectId = "{{ project_id }}";
+    const datasetId = "{{ dataset_id }}";
+
+    let articles = [];
+    let originalArticles = [];
+    let reviewedCount = 0;
+
+    async function loadArticles() {
+      try {
+        const res = await fetch('/api/task/' + taskId + '/articles');
+        const data = await res.json();
+
+        if (data.waiting) {
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('emptyState').innerHTML =
+            '<p>⏳ Waiting for model selection task to be completed</p>' +
+            '<p style="font-size:14px; color: var(--muted);">Please complete the Model Selection task first</p>';
+          document.getElementById('emptyState').style.display = 'block';
+          return;
+        }
+
+        if (data.error) {
+          alert('Error: ' + data.error);
+          return;
+        }
+
+        articles = data.articles || [];
+        originalArticles = JSON.parse(JSON.stringify(articles));
+
+        if (articles.length === 0) {
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('emptyState').style.display = 'block';
+          return;
+        }
+
+        reviewedCount = articles.filter(function(a) { return a.has_feedback; }).length;
+        updateProgress();
+        
+        // Show filter if articles have confidence
+        if (articles.some(a => a.confidence !== undefined)) {
+          document.getElementById('filterSection').style.display = 'flex';
+        }
+        
+        renderArticles();
+        document.getElementById('loadingState').style.display = 'none';
+
+      } catch (err) {
+        alert('Failed to load articles: ' + err.message);
+      }
+    }
+    
+    function applySorting() {
+      const filterValue = document.getElementById('confidenceFilter').value;
+      
+      if (filterValue === 'low-first') {
+        // Sort by confidence ascending (low to high)
+        articles.sort(function(a, b) {
+          const confA = a.confidence !== undefined ? a.confidence : 100;
+          const confB = b.confidence !== undefined ? b.confidence : 100;
+          return confA - confB;
+        });
+      } else if (filterValue === 'high-first') {
+        // Sort by confidence descending (high to low)
+        articles.sort(function(a, b) {
+          const confA = a.confidence !== undefined ? a.confidence : 0;
+          const confB = b.confidence !== undefined ? b.confidence : 0;
+          return confB - confA;
+        });
+      } else {
+        // Restore default order
+        articles = JSON.parse(JSON.stringify(originalArticles));
+      }
+      
+      renderArticles();
+    }
+
+    function updateProgress() {
+      var total = articles.length;
+      var percentage = total > 0 ? (reviewedCount / total) * 100 : 0;
+      document.getElementById('progressFill').style.width = percentage + '%';
+      document.getElementById('progressText').textContent = reviewedCount + ' / ' + total + ' articles reviewed';
+    }
+
+    function renderArticles() {
+      var container = document.getElementById('articlesList');
+      container.innerHTML = '';
+      articles.forEach(function(article, index) {
+        var accordion = createAccordion(article, index);
+        container.appendChild(accordion);
+      });
+    }
+
+    function createAccordion(article, index) {
+      var div = document.createElement('div');
+      div.className = 'article-accordion';
+
+      var reviewBadge = article.has_feedback
+        ? '<span class="accordion-badge reviewed">✅ Reviewed</span>'
+        : '<span class="accordion-badge pending">⏳ Pending</span>';
+
+      var detectionBadge = '';
+      if (article.prediction) {
+        var det = article;
+        var predictionClass = det.prediction === 'Human' ? 'human' : 'ai';
+        var predIcon = det.prediction === 'Human' ? '✍️' : '🤖';
+        var percentage = det.prediction === 'Human' ? det.human_percentage : det.ai_percentage;
+        
+        detectionBadge = '<span class="accordion-badge ' + predictionClass + '">' + predIcon + ' ' + det.prediction + ' ' + percentage + '%</span>';
+        
+        // Add confidence badge if available
+        if (article.confidence !== undefined) {
+          detectionBadge += '<span class="accordion-badge confidence">📊 Confidence: ' + article.confidence + '%</span>';
+        }
+      }
+
+      var detectionHTML = renderDetectionDetails(article);
+      var feedbackHTML = article.has_feedback ? renderExistingFeedback(article.feedback) : renderFeedbackForm(article, index);
+
+      div.innerHTML =
+        '<div class="accordion-header" onclick="toggleAccordion(' + index + ')">' +
+          '<div class="accordion-title">' + (article.title || 'Untitled') + '</div>' +
+          '<div class="accordion-badges">' + detectionBadge + reviewBadge + '</div>' +
+          '<div class="accordion-icon">▼</div>' +
+        '</div>' +
+        '<div class="accordion-body" id="body-' + index + '">' +
+          '<div class="accordion-content">' +
+            '<div class="article-content">' + (article.content || 'No content available') + '</div>' +
+            detectionHTML +
+            feedbackHTML +
+          '</div>' +
+        '</div>';
+
+      return div;
+    }
+
+    function renderDetectionDetails(article) {
+      if (!article.prediction) {
+        return '<div style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">ℹ️ No detection results available</div>';
+      }
+
+      var predIcon = article.prediction === 'Human' ? '✍️' : '🤖';
+      var predClass = article.prediction === 'Human' ? 'human' : 'ai';
+      var percentage = article.prediction === 'Human' ? article.human_percentage : article.ai_percentage;
+
+      var summaryHTML =
+        '<div style="margin-bottom: 16px; padding: 12px; background: #fff; border-radius: 8px; display: flex; align-items: center; gap: 12px;">' +
+          '<span class="accordion-badge ' + predClass + '" style="font-size: 14px; padding: 8px 16px;">' + predIcon + ' ' + article.prediction + ' — ' + percentage + '%</span>' +
+        '</div>';
+
+      var chunksHTML = '';
+      if (article.chunks && article.chunks.length > 0) {
+        var cardsHTML = '';
+        article.chunks.forEach(function(chunk) {
+          cardsHTML +=
+            '<div class="chunk-card">' +
+              '<div class="chunk-label">' + chunk.label + '</div>' +
+              '<div class="chunk-bars">' +
+                '<div class="chunk-bar">' +
+                  '<span class="chunk-bar-label">Human:</span>' +
+                  '<div class="chunk-bar-track"><div class="chunk-bar-fill human" style="width: ' + chunk.human + '%"></div></div>' +
+                  '<span class="chunk-bar-value">' + chunk.human + '%</span>' +
+                '</div>' +
+                '<div class="chunk-bar">' +
+                  '<span class="chunk-bar-label">AI:</span>' +
+                  '<div class="chunk-bar-track"><div class="chunk-bar-fill ai" style="width: ' + chunk.ai + '%"></div></div>' +
+                  '<span class="chunk-bar-value">' + chunk.ai + '%</span>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+        });
+
+        chunksHTML =
+          '<div class="detection-results">' +
+            '<div class="detection-title">🔍 Detection Details</div>' +
+            summaryHTML +
+            '<div class="chunks-grid">' + cardsHTML + '</div>' +
+          '</div>';
+      }
+
+      return chunksHTML;
+    }
+
+    function renderExistingFeedback(feedback) {
+      var icon = feedback.label === 'Human' ? '✍️' : '🤖';
+      var labelClass = feedback.label.toLowerCase();
+      return (
+        '<div class="feedback-exists">' +
+          '<div class="feedback-warning">⚠️ This article already has feedback</div>' +
+          '<div class="feedback-info">' +
+            '<div class="feedback-meta">' +
+              '<span class="feedback-author">' + (feedback.examiner_name || 'Unknown') + '</span>' +
+              '<span class="feedback-date">' + new Date(feedback.submitted_at).toLocaleString() + '</span>' +
+            '</div>' +
+            '<div><span class="feedback-label ' + labelClass + '">' + icon + ' ' + feedback.label + '</span></div>' +
+            '<div class="feedback-text">' + feedback.explanation + '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    function renderFeedbackForm(article, index) {
+      return (
+        '<div class="form-section">' +
+          '<h3 class="form-title">Your Feedback</h3>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Select Label</label>' +
+            '<div class="radio-group">' +
+              '<div class="radio-option">' +
+                '<input type="radio" name="label-' + index + '" id="labelHuman-' + index + '" value="Human">' +
+                '<label for="labelHuman-' + index + '" class="radio-label human">✍️ Human</label>' +
+              '</div>' +
+              '<div class="radio-option">' +
+                '<input type="radio" name="label-' + index + '" id="labelAI-' + index + '" value="AI">' +
+                '<label for="labelAI-' + index + '" class="radio-label ai">🤖 AI</label>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-group">' +
+            '<label class="form-label">Explanation</label>' +
+            '<textarea id="explanation-' + index + '" placeholder="Explain why you chose this label..." maxlength="500" oninput="updateCharCount(' + index + ')"></textarea>' +
+            '<div class="char-count"><span id="charCount-' + index + '">0</span> / 500</div>' +
+          '</div>' +
+          '<div class="form-actions">' +
+            '<button class="btn btn-primary" onclick="submitFeedback(\'' + article.article_id + '\', ' + index + ')">💾 Submit Feedback</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    function toggleAccordion(index) {
+      var header = document.querySelectorAll('.accordion-header')[index];
+      var body = document.getElementById('body-' + index);
+      header.classList.toggle('active');
+      body.classList.toggle('active');
+    }
+
+    function updateCharCount(index) {
+      var textarea = document.getElementById('explanation-' + index);
+      var counter = document.getElementById('charCount-' + index);
+      counter.textContent = textarea.value.length;
+    }
+
+    async function submitFeedback(articleId, index) {
+      var labelEl = document.querySelector('input[name="label-' + index + '"]:checked');
+      var label = labelEl ? labelEl.value : null;
+      var explanation = document.getElementById('explanation-' + index).value.trim();
+
+      if (!label) {
+        alert('Please select a label');
+        return;
+      }
+      if (!explanation) {
+        alert('Please provide an explanation');
+        return;
+      }
+
+      try {
+        var res = await fetch('/api/article/' + articleId + '/submit_feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ label: label, explanation: explanation, dataset_id: datasetId })
+        });
+
+        var data = await res.json();
+
+        if (data.error) {
+          alert('Error: ' + data.error);
+          return;
+        }
+
+        showToast();
+        reviewedCount++;
+        updateProgress();
+        await loadArticles();
+
+      } catch (err) {
+        alert('Failed to submit feedback');
+      }
+    }
+
+    function showToast() {
+      var toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(function() {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    loadArticles();
+  </script>
+</body>
+</html>

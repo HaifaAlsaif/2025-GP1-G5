@@ -1422,8 +1422,22 @@ def api_create_task():
         "status": "pending",
     }
 
-    # ----------- لو المشروع Conversation فقط -----------
-    if category != "article":
+    # ----------- حسب نوع المشروع -----------
+    if category == "article":
+        # Article Project → نحتاج task_type
+        task_type = data.get("task_type")
+
+        if task_type not in ["model_selection", "labeling"]:
+            return jsonify({"error": "Invalid task_type. Must be 'model_selection' or 'FeedBack'"}), 400
+
+        task_doc["task_type"] = task_type
+
+        # Model Selection يتطلب examiner واحد فقط
+        if task_type == "model_selection" and len(examiner_uids) != 1:
+            return jsonify({"error": "Model Selection task requires exactly 1 examiner"}), 400
+
+    else:
+        # Conversation Project → نحتاج conversation_type و number_of_turns
         conversation_type = data.get("conversation_type")
         number_of_turns = data.get("number_of_turns")
 
@@ -1546,7 +1560,7 @@ def api_project_tasks(project_id):
             "turns": data.get("number_of_turns"),
             "examinerCount": len(examiner_emails),
             "primaryExaminerEmail": examiner_emails[0] if examiner_emails else "",
-            "examinerEmails": examiner_emails,  # 👈 الجديد المهم
+            "examinerEmails": examiner_emails,  
         })
 
     return jsonify({"tasks": tasks})
@@ -1679,7 +1693,7 @@ def api_examiner_tasks(project_id):
         tasks.append({
             "task_id": task_id,
             "task_name": data.get("task_name"),
-
+             "task_type": data.get("task_type"),  #CONV OR ART
             # ✅ هذه التي تستخدمها الكروت والفلاتر
             "status": personal_status,
 
@@ -2571,13 +2585,11 @@ def api_llm_messages_owner():
     
   
 # ===================================================================
-# المهم والجديد للارتكل
 
 
 @app.route("/api/project/<project_id>/dataset", methods=["GET"])
 def get_project_dataset(project_id):
     """
-   
 يجيب كل مقالات الـ dataset حق مشروع معين
     """
     if not session.get("idToken"):
@@ -2746,12 +2758,23 @@ def analyze_all_articles(project_id):
                 ai_count += 1
 
             results.append({
-                "article_id": push_id,
-                "title": title[:100],  # نقص العنوان
-                "prediction": prediction,
-                "human_percentage": round(final_human * 100, 2),
-                "ai_percentage": round(final_ai * 100, 2)
-            })
+                "confidence": round(max(final_human, final_ai) * 100, 2),
+                "confidence": round(max(final_human, final_ai) * 100, 2),
+    "article_id": push_id,
+    "title": title[:100] if title else "",
+    "content": full_text[:500] if full_text else "",
+    "prediction": prediction,
+    "human_percentage": round(final_human * 100, 2),
+    "ai_percentage": round(final_ai * 100, 2),
+    "chunks": [
+        {
+            "label": f"F{i+1}",
+            "human": round(float(human_scores[i]) * 100, 2),
+            "ai": round(float(ai_scores[i]) * 100, 2)
+        }
+        for i in range(len(chunks))
+    ]
+})
 
         # نحفظ النتائج في Firestore
         analysis_doc = {
@@ -2766,6 +2789,14 @@ def analyze_all_articles(project_id):
             "analyzed_at": datetime.utcnow().isoformat() + "Z",
             "analyzed_by": uid
         }
+
+
+        # نرتب النتائج من الأقل ثقة للأعلى
+        results.sort(key=lambda x: x["confidence"])
+
+
+        # نرتب النتائج من الأقل ثقة للأعلى
+        results.sort(key=lambda x: x["confidence"])
 
         db.collection("project_analysis").document(project_id).set(analysis_doc)
 
@@ -2788,106 +2819,624 @@ def analyze_all_articles(project_id):
         return jsonify({"error": "Analysis failed"}), 500
 
 
-# ===================================================================
-# #المهم ****
-# ===================================================================
+# ═══════════════════════════════════════════════════════════════
+# 🔬 Model Selection Task Routes
+# ═══════════════════════════════════════════════════════════════
 
-# 🔹 صفحة عرض نتائج التحليل
-@app.route("/project/<project_id>/analysis")
-def project_analysis_page(project_id):
-    """
-    صفحة عرض نتائج تحليل الـ News Baseline للمشروع
-    """
+@app.route("/task/<task_id>/model-selection")
+def model_selection_task_page(task_id):
+    """صفحة Model Selection للـ Examiner"""
     if not session.get("idToken"):
         return redirect(url_for("login_page"))
 
     uid = session.get("uid")
-
-    # نتحقق من الصلاحية (Owner أو Examiner مقبول)
-    proj_doc = db.collection("projects").document(project_id).get()
-    if not proj_doc.exists:
+    
+    # نجيب معلومات Task
+    task_doc = db.collection("tasks").document(task_id).get()
+    if not task_doc.exists:
         abort(404)
-
-    proj_data = proj_doc.to_dict()
     
-    # Owner check
-    is_owner = proj_data.get("owner_id") == uid
+    task_data = task_doc.to_dict()
     
-    # Examiner check
-    is_examiner = False
-    if not is_owner:
-        inv_docs = list(
-            db.collection("invitations")
-            .where("project_id", "==", project_id)
-            .where("examiner_id", "==", uid)
-            .where("status", "==", "accepted")
-            .limit(1)
-            .stream()
-        )
-        is_examiner = len(inv_docs) > 0
-
-    if not is_owner and not is_examiner:
+    # نتأكد إنه Model Selection Task
+    if task_data.get("task_type") != "model_selection":
         abort(403)
-
+    
+    # نتأكد إن الـ Examiner مسند له
+    if uid not in task_data.get("examiner_ids", []):
+        abort(403)
+    
     # نجيب اسم المستخدم
     user_doc = db.collection("users").document(uid).get()
-    user_name = "User"
-    if user_doc.exists:
-        prof = user_doc.to_dict().get("profile", {})
-        user_name = f"{prof.get('firstName', '')} {prof.get('lastName', '')}".strip() or "User"
-
+    first_name = user_doc.to_dict().get("profile", {}).get("firstName", "")
+    last_name = user_doc.to_dict().get("profile", {}).get("lastName", "")
+    user_name = f"{first_name} {last_name}".strip() or "User"
+    
+    project_id = task_data.get("project_ID")
+    
     return render_template(
-        "ProjectAnalysisResults.html",
+        "ModelSelectionTask.html",
         user_name=user_name,
-        project_id=project_id
+        task_id=task_id,
+        project_id=project_id,
+        task_name=task_data.get("task_name", "Model Selection")
     )
 
 
-# 🔹 API لجلب النتائج المحفوظة من Realtime DB
-@app.route("/api/project/<project_id>/analysis_results", methods=["GET"])
-def get_analysis_results(project_id):
+@app.route("/api/task/<task_id>/run_model", methods=["POST"])
+def api_run_model(task_id):
+    """يشغل Model على Dataset"""
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uid = session.get("uid")
+    
+    # نجيب Task
+    task_doc = db.collection("tasks").document(task_id).get()
+    if not task_doc.exists:
+        return jsonify({"error": "Task not found"}), 404
+    
+    task_data = task_doc.to_dict()
+    
+    # نتأكد من الصلاحية
+    if uid not in task_data.get("examiner_ids", []):
+        return jsonify({"error": "Forbidden"}), 403
+    
+    # نجيب المشروع
+    project_id = task_data.get("project_ID")
+    proj_doc = db.collection("projects").document(project_id).get()
+    if not proj_doc.exists:
+        return jsonify({"error": "Project not found"}), 404
+    
+    dataset_id = proj_doc.to_dict().get("dataset_id")
+    if not dataset_id:
+        return jsonify({"error": "No dataset"}), 404
+    
+    # نقرأ Model المطلوب
+    data = request.get_json() or {}
+    model_type = (data.get("model") or "logistic").lower()
+    
+    try:
+        # نسحب Dataset
+        ref = rtdb.reference(f"datasets/uploaded_news/{dataset_id}")
+        snapshot = ref.get()
+        
+        if not snapshot:
+            return jsonify({"error": "Dataset is empty"}), 404
+        
+        results = []
+        human_count = 0
+        ai_count = 0
+        
+        # نحلل كل مقالة
+        for push_id, article_data in snapshot.items():
+            if not isinstance(article_data, dict):
+                continue
+            
+            payload = article_data.get("payload", {})
+            
+            title = (payload.get("title") or 
+                    payload.get("Title") or "")
+            
+            content = (payload.get("Article") or 
+                      payload.get("article") or "")
+            
+            full_text = f"{title}. {content}" if title else content
+            
+            chunks = split_into_3_chunks(full_text)
+            
+            human_scores = []
+            ai_scores = []
+            chunk_details = []
+            
+            for i, chunk in enumerate(chunks):
+                if model_type == "rnn":
+                    probabilities = rnn_predict_proba([chunk])[0]
+                else:
+                    probabilities = news_pipeline.predict_proba([chunk])[0]
+                
+                h_score = float(probabilities[0])
+                a_score = float(probabilities[1])
+                
+                human_scores.append(h_score)
+                ai_scores.append(a_score)
+                
+                chunk_details.append({
+                    "label": f"F{i+1}",
+                    "human": round(h_score * 100, 2),
+                    "ai": round(a_score * 100, 2)
+                })
+            
+            final_human = sum(human_scores) / len(human_scores)
+            final_ai = sum(ai_scores) / len(ai_scores)
+            
+            prediction = "AI" if final_ai > final_human else "Human"
+            
+            if prediction == "Human":
+                human_count += 1
+            else:
+                ai_count += 1
+            
+            results.append({
+                "confidence": round(max(final_human, final_ai) * 100, 2),
+                "confidence": round(max(final_human, final_ai) * 100, 2),
+                "article_id": push_id,
+                "title": title[:100] if title else "Untitled",
+                "content": content[:500] if content else "",  # ✅ أول 500 حرف
+                "prediction": prediction,
+                "human_percentage": round(final_human * 100, 2),
+                "ai_percentage": round(final_ai * 100, 2),
+                "chunks": chunk_details  # ✅ تفاصيل الـ Chunks
+            })
+        
+        # ملخص النتائج
+        summary = {
+            "model_type": model_type,
+            "total_articles": len(results),
+            "human_count": human_count,
+            "ai_count": ai_count,
+            "human_percentage": round((human_count / len(results)) * 100, 2) if results else 0,
+            "ai_percentage": round((ai_count / len(results)) * 100, 2) if results else 0
+        }
+        
+        return jsonify({
+            "summary": summary,
+            "sample_results": results[:10],  # أول 10
+            "all_results": results  # ✅ كل النتائج مع التفاصيل
+        }), 200
+        
+    except Exception as e:
+        app.logger.exception("Model execution failed: %s", e)
+        return jsonify({"error": "Analysis failed"}), 500
+
+
+@app.route("/api/task/<task_id>/select_model", methods=["POST"])
+def api_select_model(task_id):
     if not session.get("idToken"):
         return jsonify({"error": "Unauthorized"}), 401
 
     uid = session.get("uid")
 
+    task_ref = db.collection("tasks").document(task_id)
+    task_doc = task_ref.get()
+    if not task_doc.exists:
+        return jsonify({"error": "Task not found"}), 404
+
+    task_data = task_doc.to_dict()
+
+    if uid not in task_data.get("examiner_ids", []):
+        return jsonify({"error": "Forbidden"}), 403
+
+    data = request.get_json() or {}
+    selected_model = (data.get("model") or "logistic").lower()
+
+    if selected_model not in ["logistic", "rnn"]:
+        return jsonify({"error": "Invalid model"}), 400
+
+    # نحفظ الاختيار في Firestore
+    task_ref.update({
+        "selected_model": selected_model,
+        "selected_by": uid,
+        "selected_at": datetime.utcnow().isoformat() + "Z",
+        "status": "completed"
+    })
+
+    # نشغل التحليل ونحفظ في RTDB
+    try:
+        project_id = task_data.get("project_ID")
+        proj_doc = db.collection("projects").document(project_id).get()
+        dataset_id = proj_doc.to_dict().get("dataset_id") if proj_doc.exists else None
+
+        if dataset_id:
+            ref = rtdb.reference(f"datasets/uploaded_news/{dataset_id}")
+            snapshot = ref.get() or {}
+
+            results = []
+            human_count = 0
+            ai_count = 0
+
+            for push_id, article_data in snapshot.items():
+                if not isinstance(article_data, dict):
+                    continue
+
+                payload = article_data.get("payload", {})
+                title = payload.get("title") or payload.get("Title") or ""
+                content = payload.get("Article") or payload.get("article") or ""
+                full_text = f"{title}. {content}" if title else content
+
+                chunks = split_into_3_chunks(full_text)
+                human_scores = []
+                ai_scores = []
+                chunk_details = []
+
+                for i, chunk in enumerate(chunks):
+                    if selected_model == "rnn":
+                        probabilities = rnn_predict_proba([chunk])[0]
+                    else:
+                        probabilities = news_pipeline.predict_proba([chunk])[0]
+
+                    h = float(probabilities[0])
+                    a = float(probabilities[1])
+                    human_scores.append(h)
+                    ai_scores.append(a)
+                    chunk_details.append({
+                        "label": f"F{i+1}",
+                        "human": round(h * 100, 2),
+                        "ai": round(a * 100, 2)
+                    })
+
+                final_human = sum(human_scores) / len(human_scores)
+                final_ai = sum(ai_scores) / len(ai_scores)
+                prediction = "AI" if final_ai > final_human else "Human"
+
+                if prediction == "Human":
+                    human_count += 1
+                else:
+                    ai_count += 1
+
+                results.append({
+                    "confidence": round(max(final_human, final_ai) * 100, 2),
+                    "confidence": round(max(final_human, final_ai) * 100, 2),
+                    "article_id": push_id,
+                    "title": title[:100],
+                    "content": content[:500],
+                    "prediction": prediction,
+                    "human_percentage": round(final_human * 100, 2),
+                    "ai_percentage": round(final_ai * 100, 2),
+                    "chunks": chunk_details
+                })
+
+            # نحفظ في RTDB - نظف project_id من الأحرف الممنوعة
+            safe_pid = project_id.replace(".", "_").replace("#", "_").replace("$", "_").replace("[", "_").replace("]", "_")
+            results_ref = rtdb.reference(f"analysis_results/{safe_pid}/{selected_model}")
+            results_ref.set({
+                "summary": {
+                    "model_type": selected_model,
+                    "total_articles": len(results),
+                    "human_count": human_count,
+                    "ai_count": ai_count,
+                },
+                "details": results
+            })
+            app.logger.info("=== Analysis saved to RTDB: analysis_results/%s/%s ===", safe_pid, selected_model)
+
+    except Exception as e:
+        app.logger.exception("Failed to run analysis after model selection: %s", e)
+
+    return jsonify({"message": "Model selected successfully"}), 200
+
+# 📝 Examiner Feedback APIs
+# ═══════════════════════════════════════════════════════════════
+
+@app.route('/api/article/<article_id>/feedback', methods=['POST'])
+def submit_article_feedback(article_id):
+    """Submit examiner feedback"""
+    try:
+        if not session.get('idToken'):
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        user_id = session.get('uid')
+        user_doc = db.collection('users').document(user_id).get()
+        
+        if not user_doc.exists:
+            return jsonify({"error": "User not found"}), 404
+        
+        user_role = user_doc.to_dict().get('role')
+        if user_role != 'examiner':
+            return jsonify({"error": "Only examiners can submit feedback"}), 403
+        
+        data = request.get_json()
+        label = data.get('label')
+        explanation = data.get('explanation', '').strip()
+        
+        if not label or label not in ['Human', 'AI']:
+            return jsonify({"error": "Invalid label"}), 400
+        
+        if not explanation:
+            return jsonify({"error": "Explanation is required"}), 400
+        
+        # Get examiner name
+        first_name = user_doc.to_dict().get('profile', {}).get('firstName', '')
+        last_name = user_doc.to_dict().get('profile', {}).get('lastName', '')
+        examiner_name = f"{first_name} {last_name}".strip() or "Unknown"
+        
+        # Find article
+        uploaded_news_ref = rtdb.reference('datasets/uploaded_news')
+        article_found = False
+        article_path = None
+        
+        all_datasets = uploaded_news_ref.get() or {}
+        for dataset_id, dataset_content in all_datasets.items():
+            if isinstance(dataset_content, dict):
+                for push_id, article_data in dataset_content.items():
+                    if push_id == article_id:
+                        article_found = True
+                        article_path = f'datasets/uploaded_news/{dataset_id}/{article_id}'
+                        break
+            if article_found:
+                break
+        
+        if not article_found:
+            return jsonify({"error": "Article not found"}), 404
+        
+        feedback_data = {
+            'label': label,
+            'explanation': explanation,
+            'examiner_name': examiner_name,
+            'submitted_at': datetime.utcnow().isoformat() + "Z"
+        }
+        
+        feedback_ref = rtdb.reference(f'{article_path}/examiner_feedbacks/{user_id}')
+        feedback_ref.set(feedback_data)
+        
+        return jsonify({"success": True, "message": "Feedback submitted", "feedback": feedback_data}), 200
+        
+    except Exception as e:
+        app.logger.exception("Error submitting feedback: %s", e)
+        return jsonify({"error": "Failed to submit feedback"}), 500
+
+
+@app.route('/api/article/<article_id>/feedbacks', methods=['GET'])
+def get_article_feedbacks(article_id):
+    """Get feedbacks: Owner sees ALL, Examiner sees ONLY theirs"""
+    try:
+        if not session.get('idToken'):
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        user_id = session.get('uid')
+        user_doc = db.collection('users').document(user_id).get()
+        
+        if not user_doc.exists:
+            return jsonify({"error": "User not found"}), 404
+        
+        user_role = user_doc.to_dict().get('role')
+        
+        # Find article
+        uploaded_news_ref = rtdb.reference('datasets/uploaded_news')
+        article_found = False
+        article_path = None
+        
+        all_datasets = uploaded_news_ref.get() or {}
+        for dataset_id, dataset_content in all_datasets.items():
+            if isinstance(dataset_content, dict):
+                for push_id, article_data in dataset_content.items():
+                    if push_id == article_id:
+                        article_found = True
+                        article_path = f'datasets/uploaded_news/{dataset_id}/{article_id}'
+                        break
+            if article_found:
+                break
+        
+        if not article_found:
+            return jsonify({"error": "Article not found"}), 404
+        
+        feedbacks_ref = rtdb.reference(f'{article_path}/examiner_feedbacks')
+        all_feedbacks = feedbacks_ref.get() or {}
+        
+        # Filter based on role
+        if user_role == 'examiner':
+            if user_id in all_feedbacks:
+                return jsonify({"feedbacks": {user_id: all_feedbacks[user_id]}, "has_feedback": True}), 200
+            else:
+                return jsonify({"feedbacks": {}, "has_feedback": False}), 200
+        
+        elif user_role == 'project_owner':
+            return jsonify({"feedbacks": all_feedbacks, "total_count": len(all_feedbacks)}), 200
+        
+        else:
+            return jsonify({"error": "Invalid role"}), 403
+        
+    except Exception as e:
+        app.logger.exception("Error getting feedbacks: %s", e)
+        return jsonify({"error": "Failed to get feedbacks"}), 500
+    
+    
+# ═══════════════════════════════════════════════════════════════
+# 📝 FeedBack Task Routes
+# ═══════════════════════════════════════════════════════════════
+
+@app.route("/task/<task_id>/feedback")
+def feedback_task_page(task_id):
+    """صفحة FeedBack للـ Examiner"""
+    if not session.get("idToken"):
+        return redirect(url_for("login_page"))
+
+    uid = session.get("uid")
+    
+    # نجيب معلومات Task
+    task_doc = db.collection("tasks").document(task_id).get()
+    if not task_doc.exists:
+        abort(404)
+    
+    task_data = task_doc.to_dict()
+    
+    # نتأكد إنه FeedBack Task
+    if task_data.get("task_type") != "labeling":
+        abort(403)
+    
+    # نتأكد إن الـ Examiner مسند له
+    if uid not in task_data.get("examiner_ids", []):
+        abort(403)
+    
+    # نجيب اسم المستخدم
+    user_doc = db.collection("users").document(uid).get()
+    first_name = user_doc.to_dict().get("profile", {}).get("firstName", "")
+    last_name = user_doc.to_dict().get("profile", {}).get("lastName", "")
+    user_name = f"{first_name} {last_name}".strip() or "User"
+    
+    project_id = task_data.get("project_ID")
+    
+    project_id = task_data.get("project_ID")
+    
+    # ✅ نجيب dataset_id
     proj_doc = db.collection("projects").document(project_id).get()
-    if not proj_doc.exists:
-        return jsonify({"error": "Project not found"}), 404
+    dataset_id = proj_doc.to_dict().get("dataset_id", "") if proj_doc.exists else ""
+    
+    return render_template(
+        "feedbacktask.html",
+        user_name=user_name,
+        task_id=task_id,
+        project_id=project_id,
+        dataset_id=dataset_id,  # ✅ نمرره للـ Template
+        task_name=task_data.get("task_name", "Feedback Task")
+    )
+    
 
-    proj_data = proj_doc.to_dict()
-    is_owner = proj_data.get("owner_id") == uid
+@app.route("/api/task/<task_id>/articles", methods=["GET"])
+def api_get_task_articles(task_id):
+    try:
+        if not session.get("idToken"):
+            return jsonify({"error": "Unauthorized"}), 401
 
-    is_examiner = False
-    if not is_owner:
-        inv_docs = list(
-            db.collection("invitations")
-            .where("project_id", "==", project_id)
-            .where("examiner_id", "==", uid)
-            .where("status", "==", "accepted")
+        uid = session.get("uid")
+
+        task_doc = db.collection("tasks").document(task_id).get()
+        if not task_doc.exists:
+            return jsonify({"error": "Task not found"}), 404
+
+        task_data = task_doc.to_dict()
+        project_id = task_data.get("project_ID")
+
+        app.logger.info("=== DEBUG === project_id: %s", project_id)
+        all_tasks = list(db.collection("tasks").where("project_ID", "==", project_id).stream())
+        for t in all_tasks:
+            d = t.to_dict()
+            app.logger.info("=== DEBUG === task: type=%s status=%s", d.get("task_type"), d.get("status"))
+
+        # نشيك إذا في model_selection task مكتمل
+        model_selection_tasks = list(
+            db.collection("tasks")
+            .where("project_ID", "==", project_id)
+            .where("task_type", "==", "model_selection")
+            .where("status", "==", "completed")
             .limit(1)
             .stream()
         )
-        is_examiner = len(inv_docs) > 0
 
-    if not is_owner and not is_examiner:
-        return jsonify({"error": "Forbidden"}), 403
+        if not model_selection_tasks:
+            return jsonify({
+                "waiting": True,
+                "message": "Waiting for model selection task to be completed"
+            }), 200
 
-    try:
-        selected_model = (request.args.get("model") or "logistic").lower()
+        ms_task = model_selection_tasks[0].to_dict()
+        selected_model = ms_task.get("selected_model", "logistic")
 
-        results_ref = rtdb.reference(f"analysis_results/{project_id}/{selected_model}")
-        data = results_ref.get()
+        app.logger.info("=== DEBUG === selected_model: %s", selected_model)
 
-        if not data:
-            return jsonify({"error": "No analysis results found"}), 404
+        # نجيب dataset_id
+        proj_doc = db.collection("projects").document(project_id).get()
+        if not proj_doc.exists:
+            return jsonify({"error": "Project not found"}), 404
 
-        return jsonify(data), 200
+        dataset_id = proj_doc.to_dict().get("dataset_id")
+        if not dataset_id:
+            return jsonify({"error": "No dataset found"}), 404
+
+        # نجيب النتائج من RTDB
+        safe_pid = project_id.replace(".", "_").replace("#", "_").replace("$", "_").replace("[", "_").replace("]", "_")
+        results_ref = rtdb.reference(f"analysis_results/{safe_pid}/{selected_model}")
+        results_data = results_ref.get()
+
+        app.logger.info("=== DEBUG === results_data exists: %s", results_data is not None)
+
+        if not results_data:
+            return jsonify({
+                "waiting": True,
+                "message": "Analysis not ready yet, please wait"
+            }), 200
+
+        details = results_data.get("details", [])
+        summary = results_data.get("summary", {})
+
+        # نجيب الـ feedbacks الموجودة
+        articles_with_feedback = []
+        for article in details:
+            article_id = article.get("article_id")
+            feedback = None
+
+            try:
+                feedback_ref = rtdb.reference(f"datasets/uploaded_news/{dataset_id}/{article_id}/feedback")
+                feedback = feedback_ref.get()
+            except Exception:
+                pass
+
+            articles_with_feedback.append({
+                "article_id": article_id,
+                "title": article.get("title", ""),
+                "content": article.get("content", ""),
+                "prediction": article.get("prediction", ""),
+                "human_percentage": article.get("human_percentage", 0),
+                "ai_percentage": article.get("ai_percentage", 0),
+                "confidence": article.get("confidence"),
+                "chunks": article.get("chunks", []),
+                "has_feedback": feedback is not None,
+                "feedback": feedback
+            })
+
+        return jsonify({
+            "articles": articles_with_feedback,
+            "summary": summary,
+            "selected_model": selected_model,
+            "total": len(articles_with_feedback)
+        }), 200
 
     except Exception as e:
-        app.logger.exception("Failed to fetch analysis results: %s", e)
-        return jsonify({"error": "Failed to fetch results"}), 500
+        app.logger.exception("Unexpected error in api_get_task_articles: %s", e)
+        return jsonify({"error": str(e)}), 500
 
+@app.route("/api/article/<article_id>/submit_feedback", methods=["POST"])
+def api_submit_article_feedback(article_id):
+    """يحفظ Feedback من Examiner"""
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uid = session.get("uid")
+    
+    data = request.get_json() or {}
+    label = data.get("label")
+    explanation = data.get("explanation", "").strip()
+    dataset_id = data.get("dataset_id")
+    
+    if not label or label not in ["Human", "AI"]:
+        return jsonify({"error": "Invalid label"}), 400
+    
+    if not explanation:
+        return jsonify({"error": "Explanation is required"}), 400
+    
+    if not dataset_id:
+        return jsonify({"error": "Dataset ID is required"}), 400
+    
+    try:
+        # نشيك لو فيه feedback قبل
+        feedback_ref = rtdb.reference(f"datasets/uploaded_news/{dataset_id}/{article_id}/feedback")
+        existing = feedback_ref.get()
+        
+        if existing:
+            return jsonify({"error": "Feedback already exists for this article"}), 400
+        
+        # نجيب اسم الـ Examiner
+        user_doc = db.collection("users").document(uid).get()
+        first_name = user_doc.to_dict().get("profile", {}).get("firstName", "")
+        last_name = user_doc.to_dict().get("profile", {}).get("lastName", "")
+        examiner_name = f"{first_name} {last_name}".strip() or "Examiner"
+        
+        # نحفظ الـ Feedback
+        feedback_data = {
+            "examiner_uid": uid,
+            "examiner_name": examiner_name,
+            "label": label,
+            "explanation": explanation,
+            "submitted_at": datetime.utcnow().isoformat() + "Z"
+        }
+        
+        feedback_ref.set(feedback_data)
+        
+        return jsonify({"message": "Feedback submitted successfully"}), 200
+        
+    except Exception as e:
+        app.logger.exception("Failed to submit feedback: %s", e)
+        return jsonify({"error": "Failed to submit feedback"}), 500
     
 if __name__ == "__main__":
  app.run(debug=True)

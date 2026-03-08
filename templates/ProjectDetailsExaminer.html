@@ -603,7 +603,34 @@
     .task-button:active {
       transform: scale(0.95);
     }
-  
+  .view-results-btn {
+  width: 100%;
+  max-width: 300px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(90deg, #00b8da 0%, #155cfb 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  margin: 24px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.view-results-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 184, 219, 0.4);
+}
+
+.view-results-btn::before {
+  content: '📊';
+  font-size: 16px;
+}
   </style>
   
   </head>
@@ -852,28 +879,30 @@ async function loadExaminers() {
       // لو هي مهمتك وفيها نوع محادثة، خليه يفتح المحادثة
       if (assignedToYou && task.conversation_type) {
         buttonHTML = `
-          <button 
-            class="task-button completed completed-btn"
-            onclick="goToTask('${task.task_id}', '${task.conversation_type}')">
+  <button 
+    class="task-button primary ${task.status === 'progress' ? 'continue' : 'join'}"
+    onclick="goToTask('${task.task_id}', '${task.conversation_type || ''}', '${task.task_type || ''}')">
             Completed
           </button>
         `;
       } else {
         buttonHTML = `
-          <button class="task-button completed completed-btn">
-            Completed
-          </button>
-        `;
+  <button 
+    class="task-button completed completed-btn"
+    onclick="goToTask('${task.task_id}', '${task.conversation_type || ''}', '${task.task_type || ''}')">
+    Completed
+  </button>
+`;
       }
-    } else if (assignedToYou) {
-      buttonHTML = `
-        <button 
-          class="task-button primary ${task.status === 'progress' ? 'continue' : 'join'}"
-          onclick="goToTask('${task.task_id}', '${task.conversation_type}')">
-          ${task.status === "progress" ? "Continue" : "Join"}
-        </button>
-      `;
-    } else {
+   } else if (assignedToYou) {
+  buttonHTML = `
+    <button 
+      class="task-button primary ${task.status === 'progress' ? 'continue' : 'join'}"
+      onclick="goToTask('${task.task_id}', '${task.conversation_type || ''}', '${task.task_type || ''}')">
+      ${task.status === "progress" ? "Continue" : "Join"}
+    </button>
+  `;
+} else {
       buttonHTML = `
         <button class="task-button completed completed-btn">
           Not Assigned
@@ -917,11 +946,21 @@ loadProjectDetails().then(() => {
   loadExaminers();
   loadExaminerTasks();
 });
-  // نفس ما هو عندك
-  function goToTask(taskId, type) {
+
+  function goToTask(taskId, type, taskType) {
+    // ✅ لو Article Task
     if (!type) {
-      alert("Invalid conversation type");
-      return;
+      if (taskType === 'model_selection') {
+        window.location.href = `/task/${taskId}/model-selection`;
+        return;
+      } else if (taskType === 'labeling') {
+  window.location.href = `/task/${taskId}/feedback`;
+
+        return;
+      } else {
+        alert("Invalid task type");
+        return;
+      }
     }
     
 
@@ -939,6 +978,15 @@ loadProjectDetails().then(() => {
     const url = `${basePath}?taskId=${encodeURIComponent(taskId)}&projectId=${encodeURIComponent(PROJECT_ID)}`;
     window.location.href = url;
   }
+  function goToAnalysisResults() {
+  const pathParts = window.location.pathname.split('/');
+  const projectId = pathParts[pathParts.length - 1];
+  
+  // ✅ Examiner يروح لصفحة Examiner
+  window.location.href = `/project/${projectId}/analysis/examiner`;
+}
+
+
 </script>
 </body>
 </html>
