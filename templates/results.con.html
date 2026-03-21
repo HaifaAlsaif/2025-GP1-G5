@@ -1,0 +1,2958 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Generate conversation</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
+    :root {
+      --bg: #f6f7fb; --ink: #0e162b; --muted: #6f7483; --line: #e7e9f0;
+      --card: #ffffff; --primary: #2f66ff; --green: #2fbf71; --orange: #ff9f43;
+      --shadow: 0 14px 40px rgba(20, 22, 35, 0.08); --pill: #e6e9f5; --chip: #eef2ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: "Space Grotesk", system-ui, sans-serif; color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #e8f0ff 0%, transparent 55%),
+        radial-gradient(900px 500px at 90% 0%, #fff0db 0%, transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+    }
+    .app { max-width: 1200px; margin: 0 auto; padding: 24px 22px 60px; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 18px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .logo { width: 32px; height: 32px; }
+    .brand-text { font-size: 20px; font-weight: 500; background: linear-gradient(90deg,#00b8da 0%,#155cfb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .moon { width: 30px; height: 30px; }
+    .user-badge { display: flex; align-items: center; gap: 8px; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #2f66ff; color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+    .user-meta { font-size: 12px; color: var(--muted); line-height: 1.1; }
+    .user-name { font-size: 13px; color: #0a0a0a; font-weight: 600; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; color: #0a0a0a; text-decoration: none; font-size: 14px; margin: 6px 0 10px; }
+    .page-title { font-size: 28px; font-weight: 700; margin: 6px 0 6px; }
+    .selected-model { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow); margin-top: 8px; }
+
+    .summary-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-top: 14px; margin-top: 10px; }
+    .summary-title { font-size: 14px; font-weight: 600; }
+    .summary-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .summary-actions { display: flex; gap: 10px; }
+    .btn { border: 1px solid var(--line); background: #fff; color: #1a1b1f; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn.primary { background: #2f66ff; color: #fff; border-color: #2f66ff; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+    .stat-card { border-radius: 14px; padding: 14px 16px; background: #f6f7fb; border: 1px solid #e9ecf5; }
+    .stat-card.blue { border-left: 4px solid #2f66ff; }
+    .stat-card.green { border-left: 4px solid #2fbf71; }
+    .stat-card.orange { border-left: 4px solid #ff9f43; }
+    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+    .stat-value { margin-top: 6px; font-size: 22px; font-weight: 700; }
+    .mini-line { margin-top: 10px; font-size: 12px; color: var(--muted); }
+
+    .metrics-row { margin-top: 18px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric-card { background: #f6f7fb; border: 1px solid #e9ecf5; border-radius: 12px; padding: 10px 12px; }
+    .metric-title { font-size: 11px; color: var(--muted); }
+    .metric-value { margin-top: 6px; font-size: 16px; font-weight: 700; }
+
+    .matrix-link {
+  margin-top: 10px;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dbe3ff;
+  background: #eef3ff;
+  color: #2f66ff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.matrix-link:hover {
+  background: #e3ebff;
+}
+.matrix-link .line {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #2f66ff;
+  opacity: 0.2;
+}
+
+    .bottom-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; margin-top: 16px; }
+    .box { background: #f6f7fb; border: 1px solid #e9ecf5; border-radius: 14px; padding: 14px; }
+
+    .tab.active { background: #dfe6ff; border-color: #c7d2ff; color: #2f66ff; font-weight: 600; }
+
+    .bar-wrap { display: flex; gap: 16px; justify-content: center; margin-top: 16px; }
+    .vbar { width: 60px; border-radius: 12px; display: flex; align-items: flex-end; justify-content: center; background: #eef2ff; height: 140px; padding-bottom: 6px; }
+    .vbar.green { background: #e8f7ef; }
+    .vbar.blue { background: #e7ecff; }
+    .vbar-inner { width: 40px; border-radius: 10px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 12px; height: 0%; }
+    .vbar-inner.green { background: #2fbf71; }
+    .vbar-inner.blue { background: #2f66ff; }
+    .dist-note { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: center; background: #eef2ff; border-radius: 10px; padding: 6px; }
+
+    .table-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .table-title { font-size: 14px; font-weight: 600; }
+    .filters { display: flex; gap: 8px; align-items: center; }
+    .input, .select { border: 1px solid #e1e5f0; border-radius: 10px; padding: 6px 8px; font-size: 12px; background: #fff; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid #e9ecf5; text-align: left; }
+    th { color: var(--muted); font-weight: 600; }
+
+    .pill { padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--pill); color: #3b4b6b; display: inline-block; }
+    .pill.ai { background: #e1e7ff; color: #2f66ff; }
+    .pill.mix { background: #e8e3ff; color: #6a4bff; }
+    .pill.human { background: #e8f7ef; color: #2fbf71; }
+
+    .view-btn { background: #eef2ff; border: 1px solid #d8e1ff; color: #2f66ff; font-size: 12px; padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+
+    .details-box { background: #eef1f7; border-radius: 12px; padding: 8px 10px; margin: 6px 0 8px; border: 1px solid #e2e7f0; }
+    .details-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; color: var(--muted); }
+    .details-row {
+  display: grid;
+  grid-template-columns: 32px 70px 1fr 160px 90px 70px 90px;
+  gap: 10px;
+  font-size: 12px;
+  align-items: center;
+  padding: 6px 0;
+}
+    .chip { padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background: var(--chip); color: #2f66ff; display: inline-block; text-align: center; }
+    .details-scroll { max-height: 110px; overflow: auto; padding-right: 4px; }
+
+    .prev-btn { border: 1px solid #d8e1ff; background: #eef2ff; color: #2f66ff; font-size: 11px; padding: 2px 8px; border-radius: 999px; cursor: pointer; }
+
+    .cm-modal { position: fixed; inset: 0; display: none; z-index: 40; }
+    .cm-modal.active { display: block; }
+    .cm-backdrop { position: absolute; inset: 0; background: rgba(14, 22, 43, 0.25); backdrop-filter: blur(2px); }
+    .cm-card {
+      position: relative;
+      width: min(520px, 92vw);
+      margin: 12vh auto 0;
+      background: #fff;
+      border-radius: 14px;
+      border: 1px solid #e1e5f0;
+      box-shadow: 0 22px 60px rgba(20, 22, 35, 0.2);
+      padding: 14px 16px 18px;
+    }
+    .cm-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+    .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cm-item { background: #f2f4f9; border: 1px solid #e4e7f0; border-radius: 10px; padding: 12px; }
+    .cm-label { font-size: 12px; color: var(--muted); }
+    .cm-value { font-size: 20px; font-weight: 700; margin-top: 6px; }
+    .cm-close {
+      position: absolute; top: 10px; right: 10px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 1px solid #e1e5f0;
+      background: #fff; cursor: pointer; font-size: 16px; line-height: 26px;
+    }
+
+    @media (max-width: 980px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .metrics-row { grid-template-columns: 1fr 1fr; }
+      .summary-bar { flex-direction: column; align-items: flex-start; }
+      .bottom-grid { grid-template-columns: 1fr; }
+      .details-row { grid-template-columns: 32px 1fr; }
+    }
+
+    .lang-btn, .icon-btn {
+      border: 0; background: transparent; font: inherit; cursor: pointer; color: #0a0a0a;
+    }
+    .icon-btn { padding: 0; display: grid; place-items: center; }
+
+    .user-avatar {
+      background: linear-gradient(135deg, #4a6bff, #00c6ff);
+    }
+
+    /* Dark mode */
+    body.dark {
+      --bg: #0b1020; --ink: #eef2ff; --muted: #a6b0c2; --line: #1f2a44;
+      --card: #111827; --pill: #1c253b; --chip: #1e2a44; --primary: #4f8cff;
+      --green: #3bd18a; --orange: #ffb45c; --shadow: 0 18px 55px rgba(0,0,0,0.45);
+    }
+    body.dark {
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg, #071225 0%, #0b1b37 55%, #0d2747 100%);
+}
+
+    body.dark .panel,
+    body.dark .box,
+    body.dark .stat-card,
+    body.dark .metric-card { background: #0f172a; border-color: #1f2a44; }
+    body.dark .btn { background: #1c253b; color: #e6ebff; border-color: #27324b; }
+    body.dark .btn.primary { background: var(--primary); color: #fff; }
+    body.dark .input, body.dark .select {
+  background-color: #0f172a;
+  border-color: #1f2a44;
+  color: var(--ink);
+}
+    body.dark th, body.dark td { border-color: #1f2a44; }
+    body.dark .details-box{
+  background:linear-gradient(180deg, #18335d 0%, #142b50 100%);
+  border:1px solid rgba(90,140,220,.45);
+}
+
+    body.dark .prev-btn, body.dark .view-btn { background: #16213a; border-color: #27324b; color: #8bb3ff; }
+    body.dark .lang-btn { color: #eef2ff; }
+/* ===== Feedback Dark Mode (Premium) ===== */
+body.dark #feedbackModeRoot .fb-progress-card,
+body.dark #feedbackModeRoot .fb-sort-card,
+body.dark #feedbackModeRoot .fb-card,
+body.dark #feedbackModeRoot .fb-form,
+body.dark #feedbackModeRoot .fb-my-box {
+  background: linear-gradient(180deg, #101a31 0%, #0d162b 100%);
+  border: 1px solid #2b3f66;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+}
+
+body.dark #feedbackModeRoot .fb-title,
+body.dark #feedbackModeRoot .fb-progress-title,
+body.dark #feedbackModeRoot .fb-reviewers strong,
+body.dark #feedbackModeRoot .fb-my-title {
+  color: #f2f7ff;
+}
+
+body.dark #feedbackModeRoot .fb-reviewers,
+body.dark #feedbackModeRoot .fb-progress-text {
+  color: #aabbdc;
+}
+
+body.dark #feedbackModeRoot .fb-stat,
+body.dark #feedbackModeRoot .fb-user-chip {
+  background: #121f39;
+  border: 1px solid #2a3d63;
+  color: #cfe0ff;
+}
+
+body.dark #feedbackModeRoot .fb-progress-track {
+  background: #1a2948;
+}
+body.dark #feedbackModeRoot .fb-progress-fill {
+  background: linear-gradient(90deg, #22d3ee 0%, #3b82f6 55%, #6366f1 100%);
+}
+
+/* Turn Table */
+body.dark #feedbackModeRoot .fb-turn-table {
+  background: #0c1528;
+  border: 1px solid #2a3f66;
+  border-radius: 12px;
+}
+
+body.dark #feedbackModeRoot .fb-turn-head {
+  background: #1b2a49;
+  border-bottom: 1px solid #324b79;
+}
+body.dark #feedbackModeRoot .fb-turn-head > div {
+  color: #b9c9e8;   /* Turn / Prediction / Message */
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+body.dark #feedbackModeRoot .fb-turn-row {
+  background: #0f1a31;
+  border-top: 1px solid #22385d;
+}
+body.dark #feedbackModeRoot .fb-turn-row:nth-child(even) {
+  background: #101d36;
+}
+body.dark #feedbackModeRoot .fb-turn-row:hover {
+  background: #142445;
+}
+body.dark #feedbackModeRoot .fb-turn-row > div:first-child {
+  color: #eef4ff;   /* Message */
+  line-height: 1.6;
+}
+body.dark #feedbackModeRoot .fb-turn-row > div:first-child {
+  color: #9fb3d9;   /* Turn number */
+  font-weight: 700;
+}
+body.dark #feedbackModeRoot .fb-turn-row > div:last-child {
+  color: #eef4ff;   /* Message text */
+  line-height: 1.6;
+}
+
+/* Prediction badge */
+body.dark #feedbackModeRoot .fb-pred.human {
+  background: #123628;
+  border: 1px solid #2b6a4d;
+  color: #b9f5d3;
+}
+body.dark #feedbackModeRoot .fb-pred.ai {
+  background: #3b2615;
+  border: 1px solid #7f5230;
+  color: #ffd9b5;
+}
+
+/* Controls */
+body.dark #feedbackModeRoot .fb-sort-row .select,
+body.dark #feedbackModeRoot .fb-textarea,
+body.dark #feedbackModeRoot .fb-label-btn {
+  background: #0b1428;
+  border: 1px solid #2a3f66;
+  color: #e8f0ff;
+}
+body.dark #feedbackModeRoot .fb-textarea::placeholder {
+  color: #8ea3cc;
+}
+
+
+    /* Profile dropdown */
+    .profile-wrap { position: relative; display: flex; align-items: center; }
+    .profile-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: transparent; border: 0; cursor: pointer;
+      padding: 4px 6px; border-radius: 12px;
+    }
+    .profile-btn:focus { outline: 2px solid #c7d2ff; }
+    .profile-caret { font-size: 12px; color: var(--muted); }
+
+    .profile-menu {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      width: 180px; background: var(--card);
+      border: 1px solid var(--line); border-radius: 12px;
+      box-shadow: var(--shadow); padding: 6px;
+      display: none; z-index: 30;
+    }
+    .profile-menu.show { display: block; }
+    .profile-menu a {
+      display: flex; gap: 8px; align-items: center;
+      padding: 8px 10px; border-radius: 8px;
+      color: var(--ink); text-decoration: none; font-size: 13px;
+    }
+    .profile-menu a:hover { background: #f2f4ff; }
+    .profile-divider { height: 1px; background: var(--line); margin: 6px 0; }
+    [dir="rtl"] .profile-menu { right: auto; left: 0; }
+    [dir="rtl"] .header-right { flex-direction: row-reverse; }
+    [dir="rtl"] .back-link { flex-direction: row-reverse; }
+    [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+    .prev-inline {
+  grid-column: 1 / -1;
+  background: #f7f8fb;
+  border: 1px solid #e1e3ea;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #6f7483;
+  margin-top: 6px;
+}
+.download-dd {
+  position: relative;
+}
+
+.download-dd summary {
+  list-style: none;
+}
+
+.download-dd summary::-webkit-details-marker {
+  display: none;
+}
+
+.download-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 120px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  z-index: 20;
+}
+
+.download-dd[open] .download-menu {
+  display: block;
+}
+
+body.dark .download-menu{
+  background: linear-gradient(180deg, #142a4d 0%, #102342 100%);
+  border: 1px solid #2a3f66;
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+
+body.dark .download-item{
+  color:#eaf2ff;
+}
+
+body.dark .download-item:hover{
+  background:#1b3258;
+}
+
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+}
+body.dark .tab{
+  background:#13284a;
+  border:1px solid #2a3f66;
+  color:#d7e4ff;
+}
+body.dark .tab.active{
+  background:#cdd9ff;
+  border-color:#9fb5ff;
+  color:#2f66ff;
+}
+
+#taskSelectionLine {
+  margin-top: 4px;
+  font-weight: 600;
+  color: #5b657a;
+}
+/* ===== Conversation Feedback Mode (Clean UI) ===== */
+#feedbackModeRoot { display:none; margin-top:16px; }
+
+.fb-progress-card, .fb-sort-card, .fb-card{
+  background:#fff;border:1px solid #e6e8ef;border-radius:14px;padding:14px;margin-bottom:12px;
+}
+.fb-progress-title{font-size:14px;font-weight:700;color:#374151;margin-bottom:8px}
+.fb-progress-track{height:8px;background:#edf0f7;border-radius:999px;overflow:hidden}
+.fb-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#00b8da,#155cfb)}
+.fb-progress-text{margin-top:8px;font-size:12px;color:#6b7280;text-align:right}
+
+.fb-sort-row{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700}
+.fb-sort-row select{min-width:280px}
+
+.fb-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.fb-title{font-size:21px;font-weight:800;color:#111827}
+.fb-badges{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fb-badge{border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;border:1px solid #e5e7eb}
+.fb-badge.ai{background:#fff7e6;color:#c97a00;border-color:#f2ce83}
+.fb-badge.conf{background:#eef2ff;color:#3743c6;border-color:#d9ddff}
+.fb-badge.ok{background:#e9f9ef;color:#15803d;border-color:#a7e6bf}
+.fb-badge.pending{background:#fff8e8;color:#a16207;border-color:#f2d58a}
+.fb-expand{font-size:20px;font-weight:800;background:transparent;border:0;cursor:pointer}
+
+.fb-body{margin-top:12px;border-top:1px solid #eef0f5;padding-top:12px}
+.fb-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.fb-stat{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:7px 10px;font-size:12px}
+.fb-reviewers{margin:8px 0 10px;font-size:13px;color:#4b5563}
+.fb-user-chip{display:inline-block;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:4px 8px;margin:4px 6px 0 0;font-size:12px}
+
+.fb-turn-table{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  overflow:auto;
+}
+
+.fb-turn-head,.fb-turn-row{
+  display:grid;
+  grid-template-columns:48px 120px minmax(320px,1fr) 120px 120px 120px 300px;
+  gap:8px;
+  align-items:center;
+  padding:8px 10px;
+  min-width:1200px;
+}
+
+.fb-turn-head{background:#f1f5f9;font-size:12px;font-weight:800;color:#475569}
+.fb-turn-row{border-top:1px solid #e5e7eb;font-size:13px}
+.fb-turn-row > div:nth-child(3){line-height:1.5;white-space:normal}
+
+.fb-turn-feedback{display:flex;flex-direction:column;gap:6px}
+.fb-turn-labels{display:flex;gap:6px}
+.fb-turn-mini-btn{
+  border:1px solid #d1d5db;background:#fff;border-radius:8px;
+  padding:4px 8px;font-size:12px;cursor:pointer;
+}
+.fb-turn-mini-btn.active.human{background:#ecfdf3;border-color:#86efac;color:#166534}
+.fb-turn-mini-btn.active.ai{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+.fb-turn-note{
+  width:100%;min-height:54px;border:1px solid #d1d5db;border-radius:8px;
+  padding:6px 8px;font-size:12px;resize:vertical;
+}
+.fb-turn-lock{font-size:12px;font-weight:700;color:#15803d}
+
+
+.fb-turn-head{background:#f1f5f9;font-size:12px;font-weight:800;color:#475569}
+.fb-turn-row{border-top:1px solid #e5e7eb;font-size:13px}
+.fb-pred{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800}
+.fb-pred.ai{background:#fff7ed;color:#9a3412;border:1px solid #fdba74}
+.fb-pred.human{background:#ecfdf3;color:#166534;border:1px solid #86efac}
+
+.fb-my-box{margin-top:12px;background:#fffaf0;border:1px solid #f7d48a;border-radius:10px;padding:10px}
+.fb-my-title{font-size:13px;font-weight:800;color:#b45309;margin-bottom:6px}
+
+.fb-form{margin-top:12px;border:1px solid #e5e7eb;border-radius:12px;padding:12px;background:#fff}
+.fb-form h4{margin:0 0 10px;font-size:22px}
+.fb-labels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fb-label-btn{height:48px;border-radius:10px;border:1px solid #d1d5db;background:#fff;font-size:28px;font-weight:800;cursor:pointer}
+.fb-label-btn.active.human{background:#ecfdf3;border-color:#86efac;color:#166534}
+.fb-label-btn.active.ai{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+.fb-textarea{width:100%;min-height:120px;border:1px solid #d1d5db;border-radius:10px;padding:10px;font-size:14px;resize:vertical}
+.fb-submit-wrap{margin-top:10px;display:flex;justify-content:flex-end}
+.fb-empty{padding:20px;text-align:center;color:#6b7280}
+
+@media (max-width:980px){
+  .fb-turn-head,.fb-turn-row{grid-template-columns:1fr 88px}
+}
+.eval-row{
+  margin-top:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.eval-actions{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.eval-actions .matrix-link{
+  margin:0;
+}
+.icon-btn{
+  width:36px;
+  height:36px;
+  border:1px solid #dbe2ea;
+  border-radius:10px;
+  background:#fff;
+}
+
+body.dark .icon-btn{
+  background:#10213f;
+  border-color:#2b3f66;
+}
+
+body.dark .matrix-link{
+  background:#16213a;
+  border-color:#27324b;
+  color:#8bb3ff;
+}
+body.dark .matrix-link:hover{
+  background:#1b2a49;
+}
+
+body.dark .panel,
+body.dark .box,
+body.dark .stat-card,
+body.dark .metric-card{
+  background: linear-gradient(180deg, rgba(19,45,87,.96) 0%, rgba(15,36,72,.96) 100%);
+  border: 1px solid rgba(90,140,220,.35);
+}
+
+body.dark .dist-note{
+  background:#162744;
+  color:#b8c7e3;
+}
+body.dark .back-link,
+body.dark .back-link:visited {
+  color: #eaf2ff !important;
+  font-weight: 600;
+}
+body.dark .back-link:hover {
+  color: #9fc3ff !important;
+}
+body.dark .panel,
+body.dark .box,
+body.dark .stat-card,
+body.dark .metric-card{
+  background: linear-gradient(180deg, rgba(19,45,87,.96) 0%, rgba(15,36,72,.96) 100%) !important;
+  border: 1px solid rgba(90,140,220,.35) !important;
+}
+.select{
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 26px;
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 10px;
+}
+
+body:not(.dark) .select{
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23505a70' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+
+body.dark .select{
+  background-color:#13284a !important;
+  color:#eaf2ff !important;
+  border:1px solid #2a3f66 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23dbe7ff' stroke-width='1.5'/%3E%3C/svg%3E");
+}
+.download-menu{
+  display:none;
+  flex-direction:column;
+  gap:6px;
+}
+
+.download-dd[open] .download-menu{
+  display:flex;
+}
+
+.download-item{
+  display:block;
+  width:100%;
+  border:0;
+  background:transparent;
+  text-align:left;
+  padding:8px 10px;
+  border-radius:8px;
+  font-size:12px;
+  cursor:pointer;
+}
+.tabs{
+  display:inline-flex;
+  gap:8px;
+  padding:4px;
+  border-radius:999px;
+  background:rgba(255,255,255,.6);
+  border:1px solid #d7deef;
+}
+
+.tab{
+  border:1px solid #cfd7ea;
+  background:#fff;
+  color:#24324d;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.tab.active{
+  background:linear-gradient(90deg,#dbe6ff 0%, #cfdcff 100%);
+  border-color:#9fb5ff;
+  color:#2f66ff;
+}
+
+body.dark .tabs{
+  background:#10213f;
+  border:1px solid #2a3f66;
+}
+body.dark .tab{
+  background:#13284a;
+  border:1px solid #2a3f66;
+  color:#d7e4ff;
+}
+body.dark .tab.active{
+  background:linear-gradient(90deg,#d8e3ff 0%, #c8d8ff 100%);
+  border-color:#9fb5ff;
+  color:#2f66ff;
+}
+body.dark .back-link,
+body.dark .back-link:visited{
+  color:#eaf2ff !important;
+  font-weight:600;
+}
+body.dark .back-link:hover{
+  color:#9fc3ff !important;
+}
+.tabs{
+  display:inline-flex;
+  gap:8px;
+  padding:4px;
+  border-radius:999px;
+  background:rgba(255,255,255,.65);
+  border:1px solid #d7deef;
+}
+.tab{
+  border:1px solid #cfd7ea;
+  background:#fff;
+  color:#24324d;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:13px;
+  font-weight:600;
+}
+.tab.active{
+  background:linear-gradient(90deg,#dbe6ff 0%, #cfdcff 100%);
+  border-color:#9fb5ff;
+  color:#2f66ff;
+}
+body.dark .tabs{
+  background:#10213f;
+  border-color:#2a3f66;
+}
+body.dark .tab{
+  background:#13284a;
+  border-color:#2a3f66;
+  color:#d7e4ff;
+}
+body.dark .tab.active{
+  background:linear-gradient(90deg,#d8e3ff 0%, #c8d8ff 100%);
+  border-color:#9fb5ff;
+  color:#2f66ff;
+}
+/* Fix striped selects in dark mode */
+body.dark .select{
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 28px;
+  background-color: #13284a !important;
+  color: #eaf2ff !important;
+  border: 1px solid #2a3f66 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23dbe7ff' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 10px !important;
+}
+body.dark .cm-backdrop{
+  background: rgba(4, 10, 24, 0.60);
+}
+
+body.dark .cm-card{
+  background: linear-gradient(180deg, #17335f 0%, #132b50 100%);
+  border: 1px solid #2a3f66;
+  box-shadow: 0 22px 60px rgba(0,0,0,.45);
+}
+
+body.dark .cm-title{ color:#eef4ff; }
+
+body.dark .cm-item{
+  background:#13284a;
+  border:1px solid #2a3f66;
+}
+
+body.dark .cm-label{ color:#aebddd; }
+body.dark .cm-value{ color:#f3f7ff; }
+
+body.dark .cm-close{
+  background:#10213f;
+  border:1px solid #2a3f66;
+  color:#eaf2ff;
+}
+body.dark .prev-inline{
+  background:#13284a;
+  border:1px solid #2a3f66;
+  color:#eaf2ff;
+}
+
+body.dark .details-head{ color:#c7d5ef; }
+body.dark .details-row{ color:#e8f0ff; }
+body.dark .details-row strong{ color:#f2f7ff; }
+
+/* Dark: distribution bars prettier */
+body.dark .vbar{
+  background:#122744;
+  border:1px solid #2a3f66;
+}
+body.dark .vbar.green{
+  background:#153628;
+}
+body.dark .vbar.blue{
+  background:#1a2f52;
+}
+body.dark .vbar-inner.green{
+  background:#35c17a;
+}
+body.dark .vbar-inner.blue{
+  background:#7f95db;
+}
+body.dark #humanBarVal,
+body.dark #machineBarVal{
+  color:#f3f8ff;
+  text-shadow:0 1px 0 rgba(0,0,0,.25);
+}
+body.dark .dist-note{
+  background:#13284a;
+  border:1px solid #2a3f66;
+  color:#d6e3fb;
+}
+body.dark #distLine{
+  color:#d6e3fb;
+}
+#saveModelBtn.is-locked{
+  background:#b9c6e8 !important;
+  border-color:#b9c6e8 !important;
+  color:#f4f7ff !important;
+  cursor:not-allowed;
+  opacity:.8;
+}
+
+body.dark #saveModelBtn.is-locked{
+  background:#5d6f9c !important;
+  border-color:#5d6f9c !important;
+  color:#eaf1ff !important;
+}
+.fb-turn-table{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  overflow:auto;
+}
+
+.fb-turn-head,.fb-turn-row{
+  display:grid;
+  grid-template-columns:40px 90px minmax(230px,1fr) 100px 90px 90px 220px;
+  gap:6px;
+  align-items:center;
+  padding:6px 8px;
+  min-width:980px;
+}
+
+.fb-turn-head{background:#f1f5f9;font-size:11px;font-weight:800;color:#475569}
+.fb-turn-row{border-top:1px solid #e5e7eb;font-size:12px}
+.fb-turn-row > div:nth-child(3){line-height:1.4;white-space:normal}
+
+.fb-turn-feedback{display:flex;flex-direction:column;gap:4px}
+.fb-turn-labels{display:flex;gap:4px}
+.fb-turn-mini-btn{
+  border:1px solid #d1d5db;background:#fff;border-radius:7px;
+  padding:3px 7px;font-size:11px;cursor:pointer;
+}
+.fb-turn-mini-btn.active.human{background:#ecfdf3;border-color:#86efac;color:#166534}
+.fb-turn-mini-btn.active.ai{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+.fb-turn-note{
+  width:100%;min-height:42px;border:1px solid #d1d5db;border-radius:7px;
+  padding:5px 7px;font-size:11px;resize:vertical;
+}
+.fb-save-btn{
+  align-self:flex-start;
+  padding:4px 10px;
+  font-size:11px;
+  border-radius:8px;
+}
+.fb-turn-lock{font-size:11px;font-weight:700;color:#15803d}
+/* ===== Feedback Redesign Override ===== */
+.fb-sort-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.fb-sort-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.fb-turn-sort-btn{
+  border:1px solid #111827;
+  background:#111827;
+  color:#fff;
+  border-radius:10px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.fb-turn-sort-btn:hover{ background:#1f2937; }
+
+.fb-turn-table{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  overflow:auto;
+}
+.fb-turn-head,.fb-turn-main{
+  display:grid;
+  grid-template-columns:44px 110px minmax(260px,1fr) 110px 90px 100px;
+  gap:8px;
+  align-items:center;
+  padding:8px 10px;
+  min-width:860px;
+}
+.fb-turn-head{
+  background:#f1f5f9;
+  font-size:12px;
+  font-weight:800;
+  color:#475569;
+}
+.fb-turn-item{
+  border-top:1px solid #e5e7eb;
+}
+.fb-turn-main{
+  font-size:13px;
+}
+.fb-turn-main > div:nth-child(3){
+  line-height:1.5;
+  white-space:normal;
+}
+
+.fb-turn-feedback-wrap{
+  margin:0 10px 10px;
+  padding:10px;
+  border:1px solid #dbe2f2;
+  border-radius:10px;
+  background:linear-gradient(180deg,#ffffff 0%,#f7f9ff 100%);
+}
+.fb-turn-feedback{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:flex-start;
+}
+.fb-turn-labels{ display:flex; gap:6px; }
+.fb-turn-mini-btn{
+  border:1px solid #d1d5db;
+  background:#fff;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:12px;
+  cursor:pointer;
+}
+.fb-turn-note{
+  flex:1 1 320px;
+  min-height:46px;
+  border:1px solid #cfd8ea;
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:12px;
+  resize:vertical;
+}
+.fb-save-btn{
+  border-radius:10px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:700;
+  background:linear-gradient(90deg,#111827 0%, #1f2937 100%) !important;
+  border-color:#111827 !important;
+  color:#fff !important;
+}
+.fb-save-btn:hover{ filter:brightness(1.08); }
+
+body.dark .fb-turn-sort-btn{
+  background:#0b1220;
+  border-color:#2a3f66;
+}
+body.dark .fb-turn-feedback-wrap{
+  background:linear-gradient(180deg,#101a31 0%,#0d162b 100%);
+  border-color:#2a3f66;
+}
+body.dark .fb-save-btn{
+  background:linear-gradient(90deg,#0b1220 0%,#1d2f50 100%) !important;
+  border-color:#2a3f66 !important;
+}
+/* ===== Turn UI polish (override only) ===== */
+#fbTurnSortBtn{
+  display:none !important; /* إلغاء الزر الأسود بدون حذفه */
+}
+
+.fb-stats-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.fb-stats{
+  margin-bottom:0 !important;
+}
+.fb-turn-sort-inline{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+[dir="rtl"] .fb-turn-sort-inline{
+  margin-left:0;
+  margin-right:auto;
+}
+.fb-turn-sort-inline .select{
+  min-width:220px;
+  border-radius:999px;
+  border:1px solid #cfd8ea;
+  background:#fff;
+  height:36px;
+  font-weight:600;
+}
+
+/* تصغير بوكس الفيدباك */
+.fb-turn-feedback-wrap{
+  margin:6px 8px 8px !important;
+  padding:8px !important;
+  border-radius:10px !important;
+  border:1px solid #dbe2f2 !important;
+  background:linear-gradient(180deg,#ffffff 0%, #f8fbff 100%) !important;
+}
+.fb-turn-feedback{
+  display:flex !important;
+  align-items:center !important;
+  gap:6px !important;
+  flex-wrap:wrap !important;
+}
+.fb-turn-labels{
+  display:flex;
+  gap:6px;
+}
+.fb-turn-note{
+  flex:1 1 260px !important;
+  min-height:36px !important;
+  max-height:90px !important;
+  padding:8px 10px !important;
+  font-size:12px !important;
+  border-radius:8px !important;
+}
+.fb-save-btn{
+  padding:7px 12px !important;
+  border-radius:8px !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  background:#2f66ff !important;
+  border-color:#2f66ff !important;
+  color:#fff !important;
+}
+
+/* Dark */
+body.dark .fb-turn-sort-inline .select{
+  background:#13284a !important;
+  border-color:#2a3f66 !important;
+  color:#eaf2ff !important;
+}
+body.dark .fb-turn-feedback-wrap{
+  background:linear-gradient(180deg,#101a31 0%, #0d162b 100%) !important;
+  border-color:#2a3f66 !important;
+}
+/* ===== Soft Premium Final Override ===== */
+
+/* اخفاء الزر الاسود بدون حذف */
+#fbTurnSortBtn { display: none !important; }
+
+/* كرت السورت */
+.fb-sort-card{
+  background: linear-gradient(180deg,#ffffff 0%,#f8fbff 100%) !important;
+  border:1px solid #dbe4f5 !important;
+  border-radius:14px !important;
+}
+
+/* صف السورت */
+.fb-sort-row{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+  flex-wrap:wrap !important;
+}
+.fb-sort-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
+/* شيل الزخرفة/الخطوط من select */
+.fb-turn-sort-select,
+.fb-sort-row .select{
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-image: none !important;
+  background-repeat: no-repeat !important;
+  background-color: #f8fbff !important;
+  border: 1px solid #cfdcf2 !important;
+  border-radius: 999px !important;
+  height: 38px !important;
+  padding: 0 14px !important;
+  font-weight: 700 !important;
+  color: #24324d !important;
+  min-width: 180px !important;
+}
+
+/* النسب + سورت التيرنز يمين */
+.fb-stats-row{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:10px !important;
+  margin-bottom:10px !important;
+}
+.fb-turn-sort-inline{
+  margin-left:auto !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+}
+[dir="rtl"] .fb-turn-sort-inline{
+  margin-left:0 !important;
+  margin-right:auto !important;
+}
+
+/* بوكس الفيدباك: اصغر وارتب */
+.fb-turn-feedback-wrap{
+  margin:6px 8px 8px !important;
+  padding:8px !important;
+  border-radius:10px !important;
+  border:1px solid #d7e2f3 !important;
+  background: linear-gradient(180deg,#ffffff 0%,#f6faff 100%) !important;
+}
+.fb-turn-feedback{
+  display:grid !important;
+  grid-template-columns:auto 1fr auto !important;
+  gap:8px !important;
+  align-items:center !important;
+}
+.fb-turn-labels{
+  display:flex !important;
+  gap:6px !important;
+}
+.fb-turn-mini-btn{
+  border-radius:999px !important;
+  padding:4px 10px !important;
+  font-size:12px !important;
+}
+.fb-turn-note{
+  min-height:38px !important;
+  height:38px !important;
+  max-height:88px !important;
+  border-radius:9px !important;
+  padding:8px 10px !important;
+  font-size:12px !important;
+}
+.fb-save-btn{
+  background:#2f66ff !important;
+  border-color:#2f66ff !important;
+  color:#fff !important;
+  border-radius:9px !important;
+  padding:7px 12px !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+}
+
+/* موبايل */
+@media (max-width: 980px){
+  .fb-turn-feedback{
+    grid-template-columns:1fr !important;
+  }
+  .fb-turn-sort-inline{
+    width:100%;
+    justify-content:flex-start;
+  }
+}
+
+/* دارك */
+body.dark .fb-sort-card{
+  background: linear-gradient(180deg,#13284a 0%,#102342 100%) !important;
+  border-color:#2a3f66 !important;
+}
+body.dark .fb-turn-sort-select,
+body.dark .fb-sort-row .select{
+  background-image:none !important;
+  background-color:#13284a !important;
+  border-color:#2a3f66 !important;
+  color:#eaf2ff !important;
+}
+body.dark .fb-turn-feedback-wrap{
+  background: linear-gradient(180deg,#101a31 0%,#0d162b 100%) !important;
+  border-color:#2a3f66 !important;
+}
+.fb-body{
+  display:block !important;
+  width:100% !important;
+}
+.fb-stats-row{
+  display:flex !important;
+  justify-content:space-between !important;
+  align-items:center !important;
+  gap:10px !important;
+  width:100% !important;
+}
+.fb-reviewers{
+  display:block !important;
+  width:100% !important;
+  margin-top:8px !important;
+}
+.fb-turn-table{
+  display:block !important;
+  width:100% !important;
+  margin-top:8px !important;
+}
+.fb-turn-note{
+  min-height:36px !important;
+  height:36px !important;
+  max-height:72px !important;
+  resize:none !important;
+}
+.fb-turn-submitted{
+  margin-top:6px;
+  padding:8px 10px;
+  border:1px solid #dbe4f5;
+  border-radius:10px;
+  background:#f8fbff;
+  font-size:12px;
+  color:#374151;
+}
+.fb-turn-lock{
+  font-size:12px;
+  font-weight:700;
+  color:#b45309;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  padding:8px 10px;
+  border-radius:8px;
+}
+/* Submitted feedback polish */
+.fb-turn-submitted{
+  margin-top:8px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #cfe2ff;
+  background:linear-gradient(135deg,#f4f9ff 0%,#eef5ff 100%);
+}
+.fb-sub-title{
+  font-size:12px;
+  font-weight:700;
+  color:#2753d7;
+  margin-bottom:6px;
+}
+.fb-sub-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+}
+.fb-pill{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:11px;
+  font-weight:700;
+  border:1px solid transparent;
+}
+.fb-pill.human{
+  color:#166534;
+  background:#ecfdf3;
+  border-color:#86efac;
+}
+.fb-pill.ai{
+  color:#9a3412;
+  background:#fff7ed;
+  border-color:#fdba74;
+}
+.fb-sub-note{
+  font-size:13px;
+  line-height:1.45;
+  color:#334155;
+}
+.fb-turn-lock{
+  font-size:12px;
+  font-weight:700;
+  color:#8a4b00;
+  background:linear-gradient(135deg,#fff8ea 0%,#fff3d8 100%);
+  border:1px solid #f7cf8d;
+  padding:8px 10px;
+  border-radius:10px;
+}
+body.dark .fb-turn-submitted{
+  border-color:#355a8f;
+  background:linear-gradient(135deg,#112644 0%,#153057 100%);
+}
+body.dark .fb-sub-title{ color:#9ec5ff; }
+body.dark .fb-sub-note{ color:#dce8ff; }
+body.dark .fb-turn-lock{
+  color:#ffd69a;
+  background:linear-gradient(135deg,#3a2a14 0%,#483116 100%);
+  border-color:#7e5a2c;
+}
+#feedbackModeRoot .fb-my-box { 
+  display: none !important; 
+}
+
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <div class="brand notranslate" translate="no">
+      <img src="../static/images/img_header.svg" alt="TrustLens logo" class="logo">
+      <div class="brand-text">TrustLens</div>
+    </div>
+    <div class="header-right">
+      <button class="lang-btn" id="langToggle" type="button">EN</button>
+      <button class="icon-btn" id="themeToggle" type="button" aria-pressed="false">
+        <img src="../static/images/img_buttonDark.svg" alt="Dark mode" class="moon">
+      </button>
+      <div class="profile-wrap">
+        <button class="profile-btn" id="profileBtn" type="button" aria-expanded="false">
+          <div class="user-badge">
+            <div class="user-avatar">{{ user_name[0] if user_name else "E" }}</div>
+            <div class="user-meta">
+              <div class="user-name">{{ user_name }}</div>
+              {{ user_role or "Examiner" }}
+            </div>
+          </div>
+          <span class="profile-caret">▾</span>
+        </button>
+
+        <div class="profile-menu" id="profileMenu" role="menu">
+          <a href="/examinerdashboard" role="menuitem">Home</a>
+          <a href="/profile" role="menuitem">Profile</a>
+          <a href="/profile" role="menuitem">Settings</a>
+          <div class="profile-divider"></div>
+          <a href="/logout" role="menuitem">Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <a href="#" id="backToProject" class="back-link" data-i18n="back">← Back to Project</a>
+
+  <div class="page-title" data-i18n="title">Conversation Analysis</div>
+<div class="selected-model" id="selectedModelLine" data-i18n="selected_model">Selected model: —</div>
+<div class="selected-model" id="taskSelectionLine">Task model selection: Not saved</div>
+
+  <section class="panel">
+    <div class="summary-bar">
+      <div>
+        <div class="summary-title" data-i18n="summary_title">Analysis Summary</div>
+        <div class="summary-sub" id="summaryMeta">Model: — • Time: — • GT: Yes</div>
+      </div>
+      <div class="summary-actions">
+        <details class="download-dd">
+          <summary class="btn" data-i18n="download">Download ▾</summary>
+          <div class="download-menu">
+            <button type="button" class="download-item" id="downloadCsvBtn">CSV</button>
+            <button type="button" class="download-item" id="downloadJsonBtn">JSON</button>
+          </div>
+          
+        </details>
+          
+        <select id="analysisModelSelect" class="select">
+          <option value="">Select model</option>
+          <option value="logreg">Logistic Regression</option>
+          <option value="rnn">RNN</option>
+          <option value="falcon" disabled>Falcon</option>
+        </select>
+      
+        <button class="btn primary" id="runAnalysisBtn" type="button">Run Analysis</button>
+
+      </div>
+      
+    </div>
+     <!-- ✅ يظهر فقط في feedback mode -->
+<div id="feedbackModeRoot">
+  <div class="fb-progress-card">
+    <div class="fb-progress-title">Progress</div>
+    <div class="fb-progress-track">
+      <div class="fb-progress-fill" id="fbProgressFill"></div>
+    </div>
+    <div class="fb-progress-text" id="fbProgressText">0 / 0 conversations reviewed</div>
+  </div>
+
+  <div class="fb-sort-card">
+    <div class="fb-sort-row">
+      <div class="fb-sort-left">
+        <span>📊 Sort Conversations:</span>
+        <select id="fbSortSelect" class="select">
+          <option value="default">Default Order</option>
+          <option value="confidence_low">Low Confidence First</option>
+          <option value="confidence_high">High Confidence First</option>
+        </select>
+      </div>
+    
+      <button id="fbTurnSortBtn" class="fb-turn-sort-btn" type="button">
+        Turn Sort: Default
+      </button>
+    </div>
+    
+
+
+  </div>
+
+  <div id="fbCards"></div>
+</div>
+  
+    <div class="stats-grid">  
+      <div class="stat-card blue"><div class="stat-label" data-i18n="total_dialogues">Total Dialogues</div><div class="stat-value" id="totalDialogs">—</div></div>
+      <div class="stat-card blue"><div class="stat-label" data-i18n="total_turns">Total Turns</div><div class="stat-value" id="totalTurns">—</div></div>
+      <div class="stat-card green"><div class="stat-label" data-i18n="human_turns">Human Turns</div><div class="stat-value" id="humanTurns">—</div></div>
+      <div class="stat-card orange"><div class="stat-label" data-i18n="machine_turns">Machine Turns</div><div class="stat-value" id="machineTurns">—</div></div>
+      <div class="stat-card green"><div class="stat-label" data-i18n="human_pct">Human %</div><div class="stat-value" id="humanPct">—</div></div>
+      <div class="stat-card orange"><div class="stat-label" data-i18n="machine_pct">Machine %</div><div class="stat-value" id="machinePct">—</div></div>
+    </div>
+
+    <div class="mini-line" id="miniLine">Avg Turns/Dialogue: — • AI‑heavy Dialogues: — • Mixed: — • Human: —</div>
+
+    <div class="eval-row">
+      <div style="font-size:14px;font-weight:600;" data-i18n="eval_metrics">Evaluation Metrics</div>
+    
+      <div class="eval-actions">
+        <button class="matrix-link" id="cmOpen" type="button">
+          <span class="line"></span> <span data-i18n="confusion_matrix">Confusion Matrix</span>
+        </button>
+    
+        <button class="btn primary eval-submit-btn" id="saveModelBtn" type="button">Submit Model</button>
+      </div>
+    </div>
+    
+
+    <div class="metrics-row">
+      <div class="metric-card"><div class="metric-title" data-i18n="accuracy">Accuracy</div><div class="metric-value" id="accVal">—</div></div>
+      <div class="metric-card"><div class="metric-title" data-i18n="f1_macro">F1 Macro</div><div class="metric-value" id="f1Val">—</div></div>
+      <div class="metric-card"><div class="metric-title" data-i18n="precision_macro">Precision Macro</div><div class="metric-value" id="precVal">—</div></div>
+      <div class="metric-card"><div class="metric-title" data-i18n="recall_macro">Recall Macro</div><div class="metric-value" id="recVal">—</div></div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="box">
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px;" data-i18n="distribution">Distribution</div>
+        <div class="tabs" id="distTabs">
+          <button class="tab active" type="button" data-mode="turn" data-i18n="turn_level">Turn-level</button>
+          <button class="tab" type="button" data-mode="dialogue" data-i18n="dialogue_level">Dialogue-level</button>
+        </div>
+        
+        
+        
+
+        <div class="bar-wrap">
+          <div>
+            <div class="vbar green"><div class="vbar-inner green" id="humanBarVal">0</div></div>
+            <div style="text-align:center;font-size:12px;margin-top:6px;" data-i18n="human">Human</div>
+          </div>
+          <div>
+            <div class="vbar blue"><div class="vbar-inner blue" id="machineBarVal">0</div></div>
+            <div style="text-align:center;font-size:12px;margin-top:6px;" data-i18n="machine">Machine</div>
+          </div>
+        </div>
+
+        <div class="dist-note" id="distNote">Machine turns are —</div>
+        <div class="mini-line" id="distLine" style="text-align:center;">Avg Turns/Dialogue: — • Highest AI%: —</div>
+      </div>
+
+      <div class="box">
+        <div class="table-head">
+          <div class="table-title" data-i18n="dialogues">Dialogues</div>
+          <div class="filters">
+            <input class="input" id="searchInput" placeholder="Search Dialogue ID..." />
+            <select class="select" id="labelFilter">
+              <option value="all">All labels</option>
+              <option value="ai">AI-heavy</option>
+              <option value="mix">Mixed</option>
+              <option value="human">Human</option>
+            </select>
+            <select class="select" id="sortSelect">
+              <option value="ai_desc">Sort: AI% (desc)</option>
+              <option value="human_desc">Sort: Human% (desc)</option>
+            </select>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="th_dialogue_id">Dialogue ID</th>
+              <th data-i18n="th_turns">#Turns</th>
+              <th data-i18n="th_human">#Human</th>
+              <th data-i18n="th_machine">#Machine</th>
+              <th data-i18n="th_machine_pct">Machine %</th>
+              <th data-i18n="th_human_pct">Human %</th>
+              <th data-i18n="th_final_label">Final Label</th>
+              <th data-i18n="th_action">Action</th>
+            </tr>
+          </thead>
+          <tbody id="dialogueBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="cm-modal" id="cmModal" aria-hidden="true">
+  <div class="cm-backdrop" data-close></div>
+  <div class="cm-card" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
+    <button class="cm-close" data-close type="button">×</button>
+    <div class="cm-title" id="cmTitle" data-i18n="confusion_matrix">Confusion Matrix</div>
+    <div class="cm-grid">
+      <div class="cm-item"><div class="cm-label" data-i18n="tn">True Negative</div><div class="cm-value" id="cmTN">—</div></div>
+      <div class="cm-item"><div class="cm-label" data-i18n="fp">False Positive</div><div class="cm-value" id="cmFP">—</div></div>
+      <div class="cm-item"><div class="cm-label" data-i18n="fn">False Negative</div><div class="cm-value" id="cmFN">—</div></div>
+      <div class="cm-item"><div class="cm-label" data-i18n="tp">True Positive</div><div class="cm-value" id="cmTP">—</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const qs = new URLSearchParams(location.search);
+const pageMode = (qs.get("mode") || "model_selection").toLowerCase();
+const isFeedbackMode = pageMode === "feedback";
+
+const modelFromUrl = qs.get("model") || "";
+
+function cleanParam(v) {
+  const s = String(v || "").trim();
+  if (!s || s === "undefined" || s === "null") return "";
+  return s;
+}
+
+const projectId = cleanParam(qs.get("projectId") || qs.get("project_id"));
+const taskId = cleanParam(qs.get("taskId") || qs.get("task_id"));
+
+
+const selectedModelLineEl = document.getElementById("selectedModelLine");
+const modelSelectEl = document.getElementById("analysisModelSelect");
+const runAnalysisBtn = document.getElementById("runAnalysisBtn");
+const saveModelBtn = document.getElementById("saveModelBtn");
+const taskSelectionLineEl = document.getElementById("taskSelectionLine");
+
+const feedbackModeRoot = document.getElementById("feedbackModeRoot");
+const fbProgressFill = document.getElementById("fbProgressFill");
+const fbProgressText = document.getElementById("fbProgressText");
+const fbSortSelect = document.getElementById("fbSortSelect");
+const fbCardsEl = document.getElementById("fbCards");
+const currentExaminerUid = cleanParam("{{ user_uid or user_id or '' }}");
+const currentExaminerName = cleanParam("{{ user_name or '' }}") || "Examiner";
+
+
+let feedbackItems = [];
+let feedbackOpenId = null;
+let feedbackSortMode = "default";
+const feedbackDraft = {};
+
+let activeModel = "";
+
+function modelLabel(key){
+  if (key === "rnn") return "Baseline — RNN";
+  if (key === "logreg") return "Baseline — TF‑IDF + Logistic Regression (LR)";
+  return "—";
+}
+function modelKeyFromName(name){
+  const n = String(name || "").toLowerCase().trim();
+  if (n.includes("rnn")) return "rnn";
+  if (
+    n.includes("logistic") ||
+    n.includes("logreg") ||
+    n === "lr" ||
+    n.includes("tf-idf")
+  ) return "logreg";
+  return "";
+}
+
+
+function setSelectedModelLine(key){
+  selectedModelLineEl.textContent = `Selected model: ${modelLabel(key)}`;
+}
+
+setSelectedModelLine("");
+
+const backLink = document.getElementById("backToProject");
+
+  if (projectId) backLink.href = "/projectdetailsexaminer/" + projectId;
+  else if (document.referrer) backLink.href = document.referrer;
+  else backLink.href = "/myprojectexaminer";
+
+  const themeToggle = document.getElementById("themeToggle");
+  const langToggle = document.getElementById("langToggle");
+  const profileBtn = document.getElementById("profileBtn");
+  const profileMenu = document.getElementById("profileMenu");
+
+  let dialogues = [];
+let openId = null;
+let currentLang = "en";
+let lastRunAt = null;
+let lastSummary = { avg: "—", ai: "—", mixed: "—", human: "—", pct: "—" };
+let distMode = "turn";
+let distData = {
+  turnHuman: 0,
+  turnMachine: 0,
+  dialogHuman: 0,
+  dialogMachine: 0,
+  avg: "—",
+  highest: "—",
+  turnMachinePct: "0.0",
+  dialogMachinePct: "0.0"
+};
+
+function setDistTab(mode) {
+  distMode = mode;
+  document.querySelectorAll("#distTabs .tab").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.mode === mode);
+  });
+  renderDistribution();
+}
+
+
+function renderDistribution() {
+  const hBar = document.getElementById("humanBarVal");
+  const mBar = document.getElementById("machineBarVal");
+  const distNoteEl = document.getElementById("distNote");
+  const distLineEl = document.getElementById("distLine");
+
+  const humanVal = distMode === "turn" ? distData.turnHuman : distData.dialogHuman;
+  const machineVal = distMode === "turn" ? distData.turnMachine : distData.dialogMachine;
+  const maxBar = Math.max(humanVal, machineVal, 1);
+
+  hBar.textContent = humanVal;
+  mBar.textContent = machineVal;
+  hBar.style.height = `${(humanVal / maxBar) * 100}%`;
+  mBar.style.height = `${(machineVal / maxBar) * 100}%`;
+
+  if (distMode === "turn") {
+    distNoteEl.textContent = format(i18n[currentLang].dist_note, { pct: distData.turnMachinePct });
+  } else {
+    distNoteEl.textContent = currentLang === "ar"
+      ? `حوارات AI-heavy تمثل ${distData.dialogMachinePct}% من جميع الحوارات.`
+      : `AI-heavy dialogues are ${distData.dialogMachinePct}% of all dialogues.`;
+  }
+
+  distLineEl.textContent = format(i18n[currentLang].dist_line, {
+    avg: distData.avg,
+    highest: distData.highest
+  });
+}
+
+function formatRunTime(dateObj) {
+  if (!dateObj) return "—";
+  try {
+    return new Intl.DateTimeFormat(
+      currentLang === "ar" ? "ar-SA" : "en-US",
+      { hour: "2-digit", minute: "2-digit", second: "2-digit" }
+    ).format(dateObj);
+  } catch {
+    return "—";
+  }
+}
+
+function updateSummaryMeta() {
+  const el = document.getElementById("summaryMeta");
+  if (!el) return;
+
+  const picked = modelSelectEl.value || activeModel || "";
+  const modelTxt = modelLabel(picked);
+  const timeTxt = formatRunTime(lastRunAt);
+
+  if (currentLang === "ar") {
+    el.textContent = `النموذج: ${modelTxt} • الوقت: ${timeTxt} • الحقيقة الأرضية: نعم`;
+  } else {
+    el.textContent = `Model: ${modelTxt} • Time: ${timeTxt} • GT: Yes`;
+  }
+}
+
+
+  const i18n = {
+    en: {
+      back: "← Back to Project",
+      title: "Conversation Analysis",
+      selected_model: "Selected model: —",
+      summary_title: "Analysis Summary",
+      summary_sub: "Model: — • Time: — • GT: Yes",
+      download: "Download ▾",
+      advanced: "Advanced",
+      submit: "Submit Results",
+      total_dialogues: "Total Dialogues",
+      total_turns: "Total Turns",
+      human_turns: "Human Turns",
+      machine_turns: "Machine Turns",
+      human_pct: "Human %",
+      machine_pct: "Machine %",
+      eval_metrics: "Evaluation Metrics",
+      confusion_matrix: "Confusion Matrix",
+      accuracy: "Accuracy",
+      f1_macro: "F1 Macro",
+      precision_macro: "Precision Macro",
+      recall_macro: "Recall Macro",
+      distribution: "Distribution",
+      turn_level: "Turn-level",
+      dialogue_level: "Dialogue-level",
+      dialogues: "Dialogues",
+      search_dialogue: "Search Dialogue ID...",
+      all_labels: "All labels",
+      ai_heavy: "AI-heavy",
+      mixed: "Mixed",
+      human: "Human",
+      sort_ai_desc: "Sort: AI% (desc)",
+      sort_human_desc: "Sort: Human% (desc)",
+      th_dialogue_id: "Dialogue ID",
+      th_turns: "#Turns",
+      th_human: "#Human",
+      th_machine: "#Machine",
+      th_machine_pct: "Machine %",
+      th_human_pct: "Human %",
+      th_final_label: "Final Label",
+      th_action: "Action",
+      details_title: "Dialogue Details:",
+      all_turns: "All turns",
+      sender: "Sender",
+      text: "Text",
+      prev: "Prev",
+      prediction: "Prediction",
+      gt: "GT",
+      confidence: "Confidence",
+      show: "Show",
+      hide: "Hide",
+      view: "View",
+      close: "Close",
+      tn: "True Negative",
+      fp: "False Positive",
+      fn: "False Negative",
+      tp: "True Positive",
+      mini_line: "Avg Turns/Dialogue: {avg} • AI‑heavy Dialogues: {ai} • Mixed: {mixed} • Human: {human}",
+      dist_note: "Machine turns are {pct}% of all turns.",
+      dist_line: "Avg Turns/Dialogue: {avg} • Highest AI%: {highest}"
+    },
+    ar: {
+      back: "العودة إلى المشروع ←",
+      title: "تحليل المحادثة",
+      selected_model: "النموذج المحدد: —",
+      summary_title: "ملخص التحليل",
+      summary_sub: "النموذج: — • الوقت: — • الحقيقة الأرضية: نعم",
+      download: "تنزيل ▾",
+      advanced: "متقدم",
+      submit: "إرسال النتائج",
+      total_dialogues: "إجمالي الحوارات",
+      total_turns: "إجمالي الأدوار",
+      human_turns: "أدوار البشر",
+      machine_turns: "أدوار الآلة",
+      human_pct: "نسبة البشر",
+      machine_pct: "نسبة الآلة",
+      eval_metrics: "مقاييس التقييم",
+      confusion_matrix: "مصفوفة الالتباس",
+      accuracy: "الدقة",
+      f1_macro: "F1 متوسط",
+      precision_macro: "الإحكام المتوسط",
+      recall_macro: "الاسترجاع المتوسط",
+      distribution: "التوزيع",
+      turn_level: "مستوى الدور",
+      dialogue_level: "مستوى الحوار",
+      dialogues: "الحوارات",
+      search_dialogue: "ابحث عن معرف الحوار...",
+      all_labels: "كل التصنيفات",
+      ai_heavy: "AI‑كثيف",
+      mixed: "مختلط",
+      human: "بشري",
+      sort_ai_desc: "ترتيب: %الآلة (تنازلي)",
+      sort_human_desc: "ترتيب: %البشر (تنازلي)",
+      th_dialogue_id: "معرف الحوار",
+      th_turns: "#الأدوار",
+      th_human: "#بشري",
+      th_machine: "#آلة",
+      th_machine_pct: "نسبة الآلة",
+      th_human_pct: "نسبة البشر",
+      th_final_label: "التصنيف النهائي",
+      th_action: "إجراء",
+      details_title: "تفاصيل الحوار:",
+      all_turns: "كل الأدوار",
+      sender: "المرسل",
+      text: "النص",
+      prev: "السابق",
+      prediction: "التنبؤ",
+      gt: "الحقيقة",
+      confidence: "الثقة",
+      show: "عرض",
+      hide: "إخفاء",
+      view: "عرض",
+      close: "إغلاق",
+      tn: "سالب صحيح",
+      fp: "موجب كاذب",
+      fn: "سالب كاذب",
+      tp: "موجب صحيح",
+      mini_line: "متوسط الأدوار/حوار: {avg} • حوارات AI‑كثيف: {ai} • مختلط: {mixed} • بشري: {human}",
+      dist_note: "تبادلات الآلة تمثل {pct}% من جميع التبادلات.",
+      dist_line: "متوسط الأدوار/حوار: {avg} • أعلى نسبة AI: {highest}"
+    }
+  };
+
+  function format(str, vars) {
+    return str.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  }
+
+  function applyLang(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.dataset.i18n;
+      el.textContent = i18n[lang][key] || el.textContent;
+    });
+    if (isFeedbackMode) {
+  const titleEl = document.querySelector(".page-title");
+  if (titleEl) {
+    titleEl.textContent = lang === "ar" ? " مراجعه للمحادثات" : "Conversation Feedback";
+  }
+}
+
+
+    document.getElementById("searchInput").placeholder = i18n[lang].search_dialogue;
+
+    const labelFilter = document.getElementById("labelFilter");
+    labelFilter.options[0].text = i18n[lang].all_labels;
+    labelFilter.options[1].text = i18n[lang].ai_heavy;
+    labelFilter.options[2].text = i18n[lang].mixed;
+    labelFilter.options[3].text = i18n[lang].human;
+
+    const sortSelect = document.getElementById("sortSelect");
+    sortSelect.options[0].text = i18n[lang].sort_ai_desc;
+    sortSelect.options[1].text = i18n[lang].sort_human_desc;
+
+    langToggle.textContent = lang === "ar" ? "AR" : "EN";
+
+    document.getElementById("miniLine").textContent =
+      format(i18n[lang].mini_line, lastSummary);
+
+      renderDistribution();
+
+      renderTable();
+      setSelectedModelLine(modelSelectEl.value || activeModel);
+      updateSummaryMeta();
+
+  }
+
+  function esc(val){
+    return String(val ?? "").replace(/[&<>"']/g, (c) => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    }[c]));
+  }
+
+  function labelFor(d){
+    if (d.machinePct >= 60) return "ai";
+    if (d.humanPct >= 60) return "human";
+    return "mix";
+  }
+
+  function renderTable(){
+    const q = (document.getElementById("searchInput").value || "").toLowerCase();
+    const label = document.getElementById("labelFilter").value;
+    const sort = document.getElementById("sortSelect").value;
+
+    let list = dialogues.filter(d => String(d.id).toLowerCase().includes(q));
+    if (label !== "all") list = list.filter(d => d.label === label);
+
+    list.sort((a,b) => {
+      if (sort === "human_desc") return b.humanPct - a.humanPct;
+      return b.machinePct - a.machinePct;
+    });
+
+    const tbody = document.getElementById("dialogueBody");
+    tbody.innerHTML = list.map(d => {
+      const idStr = String(d.id);
+      const pillClass = d.label === "ai" ? "ai" : d.label === "human" ? "human" : "mix";
+      const pillText = d.label === "ai" ? i18n[currentLang].ai_heavy :
+                       d.label === "human" ? i18n[currentLang].human : i18n[currentLang].mixed;
+      const actionText = openId === idStr ? i18n[currentLang].close : i18n[currentLang].view;
+
+      const details = openId === idStr ? `
+        <tr>
+          <td colspan="8">
+            <div class="details-box">
+              <div class="details-head">
+                <div><strong>${i18n[currentLang].details_title} ${esc(idStr)}</strong></div>
+                <div>Total: ${d.total} | Human: ${d.human} | Machine: ${d.machine} | Machine%: ${d.machinePct.toFixed(1)}</div>
+              </div>
+
+              
+              <div class="details-row">
+                <strong>#</strong><strong>${i18n[currentLang].sender}</strong><strong>${i18n[currentLang].text}</strong><strong>${i18n[currentLang].prev}</strong><strong>${i18n[currentLang].prediction}</strong><strong>${i18n[currentLang].gt}</strong><strong>${i18n[currentLang].confidence}</strong>
+              </div>
+
+              <div class="details-scroll">
+                ${d.turns.map((t,i)=> {
+                  const prev = (t.prev_text || t.prev || "").trim();
+                  const prevCell = prev
+                    ? `<button class="prev-btn" type="button" data-prev="${esc(prev)}">${i18n[currentLang].show}</button>`
+                    : "—";
+                    const role = String(t.sender_role || t.sender_type || t.role || t.sender || "").toLowerCase();
+const humanName = t.sender_name || t.user_name || t.human_name || t.name || "";
+
+let sender = "—";
+if (role.includes("ai") || role.includes("agent") || role.includes("assistant")) {
+  sender = "Agent";
+} else if (role.includes("human") || role.includes("user")) {
+  sender = humanName || "Human";
+} else if ((t.prediction || "").toUpperCase() === "AI") {
+  sender = "Agent";
+} else {
+  sender = humanName || "Human";
+}
+                  const predLabel = t.prediction === "AI" ? "Machine" : (t.prediction || "—");
+                  const gtLabel = t.gt === "AI" ? "Machine" : (t.gt || "—");
+                  const conf = (t.confidence === 0 || t.confidence) ? (t.confidence * 100).toFixed(1) + "%" : "—";
+                  return `
+                    <div class="details-row">
+                      <div>${i + 1}</div>
+                      <div>${esc(sender)}</div>
+                      <div>${esc(t.text || "")}</div>
+                      <div>${prevCell}</div>
+                      <div><span class="chip">${esc(predLabel)}</span></div>
+                      <div><span class="chip">${esc(gtLabel)}</span></div>
+                      <div><span class="chip">${esc(conf)}</span></div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+
+            </div>
+          </td>
+        </tr>` : "";
+
+      return `
+        <tr>
+          <td>${esc(idStr)}</td><td>${d.total}</td><td>${d.human}</td><td>${d.machine}</td>
+          <td>${d.machinePct.toFixed(1)}%</td><td>${d.humanPct.toFixed(1)}%</td>
+          <td><span class="pill ${pillClass}">${pillText}</span></td>
+          <td><button class="view-btn" data-id="${esc(idStr)}">${actionText}</button></td>
+        </tr>
+        ${details}
+      `;
+    }).join("");
+  }
+
+  const dialogueBodyEl = document.getElementById("dialogueBody");
+dialogueBodyEl?.addEventListener("click", (e) => {
+  const prevBtn = e.target.closest(".prev-btn");
+  if (prevBtn) {
+    const row = prevBtn.closest(".details-row");
+    const next = row.nextElementSibling;
+
+    if (next && next.classList.contains("prev-inline")) {
+      next.remove();
+      prevBtn.textContent = i18n[currentLang].show;
+      return;
+    }
+
+    const prevText = prevBtn.dataset.prev || "";
+    const inline = document.createElement("div");
+    inline.className = "prev-inline";
+    inline.textContent = prevText;
+    row.insertAdjacentElement("afterend", inline);
+    prevBtn.textContent = i18n[currentLang].hide;
+    return;
+  }
+
+    const btn = e.target.closest("button[data-id]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    openId = openId === id ? null : id;
+    renderTable();
+  });
+
+  document.getElementById("searchInput").addEventListener("input", renderTable);
+  document.getElementById("labelFilter").addEventListener("change", renderTable);
+  document.getElementById("sortSelect").addEventListener("change", renderTable);
+
+  const cmModal = document.getElementById("cmModal");
+  const cmOpen = document.getElementById("cmOpen");
+  function openCM() { cmModal.classList.add("active"); cmModal.setAttribute("aria-hidden", "false"); }
+  function closeCM() { cmModal.classList.remove("active"); cmModal.setAttribute("aria-hidden", "true"); }
+  cmOpen?.addEventListener("click", openCM);
+cmModal?.addEventListener("click", (e) => { if (e.target.matches("[data-close]")) closeCM(); });
+
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeCM(); });
+
+  function setCmValue(id, val){
+    document.getElementById(id).textContent = (val === 0 || val) ? val : "—";
+  }
+  async function loadSummary(modelKey) {
+  if (!projectId || !modelKey) return;
+
+  const res = await fetch(`/api/analysis_project/${projectId}?model=${encodeURIComponent(modelKey)}`);
+  const data = await res.json();
+
+  const cm = data.confusion_matrix || {};
+  const metrics = data.metrics || {};
+
+  setCmValue("cmTN", cm.true_negative ?? cm.tn ?? cm.TN);
+  setCmValue("cmFP", cm.false_positive ?? cm.fp ?? cm.FP);
+  setCmValue("cmFN", cm.false_negative ?? cm.fn ?? cm.FN);
+  setCmValue("cmTP", cm.true_positive ?? cm.tp ?? cm.TP);
+
+  const toPct = (v) => (v === 0 || v) ? `${(Number(v) * 100).toFixed(2)}%` : "—";
+  const to4 = (v) => (v === 0 || v) ? Number(v).toFixed(4) : "—";
+
+  document.getElementById("accVal").textContent = toPct(metrics.accuracy);
+  document.getElementById("f1Val").textContent = to4(metrics.f1_macro);
+  document.getElementById("precVal").textContent = to4(metrics.precision_macro);
+  document.getElementById("recVal").textContent = to4(metrics.recall_macro);
+
+  const results = data.results || [];
+
+  let totalDialogs = results.length;
+  let totalTurns = 0, humanTurns = 0, machineTurns = 0;
+  let aiHeavy = 0, mixed = 0, humanHeavy = 0;
+
+  dialogues = results.map((r, i) => {
+    const turns = r.turns || [];
+    let human = 0, machine = 0;
+    turns.forEach(t => t.prediction === "AI" ? machine++ : human++);
+    const total = turns.length || (r.turns_count || 0);
+    const machinePct = total ? (machine / total) * 100 : 0;
+    const humanPct = total ? (human / total) * 100 : 0;
+    const label = labelFor({machinePct, humanPct});
+
+    totalTurns += total; humanTurns += human; machineTurns += machine;
+    if (label === "ai") aiHeavy++; else if (label === "human") humanHeavy++; else mixed++;
+
+    const rawId = r.task_id || r.task_name || String(i+1);
+    const displayId = /^\d+$/.test(String(rawId)) ? String(rawId) : String(i+1);
+
+    return {
+  id: displayId,
+  taskId: String(r.task_id || rawId || ""),
+  turns,
+  total,
+  human,
+  machine,
+  machinePct,
+  humanPct,
+  label
+};
+  });
+
+  const humanPct = totalTurns ? (humanTurns/totalTurns*100) : 0;
+  const machinePct = totalTurns ? (machineTurns/totalTurns*100) : 0;
+  const avgTurns = totalDialogs ? (totalTurns/totalDialogs) : 0;
+
+  const highestAI = dialogues.length ? Math.max(...dialogues.map(d => d.machinePct)) : 0;
+  const dialogueMachinePct = totalDialogs ? (aiHeavy / totalDialogs * 100) : 0;
+ 
+
+  document.getElementById("totalDialogs").textContent = totalDialogs || "—";
+  document.getElementById("totalTurns").textContent = totalTurns || "—";
+  document.getElementById("humanTurns").textContent = humanTurns || "—";
+  document.getElementById("machineTurns").textContent = (machineTurns === 0 || machineTurns) ? machineTurns : "—";
+  document.getElementById("humanPct").textContent = humanPct.toFixed(1) + "%";
+  document.getElementById("machinePct").textContent = machinePct.toFixed(1) + "%";
+
+  lastSummary = {
+  avg: avgTurns.toFixed(2),
+  ai: aiHeavy,
+  mixed: mixed,
+  human: humanHeavy,
+  pct: machinePct.toFixed(1),
+  highest: `${highestAI.toFixed(1)}%`
+};
+
+distData = {
+  turnHuman: humanTurns,
+  turnMachine: machineTurns,
+  dialogHuman: humanHeavy,
+  dialogMachine: aiHeavy,
+  avg: avgTurns.toFixed(2),
+  highest: `${highestAI.toFixed(1)}%`,
+  turnMachinePct: machinePct.toFixed(1),
+  dialogMachinePct: dialogueMachinePct.toFixed(1)
+};
+
+document.getElementById("miniLine").textContent =
+  format(i18n[currentLang].mini_line, lastSummary);
+
+renderDistribution();
+
+
+  renderTable();
+  updateSummaryMeta();
+
+}
+function renderFeedbackProgress(done, total) {
+  const pct = total ? (done / total) * 100 : 0;
+  if (fbProgressFill) fbProgressFill.style.width = `${pct}%`;
+  if (fbProgressText) fbProgressText.textContent = `${done} / ${total} conversations reviewed`;
+}
+
+function getConversationConfidence(item) {
+  const turns = Array.isArray(item.turns) ? item.turns : [];
+  const vals = turns
+    .map(t => Number(t?.confidence))
+    .filter(v => Number.isFinite(v));
+
+  if (vals.length > 0) {
+    return vals.reduce((a, b) => a + b, 0) / vals.length; // average per conversation
+  }
+
+  const fallback = Number(item?.confidence);
+  return Number.isFinite(fallback) ? fallback : 0;
+}
+
+function sortedFeedbackItems() {
+  const arr = [...feedbackItems];
+  if (feedbackSortMode === "confidence_low") {
+    arr.sort((a, b) => getConversationConfidence(a) - getConversationConfidence(b));
+  } else if (feedbackSortMode === "confidence_high") {
+    arr.sort((a, b) => getConversationConfidence(b) - getConversationConfidence(a));
+  } else {
+    arr.sort((a, b) => (a.order_index || 999999) - (b.order_index || 999999));
+  }
+  return arr;
+}
+
+
+function getDraft(conversationId, item) {
+  if (!feedbackDraft[conversationId]) {
+    feedbackDraft[conversationId] = {
+      label: (item.my_feedback && item.my_feedback.label) || "",
+      explanation: (item.my_feedback && item.my_feedback.explanation) || ""
+    };
+  }
+  return feedbackDraft[conversationId];
+}
+function getTurnSharedFeedback(t) {
+  let fb = t.turn_feedback || t.feedback || t.submitted_feedback || t.turn_feedback_data || null;
+  if (Array.isArray(fb)) fb = fb[0] || null;
+
+  if (!fb && Array.isArray(t.feedback_users) && t.feedback_users.length) {
+    const x = t.feedback_users[0];
+    fb = {
+      examiner_uid: x.examiner_uid || x.uid || "",
+      examiner_name: x.examiner_name || x.name || "Examiner",
+      label: x.label || "",
+      explanation: x.explanation || "",
+      submitted_at: x.submitted_at || ""
+    };
+  }
+
+  if (fb && typeof fb === "object") return fb;
+  return null;
+}
+
+
+function isTurnOwner(t) {
+  const fb = getTurnSharedFeedback(t);
+  if (!fb) return true;
+  return String(fb.examiner_uid || "") === String(currentExaminerUid || "");
+}
+
+function renderTurnSubmittedBox(t) {
+  const fb = getTurnSharedFeedback(t);
+  if (!fb) return "";
+
+  const label = (fb.label || "Human").toUpperCase() === "AI" ? "AI" : "Human";
+  const cls = label === "AI" ? "ai" : "human";
+
+  return `
+    <div class="fb-turn-submitted">
+      <div class="fb-sub-title">Feedback Saved</div>
+      <div class="fb-sub-row">
+        <span class="fb-pill ${cls}">${label}</span>
+      </div>
+      <div class="fb-sub-note">${esc(fb.explanation || "-")}</div>
+    </div>
+  `;
+}
+
+
+function buildTurnFeedbackLog(turns) {
+  const rows = (turns || []).filter(t => getTurnSharedFeedback(t)).map(t => {
+    const fb = getTurnSharedFeedback(t);
+    return `
+      <div class="fb-log-row">
+        <div>${Number(t.turn_index || 0)}</div>
+        <div>${esc(t.text || "")}</div>
+        <div>${esc(fb.label || "-")}</div>
+        <div>${esc(fb.explanation || "-")}</div>
+        <div>${esc(fb.examiner_name || "Examiner")}</div>
+      </div>
+    `;
+  }).join("");
+
+  if (!rows) return "";
+  return `
+    <div class="fb-log-box">
+      <div class="fb-log-head">
+        <div>Turn</div><div>Message</div><div>Label</div><div>Explanation</div><div>By</div>
+      </div>
+      ${rows}
+    </div>
+  `;
+}
+
+
+let turnSortMode = "default"; // default | confidence_high | confidence_low
+const fbTurnSortBtn = document.getElementById("fbTurnSortBtn");
+if (fbTurnSortBtn) {
+  fbTurnSortBtn.style.display = "none";
+  fbTurnSortBtn.disabled = true;
+}
+
+function sortTurnsForView(turns) {
+  const arr = [...(turns || [])];
+
+  if (turnSortMode === "confidence_high") {
+    arr.sort((a, b) => {
+      const av = Number.isFinite(Number(a?.confidence)) ? Number(a.confidence) : -1;
+      const bv = Number.isFinite(Number(b?.confidence)) ? Number(b.confidence) : -1;
+      return bv - av;
+    });
+  } else if (turnSortMode === "confidence_low") {
+    arr.sort((a, b) => {
+      const av = Number.isFinite(Number(a?.confidence)) ? Number(a.confidence) : Number.POSITIVE_INFINITY;
+      const bv = Number.isFinite(Number(b?.confidence)) ? Number(b.confidence) : Number.POSITIVE_INFINITY;
+      return av - bv;
+    });
+  } else {
+    arr.sort((a, b) => (Number(a?.turn_index) || 0) - (Number(b?.turn_index) || 0));
+  }
+
+  return arr;
+}
+
+function updateTurnSortBtnLabel() {
+  if (!fbTurnSortBtn) return;
+  if (turnSortMode === "confidence_high") fbTurnSortBtn.textContent = "Turn Sort: High -> Low";
+  else if (turnSortMode === "confidence_low") fbTurnSortBtn.textContent = "Turn Sort: Low -> High";
+  else fbTurnSortBtn.textContent = "Turn Sort: Default";
+}
+
+fbTurnSortBtn?.addEventListener("click", () => {
+  if (turnSortMode === "default") turnSortMode = "confidence_high";
+  else if (turnSortMode === "confidence_high") turnSortMode = "confidence_low";
+  else turnSortMode = "default";
+
+  updateTurnSortBtnLabel();
+  renderFeedbackCards();
+});
+
+function renderFeedbackCards() {
+  if (!fbCardsEl) return;
+
+
+  const list = sortedFeedbackItems();
+  if (!list.length) {
+    fbCardsEl.innerHTML = `<div class="fb-empty">No conversations found.</div>`;
+    return;
+  }
+
+  fbCardsEl.innerHTML = list.map((item) => {
+  const id = String(item.conversation_id);
+  const convConf = getConversationConfidence(item);
+  const isOpen = feedbackOpenId === id;
+
+
+    const isLocked = Boolean(item.conversation_locked);
+const statusClass = isLocked ? "ok" : "pending";
+const statusText = isLocked ? "Reviewed" : "Pending";
+    const draft = getDraft(id, item);
+
+    const reviewers = (item.feedback_users || []).length
+      ? item.feedback_users.map(x => `<span class="fb-user-chip">${esc(x.name || "Examiner")}</span>`).join("")
+      : "No feedback yet";
+
+  const turnsForView = sortTurnsForView(item.turns || []);
+  const turnsRows = turnsForView.map((t, idx) => {
+  const turnIdx = Number(t.turn_index || (idx + 1));
+  const pred = (t.prediction || "Human").toUpperCase() === "AI" ? "AI" : "Human";
+  const gt = (t.gt || "Human").toUpperCase() === "AI" ? "AI" : "Human";
+  const predCls = pred === "AI" ? "ai" : "human";
+  const gtCls = gt === "AI" ? "ai" : "human";
+  const sender = t.sender || (pred === "AI" ? "Machine" : "Human");
+  const conf = (t.confidence === 0 || t.confidence) ? `${Number(t.confidence).toFixed(2)}%` : "—";
+
+  const key = `${id}::${turnIdx}`;
+const sharedFb = getTurnSharedFeedback(t);
+const mine = t.my_feedback || {};
+
+if (!feedbackDraft[key]) {
+  feedbackDraft[key] = {
+    label: mine.label || sharedFb?.label || "",
+    explanation: mine.explanation || sharedFb?.explanation || ""
+  };
+}
+const draft = feedbackDraft[key];
+const canEdit = !sharedFb; // إذا فيه فيدباك سابق -> مقفول على الجميع
+
+const feedbackCell = canEdit
+  ? `
+    <div class="fb-turn-feedback">
+      <div class="fb-turn-labels">
+        <button class="fb-turn-mini-btn ${draft.label === "Human" ? "active human" : ""}" data-ft-label="Human" data-ft-id="${esc(id)}" data-ft-turn="${turnIdx}">Human</button>
+        <button class="fb-turn-mini-btn ${draft.label === "AI" ? "active ai" : ""}" data-ft-label="AI" data-ft-id="${esc(id)}" data-ft-turn="${turnIdx}">AI</button>
+      </div>
+      <textarea class="fb-turn-note" data-ft-text="${esc(id)}" data-ft-turn="${turnIdx}" placeholder="Turn explanation...">${esc(draft.explanation || "")}</textarea>
+      <button class="btn primary fb-save-btn" data-ft-submit="${esc(id)}" data-ft-turn="${turnIdx}">
+        ${sharedFb ? "Update Feedback" : "Save Feedback"}
+      </button>
+    </div>
+  `
+  : `<div class="fb-turn-lock">Feedback already submitted by ${esc(sharedFb?.examiner_name || "Examiner")}.</div>`;
+
+const submittedBox = renderTurnSubmittedBox(t);
+
+
+    return `
+  <div class="fb-turn-item">
+    <div class="fb-turn-main">
+      <div>${turnIdx}</div>
+      <div>${esc(sender)}</div>
+      <div>${esc(t.text || "")}</div>
+      <div><span class="fb-pred ${predCls}">${pred}</span></div>
+      <div><span class="fb-pred ${gtCls}">${gt}</span></div>
+      <div>${esc(conf)}</div>
+    </div>
+    <div class="fb-turn-feedback-wrap">
+  ${feedbackCell}
+  ${submittedBox}
+</div>
+
+  </div>
+`;
+
+}).join("");
+
+
+    const lockBy = (item.feedback_users && item.feedback_users[0] && item.feedback_users[0].name) || "Examiner";
+
+const myBox = isLocked ? `
+  <div class="fb-my-box">
+    <div class="fb-my-title">✅ Feedback already submitted</div>
+    ${
+      item.my_feedback
+        ? `<div><strong>${esc(item.my_feedback.label || "-")}</strong></div>
+           <div style="margin-top:6px;">${esc(item.my_feedback.explanation || "")}</div>`
+        : `<div>Submitted by: <strong>${esc(lockBy)}</strong></div>`
+    }
+  </div>
+` : "";
+
+    return `
+      <div class="fb-card">
+        <div class="fb-head">
+          <div class="fb-title">${esc(item.task_name || "Conversation")}</div>
+          <div class="fb-badges">
+            <span class="fb-badge ai">🤖 AI ${Number(item.ai_percentage || 0).toFixed(2)}%</span>
+            <span class="fb-badge conf">📊 Confidence: ${convConf.toFixed(2)}%</span>
+            <span class="fb-badge ${statusClass}">${isLocked ? "✅" : "⏳"} ${statusText}</span>
+            <button class="fb-expand" data-fb-toggle="${esc(id)}">${isOpen ? "▲" : "▼"}</button>
+          </div>
+        </div>
+
+        ${isOpen ? `
+          <div class="fb-body">
+  <div class="fb-stats-row">
+    <div class="fb-stats">
+      <div class="fb-stat">Human: ${Number(item.human_percentage || 0).toFixed(2)}%</div>
+      <div class="fb-stat">AI: ${Number(item.ai_percentage || 0).toFixed(2)}%</div>
+      <div class="fb-stat">Confidence: ${Number(item.confidence || 0).toFixed(2)}%</div>
+    </div>
+
+    <div class="fb-turn-sort-inline">
+      <span style="font-size:12px;font-weight:700;color:#5b657a;">Turn Sort:</span>
+      <select class="select fb-turn-sort-select" data-turn-sort="${esc(id)}">
+        <option value="default" ${turnSortMode === "default" ? "selected" : ""}>Default</option>
+        <option value="confidence_high" ${turnSortMode === "confidence_high" ? "selected" : ""}>High Confidence</option>
+        <option value="confidence_low" ${turnSortMode === "confidence_low" ? "selected" : ""}>Low Confidence</option>
+      </select>
+    </div>
+  </div>
+
+
+
+            <div class="fb-reviewers"><strong>Feedback by:</strong> ${reviewers}</div>
+
+
+            <div class="fb-turn-table">
+              <div class="fb-turn-head">
+  <div>#</div>
+  <div>Sender</div>
+  <div>Message</div>
+  <div>Prediction</div>
+  <div>GT</div>
+  <div>Confidence</div>
+</div>
+
+
+
+              ${turnsRows || `<div class="fb-empty">No transcript.</div>`}
+            </div>
+
+            ${myBox}
+
+          
+
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+
+async function loadConversationFeedbackList() {
+  if (!taskId) {
+    if (fbCardsEl) fbCardsEl.innerHTML = `<div class="fb-empty">Missing taskId.</div>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/task/${encodeURIComponent(taskId)}/conversation_feedback_list`);
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      if (fbCardsEl) fbCardsEl.innerHTML = `<div class="fb-empty">${esc(data.error || "Failed to load feedback list.")}</div>`;
+      return;
+    }
+
+    if (data.waiting) {
+      renderFeedbackProgress(0, 0);
+      if (fbCardsEl) fbCardsEl.innerHTML = `<div class="fb-empty">${esc(data.message || "Waiting...")}</div>`;
+      return;
+    }
+
+    const prevOpenId = feedbackOpenId;
+feedbackItems = data.items || [];
+
+// خليه يظل فاتح نفس المحادثة بعد التحديث
+if (prevOpenId && feedbackItems.some(x => String(x.conversation_id) === String(prevOpenId))) {
+  feedbackOpenId = prevOpenId;
+} else {
+  feedbackOpenId = feedbackItems.length ? String(feedbackItems[0].conversation_id) : null;
+}
+
+const reviewed = (data.progress && data.progress.reviewed) || 0;
+
+    const total = (data.progress && data.progress.total) || 0;
+    renderFeedbackProgress(reviewed, total);
+
+    // نعرض اسم الموديل المختار للفيدباك
+    if (selectedModelLineEl) {
+      selectedModelLineEl.style.display = "block";
+      selectedModelLineEl.textContent = `Selected model: ${data.selected_model_name || "—"}`;
+    }
+
+    renderFeedbackCards();
+  } catch (e) {
+  console.error("loadConversationFeedbackList error:", e);
+  if (fbCardsEl) fbCardsEl.innerHTML = `<div class="fb-empty">Failed to load feedback list.</div>`;
+}
+
+}
+
+async function submitConversationFeedback(conversationId) {
+  const draft = feedbackDraft[conversationId] || {};
+  const label = (draft.label || "").trim();
+  const explanation = (draft.explanation || "").trim();
+
+  if (!label) {
+    alert("Please select a label first.");
+    return;
+  }
+  if (!explanation) {
+    alert("Please write explanation first.");
+    return;
+  }
+
+  const res = await fetch(
+    `/api/task/${encodeURIComponent(taskId)}/conversation_feedback/${encodeURIComponent(conversationId)}/submit`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label, explanation })
+    }
+  );
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.error) {
+    alert(data.error || "Failed to submit feedback.");
+    return;
+  }
+
+  alert("✅ Feedback submitted successfully.");
+  await loadConversationFeedbackList();
+}
+
+fbSortSelect?.addEventListener("change", () => {
+  feedbackSortMode = fbSortSelect.value || "default";
+  renderFeedbackCards();
+});
+fbCardsEl?.addEventListener("change", (e) => {
+  const turnSel = e.target.closest("[data-turn-sort]");
+  if (!turnSel) return;
+  turnSortMode = turnSel.value || "default";
+  renderFeedbackCards();
+});
+
+
+
+fbCardsEl?.addEventListener("click", async (e) => {
+  const toggleBtn = e.target.closest("[data-fb-toggle]");
+  if (toggleBtn) {
+    const id = toggleBtn.getAttribute("data-fb-toggle");
+    feedbackOpenId = (feedbackOpenId === id) ? null : id;
+    renderFeedbackCards();
+    return;
+  }
+
+  const turnLabelBtn = e.target.closest("[data-ft-label]");
+if (turnLabelBtn) {
+  const cid = turnLabelBtn.getAttribute("data-ft-id");
+  const turn = turnLabelBtn.getAttribute("data-ft-turn");
+  const label = turnLabelBtn.getAttribute("data-ft-label");
+  const key = `${cid}::${turn}`;
+  if (!feedbackDraft[key]) feedbackDraft[key] = { label: "", explanation: "" };
+  feedbackDraft[key].label = label;
+  renderFeedbackCards();
+  return;
+}
+
+const turnSubmitBtn = e.target.closest("[data-ft-submit]");
+if (turnSubmitBtn) {
+  const cid = turnSubmitBtn.getAttribute("data-ft-submit");
+  const turn = turnSubmitBtn.getAttribute("data-ft-turn");
+  await submitTurnFeedback(cid, turn);
+  return;
+}
+
+});
+
+fbCardsEl?.addEventListener("input", (e) => {
+  const ta = e.target.closest("[data-ft-text]");
+if (!ta) return;
+const cid = ta.getAttribute("data-ft-text");
+const turn = ta.getAttribute("data-ft-turn");
+const key = `${cid}::${turn}`;
+if (!feedbackDraft[key]) feedbackDraft[key] = { label: "", explanation: "" };
+feedbackDraft[key].explanation = ta.value;
+
+});
+
+
+  profileBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = profileMenu.classList.toggle("show");
+    profileBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.addEventListener("click", (e) => {
+    if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+      profileMenu.classList.remove("show");
+      profileBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      profileMenu.classList.remove("show");
+      profileBtn.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  const moonIcon = document.querySelector("#themeToggle .moon");
+
+function applyTheme(mode){
+  const isDark = mode === "dark";
+  document.body.classList.toggle("dark", isDark);
+  themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+
+  if (moonIcon) {
+    moonIcon.src = isDark
+      ? "../static/images/img_buttonlight.png"
+      : "../static/images/img_buttonDark.svg";
+  }
+}
+
+const savedTheme = localStorage.getItem("theme");
+applyTheme(savedTheme ? savedTheme : "dark"); // يبدأ دارك افتراضياً
+
+themeToggle.addEventListener("click", () => {
+  applyTheme(document.body.classList.contains("dark") ? "light" : "dark");
+});
+
+
+  langToggle.addEventListener("click", () => {
+    const next = currentLang === "en" ? "ar" : "en";
+    applyLang(next);
+  });
+  function applyPageModeUI() {
+  if (!isFeedbackMode) return;
+
+  // ✅ عنوان أوضح
+  const titleEl = document.querySelector(".page-title");
+  if (titleEl) titleEl.textContent = "Conversation Feedback";
+
+  // ✅ نلغي أزرار التحليل والموديل في وضع الفيدباك
+  if (saveModelBtn) saveModelBtn.style.display = "none";
+  if (runAnalysisBtn) runAnalysisBtn.style.display = "none";
+  if (taskSelectionLineEl) taskSelectionLineEl.style.display = "none";
+
+  if (modelSelectEl) {
+    modelSelectEl.disabled = true;
+    modelSelectEl.style.opacity = "0.6";
+  }
+
+  // ✅ نخفي summary bar كامل ونستخدم feedback layout فقط
+  const summaryBar = document.querySelector(".summary-bar");
+  if (summaryBar) summaryBar.style.display = "none";
+
+  if (selectedModelLineEl) selectedModelLineEl.style.display = "block";
+  if (feedbackModeRoot) feedbackModeRoot.style.display = "block";
+
+  // ✅ نخفي واجهة التحليل كلها في feedback mode
+  const toHide = [".stats-grid", "#miniLine", '[data-i18n="eval_metrics"]', "#cmOpen", ".metrics-row", ".bottom-grid"];
+  toHide.forEach((sel) => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = "none";
+  });
+
+  const cmModalEl = document.getElementById("cmModal");
+  if (cmModalEl) cmModalEl.style.display = "none";
+}
+
+
+applyPageModeUI();
+applyLang("en");
+
+
+let isModelAlreadySelected = false;
+
+function setSubmitModelLocked(locked, selectedName = "") {
+  isModelAlreadySelected = locked;
+  if (!saveModelBtn) return;
+
+  saveModelBtn.classList.toggle("is-locked", locked);
+  saveModelBtn.setAttribute("aria-disabled", locked ? "true" : "false");
+  saveModelBtn.title = locked
+    ? `Model already selected${selectedName ? `: ${selectedName}` : ""}`
+    : "";
+}
+if (isFeedbackMode) {
+  loadConversationFeedbackList();
+} else {
+  setSubmitModelLocked(false); // مؤقتًا لين تجي حالة API
+  loadTaskSelectionStatus();
+  setDistTab("turn");
+}
+
+
+
+if (!isFeedbackMode) {
+  if (typeof onDistTabPress === "function") {
+    document.addEventListener("click", onDistTabPress, true);
+    document.addEventListener("pointerdown", onDistTabPress, true);
+  }
+  window.setDistTab = setDistTab;
+  setDistTab("turn");
+}
+
+
+
+
+
+if (modelFromUrl && ["logreg", "rnn"].includes(modelFromUrl)) {
+  modelSelectEl.value = modelFromUrl; // تعبئة فقط
+}
+modelSelectEl.addEventListener("change", () => {
+  setSelectedModelLine(modelSelectEl.value || "");
+  updateSummaryMeta();
+});
+
+setSelectedModelLine(modelSelectEl.value || "");
+updateSummaryMeta();
+
+async function ensureDialoguesForExport() {
+  if (dialogues.length) return true;
+  const picked = modelSelectEl.value || activeModel;
+  if (!projectId || !picked) return false;
+  await loadSummary(picked);
+  return dialogues.length > 0;
+}
+function buildTurnExportRows() {
+  const out = [];
+  dialogues.forEach((d) => {
+    (d.turns || []).forEach((t, idx) => {
+      out.push({
+  dialogue_id: d.id ?? "",
+  turn_id: Number(t.turn_index || (idx + 1)),
+  message: t.text || "",
+  previous_message: t.prev_text || t.prev || "",
+  detection: t.prediction || ""
+});
+
+    });
+  });
+  return out;
+}
+
+async function downloadDialoguesCsv() {
+  const ok = await ensureDialoguesForExport();
+  if (!ok) {
+    alert("Run Analysis first (or select model) to export.");
+    return;
+  }
+
+  const turnRows = buildTurnExportRows();
+  const headers = ["Dialogue ID", "Turn ID", "Message", "Previous Message", "Detection"];
+const rows = turnRows.map(r => [
+  r.dialogue_id,
+  r.turn_id,
+  r.message,
+  r.previous_message,
+  r.detection
+]);
+
+
+  const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csv = [headers, ...rows].map(r => r.map(esc).join(",")).join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `conversation_analysis_${projectId || "project"}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  document.getElementById("downloadCsvBtn")?.closest("details")?.removeAttribute("open");
+}
+
+async function downloadDialoguesJson() {
+  const ok = await ensureDialoguesForExport();
+  if (!ok) {
+    alert("Run Analysis first (or select model) to export.");
+    return;
+  }
+
+  const turnRows = buildTurnExportRows();
+
+  const payload = {
+    projectId: projectId || null,
+    model: modelSelectEl?.value || activeModel || null,
+    exportedAt: new Date().toISOString(),
+    total_rows: turnRows.length,
+    rows: turnRows
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `conversation_analysis_${projectId || "project"}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  document.getElementById("downloadJsonBtn")?.closest("details")?.removeAttribute("open");
+}
+
+
+document.getElementById("downloadCsvBtn")?.addEventListener("click", downloadDialoguesCsv);
+document.getElementById("downloadJsonBtn")?.addEventListener("click", downloadDialoguesJson);
+
+function setTaskSelectionLine(text, ok = false) {
+  if (!taskSelectionLineEl) return;
+  taskSelectionLineEl.textContent = text;
+  taskSelectionLineEl.style.color = ok ? "#2f66ff" : "#5b657a";
+}
+
+function ensureIdsForTaskActions(showAlert = false) {
+  if (!projectId) {
+    setTaskSelectionLine("Task model selection: Missing projectId in URL");
+    if (showAlert) alert("Missing projectId in URL. Open this page from project/task page.");
+    return false;
+  }
+  if (!taskId) {
+    setTaskSelectionLine("Task model selection: Missing taskId in URL");
+    if (showAlert) alert("Missing taskId in URL. Open this page from task page.");
+    return false;
+  }
+  return true;
+}
+
+
+
+
+async function loadTaskSelectionStatus() {
+  if (!ensureIdsForTaskActions(false)) return;
+
+  try {
+    const url = `/api/conversation/selected_model_task?project_id=${encodeURIComponent(projectId)}&task_id=${encodeURIComponent(taskId)}&projectId=${encodeURIComponent(projectId)}&taskId=${encodeURIComponent(taskId)}`;
+    const res = await fetch(url);
+    const data = await res.json().catch(() => ({}));
+
+    const isSelected = Boolean(
+      data.selected ?? data.saved ?? data.is_selected ?? data.already_selected
+    );
+
+    const rawName =
+      data.selected_model_name ||
+      data.model_name ||
+      data.selected_model ||
+      data.model ||
+      "";
+
+    const keyFromRaw =
+      ["rnn", "logreg"].includes(String(rawName).toLowerCase())
+        ? String(rawName).toLowerCase()
+        : modelKeyFromName(rawName);
+
+    if (isSelected && (rawName || keyFromRaw)) {
+      if (keyFromRaw) modelSelectEl.value = keyFromRaw;
+      activeModel = keyFromRaw || activeModel;
+
+      setSelectedModelLine(keyFromRaw || modelSelectEl.value || "");
+      setTaskSelectionLine(`Task model selection: Saved (${rawName || modelLabel(keyFromRaw)})`, true);
+      setSubmitModelLocked(true, rawName || modelLabel(keyFromRaw));
+    } else {
+      setTaskSelectionLine("Task model selection: Not saved (click Submit Model)");
+      setSubmitModelLocked(false);
+      setSelectedModelLine(modelSelectEl.value || "");
+    }
+  } catch (e) {
+    setTaskSelectionLine("Task model selection: Status unavailable");
+    setSubmitModelLocked(false);
+  }
+
+  updateSummaryMeta();
+}
+
+
+
+
+async function saveTaskModelSelection() {
+  const picked = modelSelectEl.value;
+  if (!picked) {
+    setTaskSelectionLine("Task model selection: Choose model first");
+    return;
+  }
+  if (!ensureIdsForTaskActions(true)) return;
+
+  if (isModelAlreadySelected) {
+    alert("Model already selected for this task. You can run analysis, but cannot submit again.");
+  return;
+}
+
+  const oldText = saveModelBtn.textContent;
+  saveModelBtn.disabled = true;
+  saveModelBtn.textContent = "Submitting...";
+
+  try {
+    const res = await fetch("/api/conversation/select_model_task", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        project_id: projectId,
+        task_id: taskId,
+        model: picked
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || data.error) {
+      setTaskSelectionLine(`Task model selection: Failed (${data.error || "error"})`);
+      return;
+    }
+
+    const txt = picked === "rnn" ? "RNN" : "Logistic Regression";
+    setTaskSelectionLine(`Task model selection: Saved (${txt})`, true);
+    alert("✅ Model selected successfully!");
+    setSubmitModelLocked(true, txt);
+    await loadTaskSelectionStatus();
+  } catch {
+    setTaskSelectionLine("Task model selection: Save failed");
+  } finally {
+    saveModelBtn.disabled = false;
+    saveModelBtn.textContent = oldText;
+  }
+}
+
+saveModelBtn?.addEventListener("click", saveTaskModelSelection);
+
+async function handleRunAnalysis() {
+  const picked = modelSelectEl?.value || "";
+
+  if (!projectId) {
+    alert("Missing projectId in URL.");
+    return;
+  }
+  if (!picked) {
+    alert("Please select a model first.");
+    return;
+  }
+
+  const runUrl =
+    `/api/run_analysis_project/${encodeURIComponent(projectId)}` +
+    `?model=${encodeURIComponent(picked)}` +
+    `&task_id=${encodeURIComponent(taskId || "")}` +
+    `&taskId=${encodeURIComponent(taskId || "")}`;
+
+  activeModel = picked;
+  lastRunAt = new Date();
+  setSelectedModelLine(activeModel);
+  updateSummaryMeta();
+  setTaskSelectionLine("Running analysis...", true);
+
+  const oldText = runAnalysisBtn.textContent;
+  runAnalysisBtn.disabled = true;
+  runAnalysisBtn.textContent = "Running Analysis...";
+
+  try {
+    let runRes = await fetch(runUrl, { method: "POST" });
+
+    // fallback لو السيرفر يقبل GET فقط
+    if (runRes.status === 405) {
+      runRes = await fetch(runUrl, { method: "GET" });
+    }
+
+    const runData = await runRes.json().catch(() => ({}));
+
+    if (!runRes.ok || runData.error) {
+      alert(runData.error || `Run failed (${runRes.status})`);
+      setTaskSelectionLine(`Run failed (${runRes.status})`);
+      return;
+    }
+
+    if (runData?.ran_at) {
+      lastRunAt = new Date(runData.ran_at);
+      updateSummaryMeta();
+    }
+
+    await loadSummary(activeModel);
+    setTaskSelectionLine("Analysis completed. If this is a task, click Submit Model to save.", true);
+  } catch (e) {
+    alert("Run request failed. Check backend endpoint.");
+    setTaskSelectionLine("Run request failed");
+  } finally {
+    runAnalysisBtn.disabled = false;
+    runAnalysisBtn.textContent = oldText;
+  }
+}
+
+runAnalysisBtn?.addEventListener("click", handleRunAnalysis);
+
+async function submitTurnFeedback(conversationId, turnIndex) {
+  const key = `${conversationId}::${turnIndex}`;
+  const draft = feedbackDraft[key] || {};
+  const label = (draft.label || "").trim();
+  const explanation = (draft.explanation || "").trim();
+
+  if (!label) return alert("Select turn label first.");
+  if (!explanation) return alert("Write turn explanation first.");
+
+  // حماية فرونت: إذا الفيدباك لشخص آخر لا ترسل
+  const item = feedbackItems.find(x => String(x.conversation_id) === String(conversationId));
+  const turn = (item?.turns || []).find(tt => Number(tt.turn_index) === Number(turnIndex));
+  const sharedFb = turn ? getTurnSharedFeedback(turn) : null;
+
+  if (sharedFb) {
+  alert("تم إرسال فيدباك لهذا التيرن مسبقًا.");
+  return;
+}
+
+
+  const payload = {
+    label,
+    explanation,
+    examiner_uid: currentExaminerUid,
+    examiner_name: currentExaminerName
+  };
+
+  const res = await fetch(
+    `/api/task/${encodeURIComponent(taskId)}/conversation_feedback/${encodeURIComponent(conversationId)}/turn/${encodeURIComponent(turnIndex)}/submit`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  const raw = await res.text();
+  let data = {};
+  try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+
+  if (!res.ok) {
+  alert(data.error || data.message || raw || "Failed to submit turn feedback.");
+  return;
+}
+
+alert("Feedback submitted successfully.");
+
+
+  await loadConversationFeedbackList();
+}
+
+
+</script>
+</body>
+</html>

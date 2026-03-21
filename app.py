@@ -18,11 +18,47 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import requests
 from llm_service import generate_reply
 from flask import abort
-
+import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 
 # إعداد Flask
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = "CHANGE_THIS_SECRET_IN_ENV_OR_CONFIG" 
+
+# =========================
+class ItemSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, key):
+        self.key = key
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, data):
+        try:
+            return data[self.key]
+        except Exception:
+            return data.loc[:, self.key]
+# =========================
+# [3] إعدادات وموديلات تحليل المحادثات
+# =========================
+
+# مسار حفظ نتائج تحليل المحادثات في Realtime DB
+ANALYSIS_ROOT = "analysis_results/conversation_gen"
+
+# مفاتيح الموديلات
+CONV_LOGREG_KEY = "tfidf_logreg"
+CONV_RNN_KEY = "rnn"
+CONV_RNN_AI_CLASS_IS_ONE = False 
+
+# مسارات موديلات المحادثات
+CONV_LOGREG_MODEL_PATH = "Model-Gen-Con/conversation_logistic_regression.joblib"
+CONV_RNN_MODEL_PATH = "Model-Gen-Con/rnn_v2_model.keras"
+CONV_RNN_TOKENIZER_PATH = "Model-Gen-Con/rnn_v2_tokenizer.pkl"
+
+# تحميل موديلات المحادثات
+conv_logreg_model = joblib.load(CONV_LOGREG_MODEL_PATH)
+conv_rnn_model = tf.keras.models.load_model(CONV_RNN_MODEL_PATH)
+conv_rnn_tokenizer = joblib.load(CONV_RNN_TOKENIZER_PATH)
 
 #------------- 
 news_pipeline = joblib.load('news_baseline_pipeline.pkl')
@@ -429,6 +465,7 @@ def api_project_json_owner(project_id):
         "description": proj.get("description"),
         "domain": proj.get("domain", []),
         "category": proj.get("category"),
+        "generated_from_scratch": proj.get("generated_from_scratch", False),  # ✅ جديد
         "dataset_url": proj.get("dataset_url", ""),
         "examiners_accepted": accepted_count,
 
@@ -580,6 +617,7 @@ def api_project_json(project_id):
             "owner_email": owner_info["email"],
             "domain": proj.get("domain", []),
             "category": proj.get("category"),
+            "generated_from_scratch": proj.get("generated_from_scratch", False),  # ✅ جديد
             "examiners_accepted": accepted_count,
             "dataset_url": proj.get("dataset_url", ""),
         }
@@ -729,28 +767,141 @@ def api_accepted_projects():
 
     examiner_id = session["uid"]
 
-    invitations = db.collection("invitations") \
-        .where("examiner_id", "==", examiner_id) \
-        .where("status", "==", "accepted") \
+    invitations = (
+        db.collection("invitations")
+        .where("examiner_id", "==", examiner_id)
+        .where("status", "==", "accepted")
         .stream()
+    )
 
     projects = []
+
     for inv in invitations:
-        inv_data = inv.to_dict()
+        inv_data = inv.to_dict() or {}
         project_id = inv_data.get("project_id")
+
         project_doc = db.collection("projects").document(project_id).get()
-        if project_doc.exists:
-            proj = project_doc.to_dict()
-            projects.append({
-                "project_id": project_id,
-                "project_name": proj.get("project_name"),
-                "owner_name": inv_data.get("owner_name"),
-                "domain": proj.get("domain", []),
-                "category": proj.get("category"),
-                "status": proj.get("status"),
-            })
+        if not project_doc.exists:
+            continue
+
+        proj = project_doc.to_dict() or {}
+
+        # نجمع حالات التاسكات الخاصة بهذا الـ examiner فقط داخل هذا المشروع
+        personal_statuses = []
+        task_docs = db.collection("tasks").where("project_ID", "==", project_id).stream()
+
+        for t in task_docs:
+            td = t.to_dict() or {}
+            task_id = td.get("task_ID") or t.id
+            examiner_ids = td.get("examiner_ids", []) or []
+
+            # إذا التسك مو مسند لهذا الـ examiner نتجاهله
+            if examiner_id not in examiner_ids:
+                continue
+
+            global_status = _normalize_task_status(td.get("status"))
+            conversation_type = (td.get("conversation_type") or "").strip().lower()
+            max_turns = int(td.get("number_of_turns", 0) or 0)
+
+            # الحالة الشخصية الافتراضية
+            personal_status = global_status
+
+            # فقط مهام المحادثة نحسبها شخصيًا من الرسائل
+            if conversation_type in ("human-ai", "human-human") and max_turns > 0:
+                your_turn = 0
+                try:
+                    if conversation_type == "human-ai":
+                        conv_ref = rtdb.reference(f"llm_conversations/{task_id}/messages")
+                        raw = conv_ref.get() or {}
+                        msgs = list(raw.values()) if isinstance(raw, dict) else (raw if isinstance(raw, list) else [])
+
+                        count_for_me = 0
+                        for m in msgs:
+                            if not isinstance(m, dict):
+                                continue
+                            ex_id = m.get("examiner_id") or m.get("sender_id")
+                            if ex_id != examiner_id:
+                                continue
+                            if m.get("sender_type") != "Ex":
+                                continue
+                            count_for_me += 1
+
+                        your_turn = min(count_for_me, max_turns)
+
+                    else:
+                        conv_ref = rtdb.reference(f"hh_conversations/{task_id}/messages")
+                        raw = conv_ref.get() or {}
+                        msgs = list(raw.values()) if isinstance(raw, dict) else (raw if isinstance(raw, list) else [])
+                        msgs.sort(key=lambda m: m.get("created_at", ""))
+
+                        ex_ids = examiner_ids or list({
+                            m.get("examiner_id") or m.get("sender_id")
+                            for m in msgs
+                            if isinstance(m, dict) and (m.get("examiner_id") or m.get("sender_id"))
+                        })
+
+                        your_turn = _compute_hh_turns_for_examiner(msgs, examiner_id, ex_ids)
+                        your_turn = min(your_turn, max_turns)
+
+                    if your_turn >= max_turns:
+                        personal_status = "completed"
+                    elif your_turn > 0:
+                        personal_status = "progress"
+                    else:
+                        personal_status = "pending"
+
+                except Exception as e:
+                    app.logger.exception("Failed to compute personal task status for task %s: %s", task_id, e)
+                    personal_status = global_status
+
+            personal_statuses.append(personal_status)
+
+        # اشتقاق حالة المشروع للـ examiner
+        if not personal_statuses:
+            project_status = "pending"
+        elif all(s == "completed" for s in personal_statuses):
+            project_status = "completed"
+        elif any(s in ("progress", "completed") for s in personal_statuses):
+            project_status = "progress"
+        else:
+            project_status = "pending"
+
+        projects.append({
+            "project_id": project_id,
+            "project_name": proj.get("project_name"),
+            "owner_name": inv_data.get("owner_name"),
+            "domain": proj.get("domain", []),
+            "category": proj.get("category"),
+            "generated_from_scratch": proj.get("generated_from_scratch", False),
+            "status": project_status,
+        })
 
     return jsonify({"projects": projects})
+
+
+
+
+def _normalize_task_status(raw):
+    s = str(raw or "").strip().lower()
+    if s in ("completed", "done"):
+        return "completed"
+    if s in ("progress", "in_progress", "in-progress", "active"):
+        return "progress"
+    return "pending"
+
+
+def _derive_project_status_from_tasks(task_statuses):
+    # task_statuses: list مثل ["pending","progress","completed"]
+    if not task_statuses:
+        return "pending"
+
+    if all(s == "completed" for s in task_statuses):
+        return "completed"
+
+    if any(s == "progress" for s in task_statuses):
+        return "progress"
+
+    return "pending"
 
 # ------------------ هنا عشان تطلع المشاريع في صفحة الاونر ماي بروجكت------------------
 @app.route("/api/my_projects", methods=["GET"])
@@ -773,13 +924,25 @@ def api_my_projects():
             .stream()
         accepted_count = sum(1 for _ in accepted_invitations)
 
+
+         # 🔹 نحسب حالة المشروع من حالات التاسكات فقط
+        task_docs = db.collection("tasks").where("project_ID", "==", project_id).stream()
+        task_statuses = []
+        for t in task_docs:
+            td = t.to_dict() or {}
+            task_statuses.append(_normalize_task_status(td.get("status")))
+
+        project_status = _derive_project_status_from_tasks(task_statuses)
+
+
         projects.append({
             "project_id": project_id,
             "project_name": data.get("project_name"),
             "domain": data.get("domain", []),
             "category": data.get("category"),
+            "generated_from_scratch": data.get("generated_from_scratch", False),
             "examiners": accepted_count,  # ✅ العدد الحقيقي
-            "status": data.get("status", "active"),
+            "status": project_status,
         })
 
     return jsonify({"projects": projects})
@@ -845,6 +1008,7 @@ def api_create_project():
     project_name = data.get("project_name")
     description  = data.get("description")
     category     = data.get("category")
+    generated_from_scratch = str(data.get("generated_from_scratch", "false")).lower() == "true"
     dataset_id = str(uuid.uuid4())
       
  # === منع إنشاء مشروع News بدون Dataset ===
@@ -895,6 +1059,7 @@ def api_create_project():
     "description": description,
     "domain": domains,
     "category": category,
+    "generated_from_scratch": generated_from_scratch,
     "created_at": datetime.utcnow().isoformat() + "Z",
     "owner_id": uid,
     "dataset_id": dataset_id,
@@ -1312,7 +1477,6 @@ def health():
 
 @app.route("/api/update-profile", methods=["POST"])
 def api_update_profile():
-    # لازم يكون مسجل دخول
     if not session.get("idToken"):
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -1320,10 +1484,57 @@ def api_update_profile():
     user_ref = db.collection("users").document(uid)
     snap = user_ref.get()
     if not snap.exists:
-        return jsonify({"error": 'User not found'}), 404
+        return jsonify({"error": "User not found"}), 404
 
     data = request.get_json() or {}
 
+    # ===== Username validation =====
+    username = (data.get("username") or "").strip().lstrip("@")
+    if not username:
+        return jsonify({
+            "error": "USERNAME_REQUIRED",
+            "message": "Please enter a username."
+        }), 400
+
+    existing_username = list(
+        db.collection("users")
+          .where("username", "==", username)
+          .limit(1)
+          .stream()
+    )
+    if existing_username and existing_username[0].id != uid:
+        return jsonify({
+            "error": "USERNAME_TAKEN",
+            "message": "This username is already taken. Please choose another one."
+        }), 409
+
+    # ===== Email validation =====
+    new_email = (data.get("newEmail") or data.get("email") or "").strip().lower()
+    if not new_email:
+        return jsonify({
+            "error": "EMAIL_REQUIRED",
+            "message": "Please enter an email."
+        }), 400
+
+    if ("@" not in new_email) or ("." not in new_email.split("@")[-1]):
+        return jsonify({
+            "error": "INVALID_EMAIL",
+            "message": "Please enter a valid email address."
+        }), 400
+
+    existing_email = list(
+        db.collection("users")
+          .where("email", "==", new_email)
+          .limit(1)
+          .stream()
+    )
+    if existing_email and existing_email[0].id != uid:
+        return jsonify({
+            "error": "EMAIL_TAKEN",
+            "message": "This email is already in use."
+        }), 409
+
+    # باقي البيانات
     first_name     = (data.get("firstName") or "").strip()
     last_name      = (data.get("lastName") or "").strip()
     gender         = (data.get("gender") or "").strip()
@@ -1335,6 +1546,8 @@ def api_update_profile():
 
     updates = {
         "updatedAt": SERVER_TIMESTAMP,
+        "username": username,
+        "email": new_email,
         "profile.firstName": first_name,
         "profile.lastName": last_name,
         "profile.gender": gender,
@@ -1344,8 +1557,6 @@ def api_update_profile():
         "profile.description": description,
         "profile.interests": interests,
     }
-
-   
 
     user_ref.update(updates)
 
@@ -1387,6 +1598,7 @@ def api_create_task():
     project_id = data.get("project_id")
     task_name = data.get("task_name")
     examiner_uids = data.get("examiner_ids", [])
+    task_description = (data.get("task_description") or "").strip()
 
 
     if not project_id or not task_name:
@@ -1422,9 +1634,66 @@ def api_create_task():
         "status": "pending",
     }
 
-    # ----------- حسب نوع المشروع -----------
-    if category == "article":
-        # Article Project → نحتاج task_type
+  # ✅ حالة Generate Conversation فقط
+    is_generated_conversation = (
+        category in ["conversation", "conversations", "chat", "chats"]
+        and bool(proj_data.get("generated_from_scratch", False))
+    )
+
+    if is_generated_conversation:
+        task_type = (data.get("task_type") or "").strip().lower()
+        conversation_type = (data.get("conversation_type") or "").strip().lower()
+        number_of_turns = data.get("number_of_turns")
+
+        try:
+            number_of_turns = int(number_of_turns) if number_of_turns is not None else None
+        except (TypeError, ValueError):
+            number_of_turns = None
+
+        # 🔒 Generate Conversation:
+        # لا نسمح بـ Model Selection / Labeling إلا إذا فيه (على الأقل) مهمة محادثة مكتملة
+        if task_type in ["model_selection", "labeling"]:
+            conv_tasks = db.collection("tasks").where("project_ID", "==", project_id).stream()
+            has_completed_conversation = False
+
+            for t in conv_tasks:
+                td = t.to_dict() or {}
+                ctype = (td.get("conversation_type") or "").strip().lower()
+                tstatus = (td.get("status") or "").strip().lower()
+
+                if ctype in ["human-ai", "human-human"] and tstatus == "completed":
+                    has_completed_conversation = True
+                    break
+
+            if not has_completed_conversation:
+                return jsonify({
+                    "error": "Please complete at least one conversation task first."
+                }), 400
+
+            task_doc["task_type"] = task_type
+            task_doc["task_description"] = task_description
+
+            if task_type == "model_selection" and len(examiner_uids) != 1:
+                return jsonify({"error": "Model Selection task requires exactly 1 examiner"}), 400
+
+        # 2) Human-AI / Human-Human
+        elif conversation_type in ["human-ai", "human-human"]:
+            if number_of_turns is None or not (2 <= number_of_turns <= 7):
+                return jsonify({"error": "number_of_turns must be 2–7"}), 400
+
+            task_doc["conversation_type"] = conversation_type
+            task_doc["number_of_turns"] = number_of_turns
+
+            if conversation_type == "human-ai" and len(examiner_uids) != 1:
+                return jsonify({"error": "Human-AI task requires exactly 1 examiner"}), 400
+
+            if conversation_type == "human-human" and len(examiner_uids) != 2:
+                return jsonify({"error": "Human-Human task requires exactly 2 examiners"}), 400
+        else:
+            return jsonify({"error": "Invalid mode for generated conversation project"}), 400
+
+    elif category == "article":
+        # ✅ Article: نفس منطقك القديم بدون تغيير
         task_type = data.get("task_type")
 
         if task_type not in ["model_selection", "labeling"]:
@@ -1432,14 +1701,18 @@ def api_create_task():
 
         task_doc["task_type"] = task_type
 
-        # Model Selection يتطلب examiner واحد فقط
         if task_type == "model_selection" and len(examiner_uids) != 1:
             return jsonify({"error": "Model Selection task requires exactly 1 examiner"}), 400
 
     else:
-        # Conversation Project → نحتاج conversation_type و number_of_turns
+        # ✅ Conversation العادي: نفس منطقك القديم
         conversation_type = data.get("conversation_type")
         number_of_turns = data.get("number_of_turns")
+
+        try:
+            number_of_turns = int(number_of_turns)
+        except (TypeError, ValueError):
+            return jsonify({"error": "number_of_turns must be 2–7"}), 400
 
         if conversation_type not in ["human-ai", "human-human"]:
             return jsonify({"error": "Invalid conversation_type"}), 400
@@ -1449,6 +1722,7 @@ def api_create_task():
 
         task_doc["conversation_type"] = conversation_type
         task_doc["number_of_turns"] = number_of_turns
+
 
     # ---- حفظ الـ Task ----
     db.collection("tasks").document(task_id).set(task_doc)
@@ -1474,11 +1748,20 @@ def create_task_page(project_id):
     if proj_data.get("owner_id") != owner_uid:
         abort(403)
 
-   
-    category = proj_data.get("category", "").lower()
+    category = (proj_data.get("category", "") or "").lower().strip()
 
+    # ✅ نمرر حالة Generate Conversation للواجهة
+    is_generated_conversation = (
+        category in ["conversation", "conversations", "chat", "chats"]
+        and bool(proj_data.get("generated_from_scratch", False))
+    )
 
-    return render_template("CreateTask.html", project_id=project_id, category=category)
+    return render_template(
+        "CreateTask.html",
+        project_id=project_id,
+        category=category,
+        is_generated_conversation=is_generated_conversation
+    )
 
 @app.route("/api/project_examiners_for_task/<project_id>")
 def get_project_examiners_for_task(project_id):
@@ -1543,7 +1826,6 @@ def api_project_tasks(project_id):
 
         examiner_ids = data.get("examiner_ids", []) or []
 
-        # 🟢 نجمع كل الإيميلات
         examiner_emails = []
         for ex_id in examiner_ids:
             ex_doc = db.collection("users").document(ex_id).get()
@@ -1552,16 +1834,27 @@ def api_project_tasks(project_id):
                 if email:
                     examiner_emails.append(email)
 
+        raw_model = (data.get("selected_model") or "").lower()
+        selected_model_name = data.get("selected_model_name") or (
+            "RNN" if raw_model == "rnn"
+            else "Logistic Regression" if raw_model in ("logreg", "logistic")
+            else None
+        )
+
         tasks.append({
             "id": data.get("task_ID"),
             "title": data.get("task_name"),
             "status": data.get("status", "pending"),
             "conversationType": data.get("conversation_type"),
+            "taskType": data.get("task_type"),
             "turns": data.get("number_of_turns"),
             "examinerCount": len(examiner_emails),
             "primaryExaminerEmail": examiner_emails[0] if examiner_emails else "",
-            "examinerEmails": examiner_emails,  
+            "examinerEmails": examiner_emails,
+            "selected_model_name": selected_model_name,
+            "selected_model": data.get("selected_model"),
         })
+
 
     return jsonify({"tasks": tasks})
 
@@ -1611,7 +1904,7 @@ def api_examiner_tasks(project_id):
                 if em:
                     examiner_emails.append(em)
 
-               # -----------------------------
+        # -----------------------------
         # 🔵 حساب وضعك أنت على هذا التسك
         # -----------------------------
         personal_status = "pending"
@@ -1693,7 +1986,9 @@ def api_examiner_tasks(project_id):
         tasks.append({
             "task_id": task_id,
             "task_name": data.get("task_name"),
-             "task_type": data.get("task_type"),  #CONV OR ART
+            "task_type": data.get("task_type"),  #CONV OR ART
+            "task_description": data.get("task_description", ""),
+
             # ✅ هذه التي تستخدمها الكروت والفلاتر
             "status": personal_status,
 
@@ -1703,15 +1998,62 @@ def api_examiner_tasks(project_id):
             "conversation_type": conversation_type,
             "number_of_turns": max_turns,
             "current_turn_for_you": your_turn,
-
             "is_assigned_to_you": assigned,
             "assignment_label": examiner_emails[0] if examiner_emails else "",
             "examiner_emails": examiner_emails,
             "examiner_count": len(examiner_emails),
+            "selected_model": data.get("selected_model"),
+"selected_model_key": data.get("selected_model_key"),
+"selected_model_label": (
+    "RNN" if data.get("selected_model") == "rnn"
+    else "Logistic Regression" if data.get("selected_model") in ("logreg", "logistic")
+    else None
+),
+"selectedModel": data.get("selected_model"),
+"selectedModelLabel": (
+    "RNN" if data.get("selected_model") == "rnn"
+    else "Logistic Regression" if data.get("selected_model") in ("logreg", "logistic")
+    else None
+),
+
         })
 
     return jsonify({"tasks": tasks})
 
+@app.route("/api/tasks/<task_id>", methods=["GET"])
+def api_get_task(task_id):
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    owner_uid = session.get("uid")
+
+    # 1) نتأكد التاسك موجود
+    task_doc = db.collection("tasks").document(task_id).get()
+    if not task_doc.exists:
+        return jsonify({"error": "Task not found"}), 404
+
+    task_data = task_doc.to_dict() or {}
+    project_id = task_data.get("project_ID")
+
+    # 2) نتأكد المشروع موجود
+    proj_doc = db.collection("projects").document(project_id).get()
+    if not proj_doc.exists:
+        return jsonify({"error": "Project not found"}), 404
+
+    # 3) صلاحية: لازم صاحب المشروع
+    if proj_doc.to_dict().get("owner_id") != owner_uid:
+        return jsonify({"error": "Forbidden"}), 403
+
+    # 4) نرجع كل بيانات التعديل
+    return jsonify({
+        "task_ID": task_data.get("task_ID"),
+        "task_name": task_data.get("task_name", ""),
+        "examiner_ids": task_data.get("examiner_ids", []),
+        "task_type": task_data.get("task_type"),
+        "conversation_type": task_data.get("conversation_type"),
+        "number_of_turns": task_data.get("number_of_turns"),
+        "task_description": task_data.get("task_description", "")
+    }), 200
 
 @app.route("/api/tasks/<task_id>/delete", methods=["POST"])
 def api_delete_task(task_id):
@@ -2854,6 +3196,22 @@ def model_selection_task_page(task_id):
     
     project_id = task_data.get("project_ID")
     
+
+    # ✅ لو المشروع Generated Conversation -> افتح صفحة Conversation Analysis
+    proj_doc = db.collection("projects").document(project_id).get()
+    proj_data = proj_doc.to_dict() if proj_doc.exists else {}
+    category = (proj_data.get("category") or "").strip().lower()
+
+    is_generated_conversation = (
+        category in ["conversation", "conversations", "chat", "chats"]
+        and bool(proj_data.get("generated_from_scratch", False))
+    )
+
+    if is_generated_conversation:
+        return redirect(url_for("results_con", projectId=project_id, taskId=task_id))
+
+
+
     return render_template(
         "ModelSelectionTask.html",
         user_name=user_name,
@@ -3018,7 +3376,8 @@ def api_select_model(task_id):
         "selected_model": selected_model,
         "selected_by": uid,
         "selected_at": datetime.utcnow().isoformat() + "Z",
-        "status": "completed"
+        "status": "completed",
+        "selected_model_name": "RNN" if selected_model == "rnn" else "Logistic Regression",
     })
 
     # نشغل التحليل ونحفظ في RTDB
@@ -3267,10 +3626,24 @@ def feedback_task_page(task_id):
     project_id = task_data.get("project_ID")
     
     project_id = task_data.get("project_ID")
-    
-    # ✅ نجيب dataset_id
+
+    # ✅ إذا كان المشروع Generated Conversation: استخدم نفس صفحة results.con لكن بوضع feedback
     proj_doc = db.collection("projects").document(project_id).get()
-    dataset_id = proj_doc.to_dict().get("dataset_id", "") if proj_doc.exists else ""
+    proj_data = proj_doc.to_dict() if proj_doc.exists else {}
+
+    category = (proj_data.get("category") or "").strip().lower()
+    is_generated_conversation = (
+        category in ["conversation", "conversations", "chat", "chats"]
+        and bool(proj_data.get("generated_from_scratch", False))
+    )
+
+    if is_generated_conversation:
+        return redirect(url_for("results_con", projectId=project_id, taskId=task_id, mode="feedback"))
+
+    
+    # ✅ Article flow كما هو (بدون تغيير سلوكه)
+    dataset_id = proj_data.get("dataset_id", "")
+
     
     return render_template(
         "feedbacktask.html",
@@ -3438,5 +3811,752 @@ def api_submit_article_feedback(article_id):
         app.logger.exception("Failed to submit feedback: %s", e)
         return jsonify({"error": "Failed to submit feedback"}), 500
     
+# =========================
+# [4] صفحة نتائج المحادثات
+# =========================
+@app.route("/results_con", endpoint="results_con")
+def show_results():
+    if not session.get("idToken"):
+        return redirect(url_for("login_page"))
+
+    project_id = request.args.get("projectId")
+    task_id = request.args.get("taskId")
+    mode = (request.args.get("mode") or "model_selection").strip().lower()  # ✅ mode: model_selection | feedback
+
+    user_doc = get_current_user_doc()
+    user_name = get_user_full_name(user_doc) if user_doc else "Examiner"
+
+    return render_template(
+        "results.con.html",
+        user_name=user_name,
+        user_role="Examiner",
+        project_id=project_id,
+        task_id=task_id,
+        mode=mode
+    )
+
+
+
+# =========================
+# [5] Helper functions لتحليل المحادثات
+# =========================
+def _get_conversation_messages(task_id, conversation_type):
+    ref = rtdb.reference(f"llm_conversations/{task_id}/messages") if conversation_type == "human-ai" \
+        else rtdb.reference(f"hh_conversations/{task_id}/messages")
+
+    raw = ref.get() or {}
+    rows = list(raw.values()) if isinstance(raw, dict) else (raw or [])
+    rows.sort(key=lambda m: m.get("created_at", ""))
+
+    speaker_side = {}
+    sides = ["left", "right"]
+    messages = []
+
+    for m in rows:
+        if not isinstance(m, dict):
+            continue
+        text = (m.get("message") or "").strip()
+        if not text:
+            continue
+
+        sender_type = (m.get("sender_type") or "").lower()
+        ex_id = m.get("examiner_id") or m.get("sender_id")
+
+        if conversation_type == "human-ai":
+            side = "right" if sender_type in ("llm", "ai", "assistant", "model") else "left"
+        else:
+            if not ex_id:
+                continue
+            if ex_id not in speaker_side:
+                speaker_side[ex_id] = sides[len(speaker_side) % 2]
+            side = speaker_side[ex_id]
+
+        messages.append({"text": text, "side": side, "sender_type": sender_type})
+
+    return messages
+
+
+def _compute_turns_count(messages, conversation_type):
+    if conversation_type == "human-ai":
+        return sum(1 for m in messages if m.get("sender_type") not in ("llm", "ai", "assistant", "model"))
+    seq = [m.get("side") for m in messages if m.get("side")]
+    runs = []
+    for s in seq:
+        if not runs or s != runs[-1]:
+            runs.append(s)
+    return len(runs) // 2
+
+
+def _gt_label_from_sender(sender_type, conversation_type):
+    st = (sender_type or "").lower()
+    if conversation_type == "human-ai":
+        return "AI" if st in ("llm", "ai", "assistant", "model") else "Human"
+    return "Human"
+
+
+def _sender_label(sender_type, conversation_type):
+    st = (sender_type or "").lower()
+    if conversation_type == "human-ai":
+        return "Machine" if st in ("llm", "ai", "assistant", "model") else "Human"
+    return "Human"
+
+# =========================
+# [6] API تشغيل تحليل المحادثات (أهم جزء)
+# =========================
+@app.route("/api/run_analysis_project/<project_id>", methods=["POST"])
+def api_run_analysis_project(project_id):
+    try:
+        selected_model = (request.args.get("model") or "logreg").lower()
+        model_key = CONV_RNN_KEY if selected_model == CONV_RNN_KEY else CONV_LOGREG_KEY
+        selected_model_name = "RNN" if selected_model == "rnn" else "Logistic Regression"
+        task_id_from_query = (request.args.get("task_id") or request.args.get("taskId") or "").strip()
+
+        if not session.get("idToken"):
+            return jsonify({"error": "Unauthorized"}), 401
+        uid = session.get("uid")
+
+
+
+        proj_doc = db.collection("projects").document(project_id).get()
+        if not proj_doc.exists:
+            return jsonify({"error": "Project not found"}), 404
+
+        tasks = db.collection("tasks").where("project_ID", "==", project_id).stream()
+        out_ref = rtdb.reference(f"{ANALYSIS_ROOT}/{model_key}/{project_id}")
+        out_ref.delete()
+
+        analyzed_conversations = 0
+        analyzed_turns = 0
+
+        for t in tasks:
+            d = t.to_dict() or {}
+            task_id = d.get("task_ID") or t.id
+            if not task_id:
+                continue
+
+            conv_type = d.get("conversation_type", "human-human")
+            msgs = _get_conversation_messages(task_id, conv_type)
+            if not msgs:
+                continue
+
+            analyzed_conversations += 1
+            analyzed_turns += len(msgs)
+
+            texts = [m["text"] for m in msgs]
+            prev_texts = [""] + texts[:-1]
+
+            if selected_model == CONV_RNN_KEY:
+                seq = conv_rnn_tokenizer.texts_to_sequences(texts)
+                x = pad_sequences(seq, maxlen=300, padding="post", truncating="post")
+                raw_pred = conv_rnn_model.predict(x, verbose=0)
+                p_pos = raw_pred[:, 1].astype(float) if (raw_pred.ndim == 2 and raw_pred.shape[1] == 2) else raw_pred.reshape(-1).astype(float)
+                p_ai = p_pos if CONV_RNN_AI_CLASS_IS_ONE else (1.0 - p_pos)
+                p_ai = np.clip(p_ai, 0.0, 1.0)
+                labels = ["AI" if p >= 0.5 else "Human" for p in p_ai]
+                probs = [[float(1.0 - p), float(p)] for p in p_ai]
+            else:
+                df_in = pd.DataFrame({"text": texts, "prev_text": prev_texts})
+                preds = conv_logreg_model.predict(df_in)
+                labels = ["Human" if p == 0 else "AI" for p in preds]
+                try:
+                    probs = conv_logreg_model.predict_proba(df_in)
+                except Exception:
+                    probs = None
+
+            task_ref = out_ref.child(task_id)
+            task_ref.child("meta").set({
+                "task_id": task_id,
+                "task_name": d.get("task_name", "Conversation"),
+                "conversation_type": conv_type,
+                "selected_model": selected_model,
+                "selected_model_name": selected_model_name
+            })
+
+
+            turns_ref = task_ref.child("turns")
+            for i, (m, label) in enumerate(zip(msgs, labels), start=1):
+                conf = float(max(probs[i - 1])) if probs is not None else None
+                turns_ref.push({
+                    "turn_index": i,
+                    "text": m["text"],
+                    "prev_text": prev_texts[i - 1],
+                    "prediction": label,
+                    "gt": _gt_label_from_sender(m.get("sender_type"), conv_type),
+                    "sender": _sender_label(m.get("sender_type"), conv_type),
+                    "confidence": conf,
+                })
+
+        if analyzed_conversations == 0:
+            return jsonify({
+                "error": "No conversation messages found for this project. Complete a conversation task first."
+            }), 400
+        if task_id_from_query:
+            ms_task_ref = db.collection("tasks").document(task_id_from_query)
+            ms_task_doc = ms_task_ref.get()
+            if ms_task_doc.exists:
+                ms_data = ms_task_doc.to_dict() or {}
+                if ms_data.get("project_ID") == project_id and ms_data.get("task_type") == "model_selection":
+                    ms_task_ref.update({
+                        "selected_model": selected_model,
+                        "selected_model_name": selected_model_name,
+                        "selected_by": uid,
+                        "selected_at": datetime.utcnow().isoformat() + "Z",
+                        "status": "completed"
+                    })
+
+        return jsonify({
+            "success": True,
+            "model": selected_model,
+            "ran_at": datetime.utcnow().isoformat() + "Z",
+            "analyzed_conversations": analyzed_conversations,
+            "analyzed_turns": analyzed_turns
+        }), 200
+
+    except Exception as e:
+        app.logger.exception("api_run_analysis_project failed")
+        return jsonify({"error": str(e)}), 500
+
+
+
+# =========================
+# [7] API قراءة نتائج تحليل المحادثات
+# =========================
+@app.route("/api/analysis_project/<project_id>", methods=["GET"])
+def api_analysis_project(project_id):
+    selected_model = (request.args.get("model") or "logreg").lower()
+    model_key = CONV_RNN_KEY if selected_model == CONV_RNN_KEY else CONV_LOGREG_KEY
+
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    raw = rtdb.reference(f"{ANALYSIS_ROOT}/{model_key}/{project_id}").get() or {}
+    results = []
+
+    y_true = []
+    y_pred = []
+
+    for task_id, node in raw.items():
+        meta = node.get("meta", {})
+        turns_raw = node.get("turns", {}) or {}
+        turns = list(turns_raw.values()) if isinstance(turns_raw, dict) else turns_raw
+        turns.sort(key=lambda x: x.get("turn_index", 0))
+
+        for t in turns:
+            gt = str(t.get("gt", "")).strip().lower()
+            pr = str(t.get("prediction", "")).strip().lower()
+            if gt in ("ai", "human") and pr in ("ai", "human"):
+                y_true.append(1 if gt == "ai" else 0)
+                y_pred.append(1 if pr == "ai" else 0)
+
+        results.append({
+            "task_id": task_id,
+            "task_name": meta.get("task_name", "Conversation"),
+            "selected_model_name": meta.get("selected_model_name"),
+            "turns": turns
+        })
+
+    tp = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 1)
+    tn = sum(1 for t, p in zip(y_true, y_pred) if t == 0 and p == 0)
+    fp = sum(1 for t, p in zip(y_true, y_pred) if t == 0 and p == 1)
+    fn = sum(1 for t, p in zip(y_true, y_pred) if t == 1 and p == 0)
+
+    total = len(y_true)
+    accuracy = ((tp + tn) / total) if total else 0.0
+
+    def prf_for_class(c):
+        tp_c = sum(1 for t, p in zip(y_true, y_pred) if t == c and p == c)
+        fp_c = sum(1 for t, p in zip(y_true, y_pred) if t != c and p == c)
+        fn_c = sum(1 for t, p in zip(y_true, y_pred) if t == c and p != c)
+
+        prec = (tp_c / (tp_c + fp_c)) if (tp_c + fp_c) else 0.0
+        rec = (tp_c / (tp_c + fn_c)) if (tp_c + fn_c) else 0.0
+        f1 = (2 * prec * rec / (prec + rec)) if (prec + rec) else 0.0
+        return prec, rec, f1
+
+    prec_h, rec_h, f1_h = prf_for_class(0)
+    prec_ai, rec_ai, f1_ai = prf_for_class(1)
+
+    metrics = {
+        "accuracy": accuracy,
+        "precision_macro": (prec_h + prec_ai) / 2.0,
+        "recall_macro": (rec_h + rec_ai) / 2.0,
+        "f1_macro": (f1_h + f1_ai) / 2.0,
+    }
+
+    confusion_matrix = {
+        "true_negative": tn,
+        "false_positive": fp,
+        "false_negative": fn,
+        "true_positive": tp,
+    }
+
+    return jsonify({
+        "count": len(results),
+        "results": results,
+        "confusion_matrix": confusion_matrix,
+        "metrics": metrics
+    }), 200
+
+
+@app.route("/api/conversation/select_model_task", methods=["POST"])
+def api_conversation_select_model_task():
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uid = session.get("uid")
+    data = request.get_json() or {}
+
+    project_id = (data.get("project_id") or "").strip()
+    task_id = (data.get("task_id") or "").strip()
+    selected_model = (data.get("model") or "").strip().lower()
+
+    if selected_model not in ("logreg", "rnn"):
+        return jsonify({"error": "Invalid model"}), 400
+    if not project_id or not task_id:
+        return jsonify({"error": "project_id and task_id are required"}), 400
+
+    task_ref = db.collection("tasks").document(task_id)
+    task_doc = task_ref.get()
+    if not task_doc.exists:
+        return jsonify({"error": "Task not found"}), 404
+
+    task_data = task_doc.to_dict() or {}
+    if task_data.get("project_ID") != project_id:
+        return jsonify({"error": "Task does not belong to this project"}), 400
+    if task_data.get("task_type") != "model_selection":
+        return jsonify({"error": "Task is not model_selection"}), 400
+    if uid not in (task_data.get("examiner_ids") or []):
+        return jsonify({"error": "Forbidden"}), 403
+
+    now_iso = datetime.utcnow().isoformat() + "Z"
+    model_name = "RNN" if selected_model == "rnn" else "Logistic Regression"
+
+    task_ref.update({
+        "selected_model": selected_model,  # ✅ نحفظ المفتاح نفسه: logreg / rnn
+        "selected_model_name": model_name,
+        "selected_by": uid,
+        "selected_at": now_iso,
+        "status": "completed"
+    })
+
+    return jsonify({
+        "message": "Conversation model selected and saved",
+        "project_id": project_id,
+        "task_id": task_id,
+        "selected_model_name": model_name
+    }), 200
+
+
+@app.route("/api/conversation/selected_model_task", methods=["GET"])
+def api_conversation_selected_model_task():
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    project_id = (request.args.get("project_id") or "").strip()
+    task_id = (request.args.get("task_id") or "").strip()
+
+    if not project_id or not task_id:
+        return jsonify({"error": "project_id and task_id are required"}), 400
+
+    task_doc = db.collection("tasks").document(task_id).get()
+    if not task_doc.exists:
+        return jsonify({"selected": False}), 200
+
+    task_data = task_doc.to_dict() or {}
+    if task_data.get("project_ID") != project_id:
+        return jsonify({"selected": False}), 200
+
+    model_key = (task_data.get("selected_model") or "").strip().lower()
+    model_name = (task_data.get("selected_model_name") or "").strip()
+
+    if model_key in ("rnn", "logreg") or model_name:
+        if not model_name:
+            model_name = "RNN" if model_key == "rnn" else "Logistic Regression"
+
+        return jsonify({
+            "selected": True,
+            "selected_model": model_key,
+            "selected_model_name": model_name,
+            "selected_at": task_data.get("selected_at"),
+            "task_id": task_id,
+            "project_id": project_id
+        }), 200
+
+    return jsonify({"selected": False}), 200
+
+
+
+
+# =========================
+# [8] Conversation Feedback APIs (Generated Conversation)
+# =========================
+def _pick_conversation_model_for_project(project_id):
+    """
+    يحدد الموديل المختار للمشروع (logreg أو rnn) من model_selection task المكتمل.
+    """
+    ms_tasks = list(
+        db.collection("tasks")
+        .where("project_ID", "==", project_id)
+        .where("task_type", "==", "model_selection")
+        .where("status", "==", "completed")
+        .stream()
+    )
+
+    if not ms_tasks:
+        return None, None, None
+
+    # نأخذ آخر واحدة حسب selected_at إن وجدت
+    ms_tasks.sort(key=lambda d: (d.to_dict() or {}).get("selected_at", ""), reverse=True)
+
+    picked = None
+    for doc in ms_tasks:
+        td = doc.to_dict() or {}
+        raw = (td.get("selected_model") or "").strip().lower()
+        name = (td.get("selected_model_name") or "").strip().lower()
+
+        if raw in ("rnn",):
+            picked = "rnn"
+            break
+        if raw in ("logreg", "logistic"):
+            picked = "logreg"
+            break
+        if "rnn" in name:
+            picked = "rnn"
+            break
+        if "logistic" in name:
+            picked = "logreg"
+            break
+
+    if not picked:
+        return None, None, None
+
+    model_key = CONV_RNN_KEY if picked == "rnn" else CONV_LOGREG_KEY
+    model_label = "RNN" if picked == "rnn" else "Logistic Regression"
+    return picked, model_key, model_label
+
+
+@app.route("/api/task/<task_id>/conversation_feedback_list", methods=["GET"])
+def api_conversation_feedback_list(task_id):
+    """
+    قائمة المحادثات للفيدباك (لـ labeling task) + progress + sorting metadata
+    """
+    if not session.get("idToken"):
+        return jsonify({"error": "Unauthorized"}), 401
+
+    uid = session.get("uid")
+
+    task_doc = db.collection("tasks").document(task_id).get()
+    if not task_doc.exists:
+        return jsonify({"error": "Task not found"}), 404
+
+    task_data = task_doc.to_dict() or {}
+    if task_data.get("task_type") != "labeling":
+        return jsonify({"error": "Task is not labeling"}), 400
+    if uid not in (task_data.get("examiner_ids") or []):
+        return jsonify({"error": "Forbidden"}), 403
+
+    project_id = task_data.get("project_ID")
+    if not project_id:
+        return jsonify({"error": "Missing project_ID"}), 400
+
+    selected_model, model_key, model_label = _pick_conversation_model_for_project(project_id)
+    if not selected_model:
+        return jsonify({
+            "waiting": True,
+            "message": "Waiting for model selection task to be completed"
+        }), 200
+
+    # نجيب نتائج التحليل من نفس موديل الاختيار
+    root_ref = rtdb.reference(f"{ANALYSIS_ROOT}/{model_key}/{project_id}")
+    raw = root_ref.get() or {}
+    if not isinstance(raw, dict) or not raw:
+        return jsonify({
+            "waiting": True,
+            "message": "Analysis not ready yet, please wait"
+        }), 200
+
+    # ترتيب افتراضي حسب ترتيب tasks بالمشروع (created_at)
+    conv_tasks = []
+    for t in db.collection("tasks").where("project_ID", "==", project_id).stream():
+        td = t.to_dict() or {}
+        ctype = (td.get("conversation_type") or "").strip().lower()
+        if ctype in ("human-ai", "human-human"):
+            conv_tasks.append({
+                "task_id": td.get("task_ID") or t.id,
+                "created_at": td.get("created_at", "")
+            })
+    conv_tasks.sort(key=lambda x: x["created_at"])
+    order_map = {row["task_id"]: idx for idx, row in enumerate(conv_tasks)}
+
+    # cache للأسماء
+    name_cache = {}
+
+    def _name_for(user_id):
+        if not user_id:
+            return "Examiner"
+        if user_id in name_cache:
+            return name_cache[user_id]
+        udoc = db.collection("users").document(user_id).get()
+        if not udoc.exists:
+            name_cache[user_id] = "Examiner"
+            return "Examiner"
+        u = udoc.to_dict() or {}
+        p = u.get("profile", {})
+        full = f"{p.get('firstName','')} {p.get('lastName','')}".strip() or "Examiner"
+        name_cache[user_id] = full
+        return full
+
+    items = []
+
+    for node_key, node_val in raw.items():
+        node = node_val or {}
+        meta = node.get("meta", {}) or {}
+        conversation_id = meta.get("task_id") or node_key
+
+        turns_raw = node.get("turns", {}) or {}
+        turns = list(turns_raw.values()) if isinstance(turns_raw, dict) else (turns_raw if isinstance(turns_raw, list) else [])
+        turns.sort(key=lambda x: int(x.get("turn_index", 0) or 0))
+
+        total = len(turns)
+        ai_count = 0
+        human_count = 0
+        confs = []
+        clean_turns = []
+        conv_feedback_users_map = {}
+
+        turn_feedbacks_root = node.get("turn_feedbacks") or {}
+
+
+
+        reviewed_in_conv = 0
+
+        for t in turns:
+            pred = str(t.get("prediction", "")).strip()
+            if pred == "AI":
+                ai_count += 1
+            else:
+                human_count += 1
+
+            c_raw = t.get("confidence")
+            c_pct = None
+            if c_raw is not None:
+                try:
+                    c_pct = float(c_raw)
+                    if c_pct <= 1:
+                        c_pct *= 100.0
+                    confs.append(c_pct)
+                except Exception:
+                    c_pct = None
+
+            turn_idx = int(t.get("turn_index", 0) or 0)
+
+            tf = {}
+            if isinstance(turn_feedbacks_root, dict):
+                tf = turn_feedbacks_root.get(str(turn_idx), {}) or {}
+            elif isinstance(turn_feedbacks_root, list):
+                candidate = None
+                if 0 <= turn_idx < len(turn_feedbacks_root):
+                  candidate = turn_feedbacks_root[turn_idx]
+                if isinstance(candidate, dict):
+                    tf = candidate
+
+            if not isinstance(tf, dict):
+                tf = {}
+
+            my_tf = tf.get(uid)
+
+            turn_locked = len(tf) > 0
+            if turn_locked:
+                reviewed_in_conv += 1
+
+            turn_feedback_users = []
+            for f_uid, f_data in tf.items():
+                f = f_data or {}
+                user_item = {
+                    "uid": f_uid,
+                    "examiner_uid": f_uid,
+                    "name": f.get("examiner_name") or _name_for(f_uid),
+                    "examiner_name": f.get("examiner_name") or _name_for(f_uid),
+                    "label": f.get("label"),
+                    "explanation": f.get("explanation", ""),
+                    "submitted_at": f.get("submitted_at")
+                }
+                turn_feedback_users.append(user_item)
+                conv_feedback_users_map[f_uid] = {
+                    "uid": user_item["uid"],
+                    "name": user_item["name"]
+                }
+
+            shared_feedback = turn_feedback_users[0] if turn_feedback_users else None
+
+            clean_turns.append({
+                "turn_index": turn_idx,
+                "sender": t.get("sender", ""),
+                "text": t.get("text", ""),
+                "prediction": pred,
+                "gt": t.get("gt", ""),
+                "confidence": round(c_pct, 2) if isinstance(c_pct, (int, float)) else None,
+                "turn_locked": turn_locked,
+                "turn_feedback": shared_feedback,
+                "my_feedback": my_tf,
+                "feedback_users": turn_feedback_users
+            })
+
+
+        ai_pct = round((ai_count / total) * 100, 2) if total else 0.0
+        human_pct = round((human_count / total) * 100, 2) if total else 0.0
+        conv_conf = round(sum(confs) / len(confs), 2) if confs else 0.0
+        conv_locked = (total > 0 and reviewed_in_conv >= total)
+
+        items.append({
+            "conversation_id": conversation_id,
+            "task_name": meta.get("task_name", "Conversation"),
+            "order_index": order_map.get(conversation_id, 10**9),
+            "turns_count": total,
+            "ai_percentage": ai_pct,
+            "human_percentage": human_pct,
+            "confidence": conv_conf,
+            "has_feedback": reviewed_in_conv > 0,
+            "conversation_locked": conv_locked,
+            "feedback_users": list(conv_feedback_users_map.values()),
+            "turns": clean_turns
+        })
+
+    items.sort(key=lambda x: x["order_index"])
+
+    total_conversations = len(items)
+    reviewed_conversations = sum(1 for x in items if x.get("conversation_locked"))
+
+    new_status = "completed" if total_conversations > 0 and reviewed_conversations >= total_conversations else ("progress" if reviewed_conversations > 0 else "pending")
+    if (task_data.get("status") or "").strip().lower() != new_status:
+        db.collection("tasks").document(task_id).update({"status": new_status})
+
+    return jsonify({
+        "waiting": False,
+        "project_id": project_id,
+        "task_id": task_id,
+        "selected_model": selected_model,
+        "selected_model_name": model_label,
+        "progress": {
+            "reviewed": reviewed_conversations,
+            "total": total_conversations
+        },
+
+        "items": items
+    }), 200
+
+
+
+@app.route("/api/task/<task_id>/conversation_feedback/<conversation_id>/turn/<int:turn_index>/submit", methods=["POST"])
+def api_submit_conversation_turn_feedback(task_id, conversation_id, turn_index):
+    try:
+        if not session.get("idToken"):
+            return jsonify({"error": "Unauthorized"}), 401
+
+        uid = session.get("uid")
+
+        # payload آمن (dict فقط)
+        raw_payload = request.get_json(silent=True) or {}
+        if isinstance(raw_payload, list):
+            data = raw_payload[0] if raw_payload and isinstance(raw_payload[0], dict) else {}
+        elif isinstance(raw_payload, dict):
+            data = raw_payload
+        else:
+            data = {}
+
+        label = (data.get("label") or "").strip()
+        explanation = (data.get("explanation") or "").strip()
+
+        if label not in ["Human", "AI"]:
+            return jsonify({"error": "Invalid label"}), 400
+        if not explanation:
+            return jsonify({"error": "Explanation is required"}), 400
+        if turn_index <= 0:
+            return jsonify({"error": "Invalid turn_index"}), 400
+
+        task_doc = db.collection("tasks").document(task_id).get()
+        if not task_doc.exists:
+            return jsonify({"error": "Task not found"}), 404
+
+        task_data = task_doc.to_dict() or {}
+        if task_data.get("task_type") != "labeling":
+            return jsonify({"error": "Task is not labeling"}), 400
+        if uid not in (task_data.get("examiner_ids") or []):
+            return jsonify({"error": "Forbidden"}), 403
+
+        project_id = task_data.get("project_ID")
+        selected_model, model_key, _ = _pick_conversation_model_for_project(project_id)
+        if not selected_model:
+            return jsonify({"error": "Model selection is not completed yet"}), 400
+
+        conv_ref = rtdb.reference(f"{ANALYSIS_ROOT}/{model_key}/{project_id}/{conversation_id}")
+        conv_node = conv_ref.get() or {}
+        if isinstance(conv_node, list):
+            conv_node = conv_node[0] if conv_node and isinstance(conv_node[0], dict) else {}
+        if not isinstance(conv_node, dict) or not conv_node:
+            return jsonify({"error": "Conversation not found in analysis results"}), 404
+
+        turns_raw = conv_node.get("turns", {}) or {}
+        turns = list(turns_raw.values()) if isinstance(turns_raw, dict) else (turns_raw if isinstance(turns_raw, list) else [])
+        exists_turn = any(int((t or {}).get("turn_index", 0) or 0) == turn_index for t in turns)
+        if not exists_turn:
+            return jsonify({"error": "Turn not found"}), 404
+
+        # turn_feedbacks قد يرجع dict أو list من RTDB
+        turn_feedbacks_root = conv_node.get("turn_feedbacks") or {}
+        existing_turn_feedbacks = {}
+
+        if isinstance(turn_feedbacks_root, dict):
+            existing_turn_feedbacks = turn_feedbacks_root.get(str(turn_index), {}) or {}
+        elif isinstance(turn_feedbacks_root, list):
+            candidate = None
+            if 0 <= turn_index < len(turn_feedbacks_root):
+                candidate = turn_feedbacks_root[turn_index]
+            if isinstance(candidate, dict):
+                existing_turn_feedbacks = candidate
+
+
+        # 🔒 قفل نهائي: أول من يرسل فقط
+        if isinstance(existing_turn_feedbacks, dict) and len(existing_turn_feedbacks) > 0:
+            return jsonify({"error": "Feedback already submitted for this turn"}), 409
+
+        udoc = db.collection("users").document(uid).get()
+        if udoc.exists:
+            u = udoc.to_dict() or {}
+            p = u.get("profile", {})
+            examiner_name = f"{p.get('firstName','')} {p.get('lastName','')}".strip() or "Examiner"
+        else:
+            examiner_name = "Examiner"
+
+        payload = {
+            "examiner_uid": uid,
+            "examiner_name": examiner_name,
+            "label": label,
+            "explanation": explanation,
+            "submitted_at": datetime.utcnow().isoformat() + "Z"
+        }
+
+        conv_ref.child("turn_feedbacks").child(str(turn_index)).child(uid).set(payload)
+
+        return jsonify({
+            "message": "Turn feedback saved successfully",
+            "conversation_id": conversation_id,
+            "turn_index": turn_index,
+            "selected_model": selected_model
+        }), 200
+
+    except Exception as e:
+        app.logger.exception("api_submit_conversation_turn_feedback failed: %s", e)
+        return jsonify({"error": "Server error while saving turn feedback"}), 500
+
+
+# ✅ هذا route للرابط القديم اللي الزر يطلبه
+@app.route("/project/<project_id>/analysis/examiner")
+def analysis_examiner_redirect(project_id):
+    return redirect(url_for("results_con", projectId=project_id))
+
+
+
+
 if __name__ == "__main__":
  app.run(debug=True)

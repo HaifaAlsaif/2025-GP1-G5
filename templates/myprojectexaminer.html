@@ -44,10 +44,27 @@
       border-bottom: 1px solid #00000019;
     }
     
-    .logo {
-      width: 100px;
-      height: 25px;
-    }
+    .brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.brand-icon{
+  width:32px;
+  height:32px;
+  display:block;
+}
+.brand-text{
+  font-size:20px;
+  font-weight:400;
+  line-height:1;
+  white-space:nowrap;
+  background:linear-gradient(90deg,#00b8da 0%,#155cfb 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
     .header-right {
       display: flex;
       align-items: center;
@@ -60,10 +77,12 @@
       color: #0a0a0a;
     }
     
-    .theme-toggle {
-      width: 28px;
-      height: 28px;
-    }
+    .theme-toggle{
+  width:36px;height:36px;border:1px solid #dbe2ea;border-radius:10px;
+  background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.theme-icon{font-size:20px;line-height:1;color:#0a0a0a}
+
     
     .user-profile {
       display: flex;
@@ -325,22 +344,52 @@
       border: 1px solid #00c85066;
     }
     
-    .status-dropdown {
-      position: relative;
-      display: inline-block;
-    }
+    .status-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  border:1px solid transparent;
+  text-transform:capitalize;
+}
+
+.status-badge.status-pending{
+  background:#FFF4E5;
+  color:#C96A00;
+  border-color:#FFD8A8;
+}
+.status-badge.status-progress{
+  background:#E8F1FF;
+  color:#1D4ED8;
+  border-color:#BFDBFE;
+}
+.status-badge.status-completed{
+  background:#E8F8EE;
+  color:#15803D;
+  border-color:#BBF7D0;
+}
+
+/* Dark mode (نفس ستايل owner) */
+body.dark .status-badge.status-pending{
+  background:#3a2a12;
+  color:#ffd08a;
+  border-color:#8a6130;
+}
+body.dark .status-badge.status-progress{
+  background:#152a4d;
+  color:#9ec5ff;
+  border-color:#35517c;
+}
+body.dark .status-badge.status-completed{
+  background:#163b2c;
+  color:#9ff0c8;
+  border-color:#2f6a4f;
+}
+
     
-    .status-select {
-      background-color: #2b7fffe5;
-      color: #ffffff;
-      font-size: 12px;
-      padding: 8px 24px 8px 8px;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0px 1px 2px #00000019;
-      cursor: pointer;
-      appearance: none;
-    }
     
     .status-select.pending {
       background-color: #ff6900e5;
@@ -374,7 +423,7 @@
       border: 1px solid #00000019;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s.ease;
+      transition: all 0.2s ease;
     }
     
     .view-button:hover {
@@ -535,7 +584,7 @@
         min-width: 1000px;
       }
       
-      .table-header th:last.child {
+      .table-header th:last-child {
         text-align: right;
       }
     }
@@ -650,6 +699,173 @@
       cursor: pointer;
       transition: all 0.2s ease;
     }
+/* ===== Dark Mode (match Owner) ===== */
+body.dark{
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg, #071225 0%, #0b1b37 55%, #0d2747 100%);
+  color:#eaf2ff;
+}
+
+/* Header + Sidebar */
+body.dark .header{
+  background: transparent;
+  border-bottom: 1px solid rgba(90,140,220,.40);
+}
+body.dark .sidebar{
+  background: linear-gradient(180deg,#081b3c 0%,#071835 100%);
+  border-right: 1px solid rgba(90,140,220,.40);
+}
+
+/* Menu */
+body.dark .menu-item.active{
+  background:#1f3f73;
+  border-right:3px solid #4c84ff;
+}
+body.dark .menu-item:hover{
+  background:#173661;
+}
+
+/* Cards */
+body.dark .welcome-section,
+body.dark .projects-section{
+  background: linear-gradient(180deg, rgba(19,45,87,.96) 0%, rgba(15,36,72,.96) 100%);
+  border: 1px solid rgba(90,140,220,.55); /* أوضح */
+  border-radius: 20px;                     /* أكثر دائرية */
+  box-shadow: 0 12px 28px rgba(2,8,23,.35);
+}
+
+
+/* Text */
+body.dark .menu-text,
+body.dark .user-name,
+body.dark .projects-details h2,
+body.dark .project-name,
+body.dark .owner-name,
+body.dark .welcome-text h1,
+body.dark .dropdown-item,
+body.dark .table-header th{
+  color:#eaf2ff;
+}
+
+body.dark .user-role,
+body.dark .projects-details p{
+  color:#aebdd7;
+}
+
+body.dark .welcome-text h1,
+body.dark .welcome-text p{
+  color:#eaf2ff !important;
+}
+
+
+/* Table lines (أوضح مثل الأونر) */
+body.dark .projects-header{
+  border-bottom: 1px solid rgba(90,140,220,.35);
+}
+body.dark .table-header{
+  background: rgba(38,64,107,.75);
+  border-bottom: 1px solid rgba(90,140,220,.45);
+}
+body.dark .table-header th{
+  font-weight: 600;
+}
+body.dark .table-row{
+  border-bottom: 1px solid rgba(90,140,220,.30);
+}
+body.dark .table-row:hover{
+  background: rgba(255,255,255,.04);
+}
+
+/* Badges / buttons */
+body.dark .projects-count{
+  background: rgba(43,127,255,.20);
+  color:#9fc3ff;
+  border:1px solid rgba(43,127,255,.45);
+}
+body.dark .domain-tag.more{
+  background: rgba(255,255,255,.08);
+  color:#eaf2ff;
+  border:1px solid rgba(90,140,220,.35);
+}
+body.dark .view-button{
+  background:#132d57;
+  color:#eaf2ff;
+  border:1px solid rgba(90,140,220,.35);
+}
+body.dark .view-button:hover{
+  background:#193869;
+}
+
+/* Dropdown */
+body.dark .user-dropdown{
+  background:#132d57;
+  border:1px solid rgba(90,140,220,.35);
+  box-shadow:0 12px 24px rgba(2,8,23,.35);
+}
+body.dark .dropdown-divider{
+  background: rgba(90,140,220,.35);
+}
+body.dark .dropdown-item:hover{
+  background: rgba(255,255,255,.06);
+}
+
+/* Icons */
+body.dark .menu-icon,
+body.dark .dropdown-item img{
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+
+/* Moon button */
+body.dark .theme-toggle{
+  background:#10213f;
+  border-color:rgba(90,140,220,.35);
+}
+body.dark .theme-icon{
+  color:#eaf2ff;
+}
+body.dark .language-selector{
+  color:#eaf2ff !important;
+}
+body.dark .user-dropdown .dropdown-item,
+body.dark .user-dropdown .dropdown-item:visited{
+  color:#eaf2ff !important;
+}
+
+body.dark .user-dropdown .dropdown-item:hover{
+  background: rgba(255,255,255,.06);
+}
+body.dark .projects-header{
+  border-bottom: 1px solid rgba(90,140,220,.45);
+}
+body.dark .table-row{
+  border-bottom: 1px solid rgba(90,140,220,.38);
+}
+body.dark .user-dropdown{
+  border:1px solid rgba(90,140,220,.55);
+}
+body.dark .dropdown-divider{
+  background: rgba(90,140,220,.45);
+}
+.language-selector{ cursor:pointer; }
+.language-selector.notranslate{
+  direction:ltr;
+  unicode-bidi:isolate;
+}
+
+/* Hide Google Translate top bar */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt{
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+}
+body{ top:0 !important; }
 
   </style>
   
@@ -657,15 +873,21 @@
   
   <div class="main-container">
     <header class="header">
-      <div style="display:flex; align.items:center; gap:16px;">
+      <div style="display:flex; align-items:center;gap:16px;">
         <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
-        <img src="../static/images/img_header_logo.png" alt="TrustLens Logo" class="logo">
+        <div class="brand">
+          <img src="../static/images/icon_logo.svg" alt="TrustLens logo" class="brand-icon">
+          <span class="brand-text notranslate" translate="no">TrustLens</span>
+        </div>
       </div>
+      
 
       <div class="header-right">
-        <span class="language-selector">EN</span>
-        <img src="../static/images/img_button.svg" alt="Theme toggle" class="theme-toggle">
-
+        <span id="langToggle" class="language-selector notranslate" translate="no" dir="ltr">AR</span>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+          <span id="themeIcon" class="theme-icon">☾</span>
+        </button>
+        
         <div class="user-profile" onclick="toggleUserDropdown()" id="userProfile">
           <img src="../static/images/user-profile.png" alt="Avatar" class="user-avatar">
           <div class="user-info">
@@ -846,101 +1068,182 @@
     });
   </script>
 
-  <!-- سكربت تحميل المشاريع + حفظ الحالة في localStorage -->
-  <script>
-    // نقرأ الحالات المحفوظة للـStatus من localStorage
-    function getStatusOverrides() {
-      try {
-        return JSON.parse(localStorage.getItem("tl_examiner_status") || "{}");
-      } catch (e) {
-        return {};
-      }
-    }
-
-    async function loadAcceptedProjects() {
-      const res = await fetch("/api/accepted_projects", { credentials: "same-origin" });
-      if (!res.ok) return;
-      const data = await res.json();
-
-      const tbody = document.getElementById("projects-tbody");
-      tbody.innerHTML = "";
-
-      const overrides = getStatusOverrides();
-
-      data.projects.forEach(p => {
-        const tr = document.createElement("tr");
-        tr.className = "table-row";
-
-        const baseStatus = (p.status || "in-progress").toLowerCase();
-        const overrideStatus = (overrides[p.project_id] || "").toLowerCase();
-        const currentStatus = overrideStatus || baseStatus;
-
-        const selectClass =
-          currentStatus === "completed"
-            ? "status-select completed"
-            : currentStatus === "pending"
-            ? "status-select pending"
-            : "status-select";
-
-        tr.innerHTML = `
-          <td class="table-cell"><div class="project-name">${p.project_name}</div></td>
-          <td class="table-cell"><div class="owner-name">${p.owner_name}</div></td>
-          <td class="table-cell">
-            <div class="domain-tags">
-              ${p.domain.slice(0,2).map(d=>`<span class="domain-tag">${d}</span>`).join("")}
-              ${p.domain.length > 2 ? `<span class="domain-tag more">+${p.domain.length - 2}</span>` : ""}
-            </div>
-          </td>
-          <td class="table-cell">
-            <span class="category-badge ${p.category === "Conversation" ? "category-conversation" : "category-news"}">
-              ${p.category}
-            </span>
-          </td>
-          <td class="table-cell">
-            <select class="${selectClass}"
-                    onchange="handleStatusChange('${p.project_id}', this.value)">
-              <option value="in-progress" ${currentStatus === "in-progress" ? "selected" : ""}>In Progress</option>
-              <option value="pending" ${currentStatus === "pending" ? "selected" : ""}>Pending</option>
-              <option value="completed" ${currentStatus === "completed" ? "selected" : ""}>Completed</option>
-            </select>
-          </td>
-          <td class="table-cell" style="text-align:right;">
-            <button class="view-button" onclick="goToDetails('${p.project_id}')">
-              <img src="../static/images/img_icon_4.svg" alt="" class="view-icon">
-              View
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById("projects-count").textContent =
-        `${data.projects.length} Projects`;
-    }
-
-    document.addEventListener("DOMContentLoaded", loadAcceptedProjects);
-  </script>
-
+  
   <script>
     function goToDetails(id) {
       window.location.href = "/projectdetailsexaminer/" + id;
     }
   </script>
 
-  <script>
-    function handleStatusChange(projectId, newStatus) {
-      let overrides = {};
-      try {
-        overrides = JSON.parse(localStorage.getItem("tl_examiner_status") || "{}");
-      } catch (e) {
-        overrides = {};
-      }
+  
+<script>
+  const langToggle = document.getElementById("langToggle");
+  const LANG_KEY = "ui_lang";
+  let gtLoaded = false;
 
-      
-      overrides[projectId] = newStatus;
-      localStorage.setItem("tl_examiner_status", JSON.stringify(overrides));
+  function normalizeLang(v){ return v === "ar" ? "ar" : "en"; }
+  function getPreferredLang(){ return sessionStorage.getItem(LANG_KEY) === "ar" ? "ar" : "en"; }
+
+  function setActiveLang(lang){
+    const safe = normalizeLang(lang);
+    sessionStorage.setItem(LANG_KEY, safe);
+    const val = `/en/${safe}`;
+    document.cookie = `googtrans=${val}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}; max-age=31536000; SameSite=Lax`;
+  }
+
+  function refreshLangButton(){
+    if (!langToggle) return;
+    const active = getPreferredLang();
+    langToggle.textContent = active === "ar" ? "EN" : "AR";
+    langToggle.setAttribute("translate", "no");
+    langToggle.classList.add("notranslate");
+  }
+
+  function hideGoogleBar(){
+    document.querySelectorAll(
+      "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+    ).forEach(el => {
+      el.style.display = "none";
+      el.style.visibility = "hidden";
+      el.style.height = "0";
+    });
+    document.body.style.top = "0px";
+    document.documentElement.style.top = "0px";
+  }
+
+  function loadGoogleTranslateOnce() {
+    if (gtLoaded) return;
+    gtLoaded = true;
+    const s = document.createElement("script");
+    s.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    s.async = true;
+    document.head.appendChild(s);
+  }
+
+  function applyGoogleLang(lang, tries = 0){
+    const combo = document.querySelector(".goog-te-combo");
+    if (!combo){
+      if (tries < 20) setTimeout(() => applyGoogleLang(lang, tries + 1), 150);
+      return;
     }
-  </script>
+    combo.value = lang;
+    combo.dispatchEvent(new Event("change"));
+  }
 
+  function googleTranslateElementInit(){
+    new google.translate.TranslateElement(
+      { pageLanguage: "en", includedLanguages: "en,ar", autoDisplay: false },
+      "google_translate_element"
+    );
+    hideGoogleBar();
+    setInterval(hideGoogleBar, 300);
+  }
+
+  window.addEventListener("load", () => {
+    if (!sessionStorage.getItem(LANG_KEY)) setActiveLang("en");
+    refreshLangButton();
+    hideGoogleBar();
+  });
+
+  langToggle?.addEventListener("click", () => {
+    const next = getPreferredLang() === "ar" ? "en" : "ar";
+    setActiveLang(next);
+    refreshLangButton();
+    loadGoogleTranslateOnce();
+    applyGoogleLang(next);
+  });
+</script>
+<div id="google_translate_element" style="display:none"></div>
+
+<script>
+  (function () {
+    const LANG_KEY = "ui_lang";
+    if (!sessionStorage.getItem(LANG_KEY)) {
+      sessionStorage.setItem(LANG_KEY, "en");
+    }
+    const lang = sessionStorage.getItem(LANG_KEY) === "ar" ? "ar" : "en";
+    const val = `/en/${lang}`;
+    document.cookie = `googtrans=${val}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}; max-age=31536000; SameSite=Lax`;
+  })();
+</script>
+
+    
+    <script>
+      function normalizeProjectStatus(raw) {
+        const s = (raw || "").toLowerCase().trim();
+        if (s === "completed" || s === "done") return "completed";
+        if (s === "progress" || s === "in_progress" || s === "in-progress" || s === "active") return "progress";
+        return "pending";
+      }
+    
+      async function loadAcceptedProjects() {
+        const res = await fetch("/api/accepted_projects", { credentials: "same-origin" });
+        if (!res.ok) return;
+        const data = await res.json();
+    
+        const tbody = document.getElementById("projects-tbody");
+        tbody.innerHTML = "";
+    
+        data.projects.forEach(p => {
+          const tr = document.createElement("tr");
+          tr.className = "table-row";
+    
+          const normalized = normalizeProjectStatus(p.status);
+          const statusClass =
+            normalized === "completed" ? "status-completed" :
+            normalized === "progress" ? "status-progress" :
+            "status-pending";
+    
+          const statusText =
+            normalized === "completed" ? "Completed" :
+            normalized === "progress" ? "In Progress" :
+            "Pending";
+    
+          const rawCategory = (p.category || "").toLowerCase();
+          const isConversation = rawCategory.includes("conversation");
+          const isGenerated = p.generated_from_scratch === true || p.generated_from_scratch === "true";
+    
+          const displayCategory = (isConversation && isGenerated)
+            ? "Generate Conversation"
+            : (p.category || "Unknown");
+    
+          const categoryClass = isConversation ? "category-conversation" : "category-news";
+    
+          tr.innerHTML = `
+            <td class="table-cell"><div class="project-name">${p.project_name}</div></td>
+            <td class="table-cell"><div class="owner-name">${p.owner_name || "-"}</div></td>
+            <td class="table-cell">
+              <div class="domain-tags">
+                ${(p.domain || []).slice(0,2).map(d=>`<span class="domain-tag">${d}</span>`).join("")}
+                ${(p.domain || []).length > 2 ? `<span class="domain-tag more">+${(p.domain || []).length - 2}</span>` : ""}
+              </div>
+            </td>
+            <td class="table-cell">
+              <span class="category-badge ${categoryClass}">${displayCategory}</span>
+            </td>
+            <td class="table-cell">
+              <span class="status-badge ${statusClass}">${statusText}</span>
+            </td>
+            <td class="table-cell" style="text-align:right;">
+              <button class="view-button" onclick="goToDetails('${p.project_id}')">
+                <svg class="view-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                View
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+    
+        document.getElementById("projects-count").textContent = `${data.projects.length} Projects`;
+      }
+    
+      document.addEventListener("DOMContentLoaded", loadAcceptedProjects);
+    </script>
+    
 </body>
 </html>

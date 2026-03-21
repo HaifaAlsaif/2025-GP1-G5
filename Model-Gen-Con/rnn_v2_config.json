@@ -1,0 +1,7 @@
+{
+  "use_previous_turn": true,
+  "max_len": 5085,
+  "col_text": "text",
+  "col_prev_text": "prev_text",
+  "sep_token": "[SEP]"
+}

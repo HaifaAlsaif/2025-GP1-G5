@@ -738,6 +738,27 @@
   font-size: 20px;
 }
 /* ===== Tasks: Articles for review layout ===== */
+.tasks-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.task-header-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-left:auto;
+}
+
+.task-filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
 
 .tasks-section {
   background-color: #ffffff;
@@ -745,14 +766,6 @@
   padding: 24px;
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
   margin-bottom: 32px;
-}
-
-.tasks-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
 }
 
 .tasks-title-section {
@@ -793,8 +806,6 @@
   gap: 10px;
   flex-wrap: wrap;
 }
-
-/* زر Create Task */
 .create-task-btn {
   display: inline-flex;
   align-items: center;
@@ -810,18 +821,17 @@
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
 }
 
+.create-task-btn:hover {
+  transform: translateY(-1px);
+}
+
+
 .create-task-plus {
   font-size: 18px;
   line-height: 1;
   margin-bottom: 1px;
 }
 
-/* فلاتر المهام */
-.task-filters {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
 
 .task-filter-btn {
   padding: 6px 14px;
@@ -1123,6 +1133,247 @@
   box-shadow: 0 3px 8px rgba(15, 23, 42, 0.25);
   opacity: 0.9;
 }
+.theme-toggle{
+  width:36px;
+  height:36px;
+  border:1px solid #dbe2ea;
+  border-radius:10px;
+  background:#ffffff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.theme-icon{
+  font-size:22px;
+  line-height:1;
+  color:#0a0a0a;
+}
+.language-selector{
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  font-size:14px;
+}
+:root{
+  --bg-light: linear-gradient(135deg, #f8f9fb 0%, #eef5fe 50%, #ebfdfe 100%);
+  --bg-dark: linear-gradient(135deg, #0b1220 0%, #101a2f 55%, #0d1b2e 100%);
+  --text-light:#0a0a0a;
+  --text-dark:#eaf1ff;
+  --muted-light:#717182;
+  --muted-dark:#a7b3c9;
+  --card-light:#ffffff;
+  --card-dark:#121c2f;
+  --line-dark:#2a3a57;
+}
+
+body{
+  background:var(--bg-light);
+  color:var(--text-light);
+}
+
+[data-theme="dark"] body{
+  background:var(--bg-dark);
+  color:var(--text-dark);
+}
+
+[data-theme="dark"] .theme-toggle{
+  background:#0f1a2d;
+  border-color:#2a3a57;
+}
+[data-theme="dark"] .theme-icon,
+[data-theme="dark"] .language-selector{
+  color:#ffffff;
+}
+
+[data-theme="dark"] .project-card,
+[data-theme="dark"] .team-section,
+[data-theme="dark"] .tasks-section,
+[data-theme="dark"] .task-card,
+[data-theme="dark"] .article-card,
+[data-theme="dark"] .assignment-box,
+[data-theme="dark"] .team-member{
+  background:var(--card-dark) !important;
+  border-color:var(--line-dark) !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+}
+
+[data-theme="dark"] .page-title,
+[data-theme="dark"] .project-title,
+[data-theme="dark"] .task-title,
+[data-theme="dark"] .member-info h4,
+[data-theme="dark"] .tasks-info h3,
+[data-theme="dark"] .team-info h3{
+  color:var(--text-dark) !important;
+}
+
+[data-theme="dark"] .project-description,
+[data-theme="dark"] .meta-label,
+[data-theme="dark"] .meta-value,
+[data-theme="dark"] .task-meta-label,
+[data-theme="dark"] .assignment-label,
+[data-theme="dark"] .tasks-info p,
+[data-theme="dark"] .team-info p{
+  color:var(--muted-dark) !important;
+}
+/* ===== Dark Mode Polish (override) ===== */
+:root{
+  --dm-bg-1:#071225;
+  --dm-bg-2:#0b1b37;
+  --dm-bg-3:#0d2747;
+  --dm-card:#0f1f3b;
+  --dm-card-2:#122547;
+  --dm-line:#2a4168;
+  --dm-text:#eaf2ff;
+  --dm-text-strong:#f8fbff;
+  --dm-muted:#aebdd7;
+  --dm-chip:#152a4d;
+  --dm-chip-line:#35517c;
+}
+
+[data-theme="dark"] body{
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg, var(--dm-bg-1) 0%, var(--dm-bg-2) 55%, var(--dm-bg-3) 100%);
+  color: var(--dm-text);
+}
+
+/* cards */
+[data-theme="dark"] .project-card,
+[data-theme="dark"] .team-section,
+[data-theme="dark"] .tasks-section,
+[data-theme="dark"] .article-card,
+[data-theme="dark"] .task-card,
+[data-theme="dark"] .team-member,
+[data-theme="dark"] .article-assigned-box,
+[data-theme="dark"] .assignment-box,
+[data-theme="dark"] .conv-modal{
+  background: linear-gradient(180deg, var(--dm-card) 0%, var(--dm-card-2) 100%) !important;
+  border: 1px solid var(--dm-line) !important;
+  box-shadow: 0 14px 28px rgba(0,0,0,.35);
+}
+
+/* typography clarity */
+[data-theme="dark"] .page-title,
+[data-theme="dark"] .project-title,
+[data-theme="dark"] .article-title,
+[data-theme="dark"] .tasks-info h3,
+[data-theme="dark"] .team-info h3,
+[data-theme="dark"] .member-info h4,
+[data-theme="dark"] .meta-value,
+[data-theme="dark"] .article-assigned-email{
+  color: var(--dm-text-strong) !important;
+}
+
+[data-theme="dark"] .project-description,
+[data-theme="dark"] .meta-label,
+[data-theme="dark"] .tasks-info p,
+[data-theme="dark"] .team-info p,
+[data-theme="dark"] .assignment-label,
+[data-theme="dark"] .article-footer-text,
+[data-theme="dark"] .article-description,
+[data-theme="dark"] .back-link{
+  color: var(--dm-muted) !important;
+}
+
+/* white buttons -> dark chips */
+[data-theme="dark"] .task-filter-btn,
+[data-theme="dark"] .icon-btn,
+[data-theme="dark"] .add-examiner-btn,
+[data-theme="dark"] .article-icon-btn{
+  background: var(--dm-chip) !important;
+  border: 1px solid var(--dm-chip-line) !important;
+  color: var(--dm-text) !important;
+}
+
+[data-theme="dark"] .task-filter-btn.active{
+  background: linear-gradient(90deg,#00b8ff,#155cfb) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+/* create task keep premium */
+[data-theme="dark"] .create-task-btn{
+  background: linear-gradient(90deg,#00b8ff,#155cfb) !important;
+  color:#fff !important;
+  box-shadow: 0 8px 18px rgba(21,92,251,.35);
+}
+
+/* small controls */
+[data-theme="dark"] .theme-toggle{
+  background:#10213f !important;
+  border-color: var(--dm-line) !important;
+}
+[data-theme="dark"] .theme-icon,
+[data-theme="dark"] .language-selector{
+  color: var(--dm-text) !important;
+}
+
+/* status pills in dark */
+[data-theme="dark"] .status-pending{ background:#4a3416; color:#ffd88a; }
+[data-theme="dark"] .status-progress{ background:#152f57; color:#9ec5ff; }
+[data-theme="dark"] .status-completed{ background:#163b2c; color:#9ff0c8; }
+
+/* modal bubbles */
+[data-theme="dark"] .conv-bubble{ background:#12284b; color:var(--dm-text); }
+[data-theme="dark"] .conv-right .conv-bubble{ background:#16335f; }
+[data-theme="dark"] .conv-meta{ color:var(--dm-muted); }
+
+/* icons visibility */
+[data-theme="dark"] .icon-img,
+[data-theme="dark"] .article-icon-btn img,
+[data-theme="dark"] .examiner-delete-btn img{
+  filter: brightness(1.2);
+  opacity: .95;
+}
+/* ===== Dark icons fix (put at very end) ===== */
+[data-theme="dark"] .icon-img,
+[data-theme="dark"] .examiner-delete-btn img,
+[data-theme="dark"] .add-examiner-btn .add-icon,
+[data-theme="dark"] .meta-icon,
+[data-theme="dark"] .back-icon,
+[data-theme="dark"] .dropdown-icon,
+[data-theme="dark"] .article-icon-btn img,
+[data-theme="dark"] .conv-close-btn {
+  filter: brightness(0) invert(1) !important;
+  opacity: 0.95 !important;
+}
+[data-theme="dark"] .team-icon{
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+/* زر Add Examiner أوضح */
+[data-theme="dark"] .add-examiner-btn{
+  border-color:#4b6b99 !important;
+  color:#f8fbff !important;
+}
+
+/* رابط الرجوع أوضح */
+[data-theme="dark"] .back-link{
+  color:#dbe8ff !important;
+}
+.language-selector.notranslate{
+  direction:ltr;
+  unicode-bidi:isolate;
+}
+.language-selector{
+  cursor:pointer;
+}
+
+/* Hide Google bar */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt{
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+}
+body{ top:0 !important; }
+
 
   </style>
   
@@ -1132,11 +1383,14 @@
     <header class="header">
   <div class="header-left">
     <img src="../static/images/img_header.svg" alt="TrustLens logo" class="logo">
-    <div class="brand-text">TrustLens</div>
+    <div class="brand-text notranslate" translate="no">TrustLens</div>
   </div>
   <div class="header-right">
-    <div class="language-selector">EN</div>
-    <img src="../static/images/img_button.svg" alt="Settings" class="settings-icon">
+    <button id="langToggle" class="language-selector notranslate" translate="no" dir="ltr" type="button">AR</button>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+  <span class="theme-icon" id="themeIcon">☾</span>
+</button>
+
   </div>
 </header>
 
@@ -1144,9 +1398,9 @@
     <div class="content-wrapper">
       <section class="page-header">
         <h1 class="page-title">Project Details</h1>
-        <a href="/ownerdashboard" class="back-link">
+        <a href="/myprojectowner" class="back-link">
           <img src="../static/images/img_icon.svg" alt="Back arrow" class="back-icon">
-          Back to Dashboard
+          Back to My Projects
         </a>
 
       <div class="project-card">
@@ -1173,7 +1427,7 @@
 
           <div class="project-meta">
             <div class="meta-row owner-row">
-              <img src="../static/images/img_icon_blue_a700_01.svg" class="meta-icon">
+              <img src="../static/images/img_icon_cyan_700.svg" class="meta-icon" alt="Owner icon">
               <span class="meta-label">Owner:</span>
               <span class="meta-value owner-name"></span>
               <span class="meta-label">•</span>
@@ -1238,12 +1492,12 @@
       </div>
     </div>
 
-    <button class="create-task-btn" onclick="goToCreateTask()">
-      <span class="create-task-plus">+</span>
-      <span>Create Task</span>
-    </button>
+    <div class="task-header-right">
+      <button class="create-task-btn" onclick="goToCreateTask()">
+        <span class="create-task-plus">+</span>
+        <span>Create Task</span>
+      </button>
     
-
       <div class="task-filters">
         <button class="task-filter-btn active" onclick="filterTasks('all')">All Tasks</button>
         <button class="task-filter-btn" onclick="filterTasks('pending')">Pending Tasks</button>
@@ -1468,7 +1722,15 @@
       });
 
       // Category
-      document.querySelector(".category-tag").textContent = data.category;
+      const rawCategory = (data.category || "").toLowerCase();
+      const isConversation = rawCategory.includes("conversation");
+      const isGenerated = data.generated_from_scratch === true || data.generated_from_scratch === "true";
+
+      const displayCategory = (isConversation && isGenerated)
+       ? "Generate Conversation"
+       : (data.category || "Conversation");
+
+      document.querySelector(".category-tag").textContent = displayCategory;
 
 
       // Load examiners list
@@ -1588,19 +1850,30 @@ async function loadTasks() {
     card.dataset.taskId = t.id;
 
     const convType = (t.conversationType || "").toLowerCase();
+    const taskType = (t.taskType || "").toLowerCase();
 
-    let convText = "";
-    if (convType === "human-human") {
-      convText = `Human ↔ Human • ${t.turns || 2} turns`;
-    } else if (convType === "human-ai") {
-      convText = `Human ↔ LLM • ${t.turns || 2} turns`;
-    }
+let convText = "";
+if (taskType === "model_selection") {
+  const picked =
+  t.selected_model_name ||
+  (t.selected_model === "rnn" ? "RNN" :
+   (t.selected_model === "logreg" || t.selected_model === "logistic") ? "Logistic Regression" :
+   "Not selected yet");
+  convText = `Model Selection • ${picked}`;
+}
 
-    const examinerCount = t.examinerCount ?? 0;
-    const emails = (t.examinerEmails || []).join(", ") || "-";
+else if (taskType === "labeling") {
+  convText = "Labeling & Feedback";
+} else if (convType === "human-human") {
+  convText = `Human ↔ Human • ${t.turns || 2} turns`;
+} else if (convType === "human-ai") {
+  convText = `Human ↔ LLM • ${t.turns || 2} turns`;
+}
 
+const examinerCount = t.examinerCount ?? 0;
+const emails = (t.examinerEmails || []).join(", ") || "-";
 
-    const hasConv = convType === "human-human" || convType === "human-ai";
+const hasConv = convType === "human-human" || convType === "human-ai";
 
     card.innerHTML = `
       <div class="article-card-header">
@@ -1819,6 +2092,115 @@ async function loadTasks() {
     }
   });
 </script>
+<script>
+  const root = document.documentElement;
+  const themeToggle = document.getElementById("themeToggle");
+  const themeIcon = document.getElementById("themeIcon");
+
+  function applyTheme(theme){
+    const isDark = theme === "dark";
+    root.setAttribute("data-theme", isDark ? "dark" : "light");
+    if (themeIcon) themeIcon.textContent = isDark ? "☀" : "☾";
+    if (themeToggle) themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+  }
+
+  const savedTheme = localStorage.getItem("theme") || "light";
+  applyTheme(savedTheme);
+
+  themeToggle?.addEventListener("click", () => {
+    const current = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    const next = current === "dark" ? "light" : "dark";
+    localStorage.setItem("theme", next);
+    applyTheme(next);
+  });
+</script>
+<script>
+  const langToggle = document.getElementById("langToggle");
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+    return match ? decodeURIComponent(match[2]) : "";
+  }
+
+  function getActiveLang() {
+    const gt = getCookie("googtrans");
+    const m = gt.match(/^\/[^/]+\/([^/]+)$/);
+    return (m && m[1]) ? m[1].toLowerCase() : "en";
+  }
+
+  function setActiveLang(lang) {
+    const val = `/en/${lang}`;
+    document.cookie = `googtrans=${val}; path=/`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}`;
+    localStorage.setItem("ui_lang", lang);
+  }
+
+  function refreshLangButton() {
+    if (!langToggle) return;
+    const active = getActiveLang();
+    langToggle.textContent = active === "ar" ? "EN" : "AR";
+    langToggle.setAttribute("translate", "no");
+    langToggle.classList.add("notranslate");
+  }
+
+  function hideGoogleBar() {
+    document.querySelectorAll(
+      "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+    ).forEach(el => {
+      el.style.display = "none";
+      el.style.visibility = "hidden";
+      el.style.height = "0";
+    });
+    document.body.style.top = "0px";
+    document.documentElement.style.top = "0px";
+  }
+
+  function applyGoogleLang(lang, tries = 0) {
+    const combo = document.querySelector(".goog-te-combo");
+    if (!combo) {
+      if (tries < 30) setTimeout(() => applyGoogleLang(lang, tries + 1), 100);
+      return;
+    }
+    combo.value = lang;
+    combo.dispatchEvent(new Event("change"));
+    setTimeout(hideGoogleBar, 50);
+    setTimeout(hideGoogleBar, 250);
+  }
+
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      { pageLanguage: "en", includedLanguages: "en,ar", autoDisplay: false },
+      "google_translate_element"
+    );
+
+    const saved = localStorage.getItem("ui_lang");
+    if (!getCookie("googtrans") && (saved === "ar" || saved === "en")) {
+      setActiveLang(saved);
+    }
+
+    refreshLangButton();
+    hideGoogleBar();
+    setInterval(hideGoogleBar, 250);
+  }
+
+  window.addEventListener("load", () => {
+    refreshLangButton();
+    hideGoogleBar();
+    applyGoogleLang(getActiveLang());
+  });
+
+  langToggle?.addEventListener("click", () => {
+    const active = getActiveLang();
+    const next = active === "ar" ? "en" : "ar";
+    setActiveLang(next);
+    refreshLangButton();
+    applyGoogleLang(next);
+  });
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<div id="google_translate_element" style="display:none"></div>
 
 </body>
+
 </html>  

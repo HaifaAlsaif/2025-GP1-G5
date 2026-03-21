@@ -187,7 +187,54 @@
       flex:1;background:#fff;border:0.8px solid var(--line);color:#0a0a0a;
     }
     .btn-ghost:hover{background:#f9fafb}
-    
+
+#turnsField.keep-space {
+  visibility: hidden;
+  pointer-events: none;
+}
+.gen-mode-desc{
+  width:100%;
+  min-height:88px;
+  border:1px solid #d7deea;
+  border-radius:10px;
+  background:#f8fafc;
+  padding:10px 12px;
+  font-size:14px;
+  color:#0f172a;
+  resize:vertical;
+  transition:border-color .2s, box-shadow .2s, background .2s;
+}
+.gen-mode-desc:focus{
+  outline:none;
+  border-color:#00b8db;
+  box-shadow:0 0 0 3px rgba(0,184,219,.18);
+  background:#fff;
+}
+
+.language-selector{
+  border:none;
+  background:transparent;
+  cursor:pointer;
+  font-size:14px;
+}
+.language-selector.notranslate{
+  direction:ltr;
+  unicode-bidi:isolate;
+}
+
+/* Hide Google bar */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt{
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+}
+body{ top:0 !important; }
+
   </style>
 </head>
 
@@ -197,11 +244,12 @@
     <header class="mast">
       <div class="brand">
         <img src="/static/images/icon_logo.svg" alt="TrustLens logo">
-        <div class="brand-name">TrustLens</div>
+        <div class="brand-name notranslate" translate="no">TrustLens</div>
       </div>
 
       <div style="display:flex;gap:12px;align-items:center">
-    
+        <button id="langToggle" class="language-selector notranslate" translate="no" dir="ltr" type="button">AR</button>
+
         <div class="user-profile" id="userProfile">
           <div class="user-avatar">H</div>
           <div class="user-info">
@@ -301,6 +349,16 @@
             <div class="step-hint">Choose between 2 and 7 turns.</div>
           </div>
 
+
+          <div class="field" id="genModeDescField" style="display:none;">
+            <div class="label" id="genModeDescLabel">Description</div>
+            <textarea
+              id="genModeDesc"
+              class="gen-mode-desc"
+              placeholder="Add description..."
+            ></textarea>
+          </div>
+          
           <!-- =====Article Type === -->
 <div class="field" id="taskTypeField" style="display:none;">
   <div class="label">Task Type</div>
@@ -317,6 +375,32 @@
   <input type="hidden" id="taskType" value="model_selection">
 </div>
 
+          <!-- Generate Conversation type -->
+          <div class="field" id="genTaskModeField" style="display:none;">
+            <div class="label">Task Mode</div>
+            <div class="conv-toggle" id="genTaskModeToggle">
+              <button type="button" class="conv-pill active" data-value="human-ai">
+                <div class="pill-title">Human ↔ AI</div>
+                <div class="pill-sub">Exactly 1 examiner</div>
+              </button>
+              <button type="button" class="conv-pill" data-value="human-human">
+                <div class="pill-title">Human ↔ Human</div>
+                <div class="pill-sub">Exactly 2 examiners</div>
+              </button>
+              <button type="button" class="conv-pill" data-value="model_selection">
+                <div class="pill-title">Model Selection</div>
+                <div class="pill-sub">Exactly 1 examiner</div>
+              </button>
+              <button type="button" class="conv-pill" data-value="labeling">
+                <div class="pill-title">Labeling & Feedback</div>
+                <div class="pill-sub">1+ examiner</div>
+              </button>
+            </div>
+            <input type="hidden" id="genTaskMode" value="human-ai">
+          </div>
+
+         
+          
           <!-- Conversation type -->
           <div class="field" id="convField">
             <div class="label">Conversation Type</div>
@@ -356,51 +440,149 @@
     
     }
     async function loadTaskForEdit() {
-      if (!taskId) return;
-    
-      const res = await fetch(`/api/tasks/${taskId}`);
-      const data = await res.json();
-    
-      if (data.error) {
-        alert("Task not found");
-        return;
+  if (!taskId) return;
+
+  const res = await fetch(`/api/tasks/${taskId}`);
+  const data = await res.json();
+
+  if (data.error) {
+    alert("Task not found");
+    return;
+  }
+
+  // 1) عنوان التاسك
+  document.getElementById("taskTitle").value = data.task_name || "";
+
+  // 2) الممتحنين
+  const selectedIds = (data.examiner_ids || []).map(String);
+  document.querySelectorAll("input[name='examiner']").forEach(cb => {
+    cb.checked = selectedIds.includes(cb.value);
+  });
+
+  // 3) تعبئة نوع/مود التاسك حسب نوع المشروع
+  if (isGeneratedConversation) {
+    const mode = (data.task_type || data.conversation_type || "human-ai").toLowerCase();
+
+    // اختيارات Task Mode
+    const genModeInput = document.getElementById("genTaskMode");
+    if (genModeInput) genModeInput.value = mode;
+
+    document.querySelectorAll("#genTaskModeToggle .conv-pill").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.value === mode);
+    });
+
+    // turns أو description
+    if (mode === "human-ai" || mode === "human-human") {
+      if (data.number_of_turns != null) {
+        document.getElementById("turns").value = data.number_of_turns;
       }
-    
-      // تعبئة عنوان المهمة
-      document.getElementById("taskTitle").value = data.task_name;
-    
-      // تحديد الممتحنين المختارين
-      const selectedIds = data.examiner_ids.map(String); // تحويل للسترنق
-    
-      document.querySelectorAll("input[name='examiner']").forEach(cb => {
-        if (selectedIds.includes(cb.value)) {
-          cb.checked = true;
-        }
-      });
-    
-      updateSelectedCount();
+    } else {
+      document.getElementById("genModeDesc").value = data.task_description || "";
     }
-    
+  } else if (projectCategory === "article") {
+    // Article
+    if (data.task_type) {
+      document.getElementById("taskType").value = data.task_type;
+      document.querySelectorAll("#taskTypeToggle .conv-pill").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.value === data.task_type);
+      });
+    }
+  } else {
+    // Conversation normal
+    const convType = (data.conversation_type || "human-ai").toLowerCase();
+    document.getElementById("convType").value = convType;
+
+    document.querySelectorAll("#convToggle .conv-pill").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.value === convType);
+    });
+
+    if (data.number_of_turns != null) {
+      document.getElementById("turns").value = data.number_of_turns;
+    }
+  }
+
+  applyFieldVisibility();
+  updateGeneratedDescVisibility();
+  updateRule();
+  updateSelectedCount();
+}
+
   
     const projectId = "{{ project_id }}".trim();
 const projectCategory = "{{ category|safe }}".trim().toLowerCase();
 
+// ✅ هل هذا المشروع Generate Conversation؟
+const isGeneratedConversation = {{ is_generated_conversation|tojson }};
+
 // ========== إظهار/إخفاء الحقول حسب نوع المشروع ==========
-if (projectCategory === "article") {
-  // إخفاء حقول Conversation
-  document.getElementById("convField").style.display = "none";
-  document.getElementById("turnsField").style.display = "none";
-  
-  // إظهار حقل Task Type
-  document.getElementById("taskTypeField").style.display = "block";
-} else {
-  // إخفاء حقل Task Type
-  document.getElementById("taskTypeField").style.display = "none";
-  
-  // إظهار حقول Conversation
-  document.getElementById("convField").style.display = "block";
-  document.getElementById("turnsField").style.display = "block";
+function applyFieldVisibility() {
+  const taskTypeField = document.getElementById("taskTypeField");
+  const convField = document.getElementById("convField");
+  const turnsField = document.getElementById("turnsField");
+  const genTaskModeField = document.getElementById("genTaskModeField");
+  const genTaskModeInput = document.getElementById("genTaskMode");
+  const genModeDescField = document.getElementById("genModeDescField");
+  const mode = genTaskModeInput ? genTaskModeInput.value : "human-ai";
+
+  // Generate Conversation only
+  if (isGeneratedConversation) {
+    taskTypeField.style.display = "none";
+    convField.style.display = "none";
+    genTaskModeField.style.display = "block";
+
+    const needsTurns = (mode === "human-ai" || mode === "human-human");
+    if (needsTurns) {
+      turnsField.style.display = "block";
+      turnsField.classList.remove("keep-space");
+    } else {
+      turnsField.style.display = "none";
+      turnsField.classList.remove("keep-space");
+    }
+
+    updateGeneratedDescVisibility();
+    return;
+  }
+
+  // غير Generate Conversation (ومنها Article) بدون تغيير السلوك
+  if (genModeDescField) genModeDescField.style.display = "none";
+  genTaskModeField.style.display = "none";
+
+  if (projectCategory === "article") {
+    turnsField.classList.remove("keep-space");
+    convField.style.display = "none";
+    turnsField.style.display = "none";
+    taskTypeField.style.display = "block";
+  } else {
+    turnsField.classList.remove("keep-space");
+    taskTypeField.style.display = "none";
+    convField.style.display = "block";
+    turnsField.style.display = "block";
+  }
 }
+
+
+function updateGeneratedDescVisibility() {
+  const field = document.getElementById("genModeDescField");
+  const label = document.getElementById("genModeDescLabel");
+  const input = document.getElementById("genModeDesc");
+  if (!field || !label || !input) return;
+
+  const mode = (document.getElementById("genTaskMode")?.value || "human-ai");
+  const show = isGeneratedConversation && (mode === "model_selection" || mode === "labeling");
+
+  field.style.display = show ? "block" : "none";
+
+  if (show) {
+    if (mode === "model_selection") {
+      label.textContent = "Model Selection Description";
+      input.placeholder = "Add description for model selection...";
+    } else {
+      label.textContent = "Labeling Description";
+      input.placeholder = "Add description for labeling & feedback...";
+    }
+  }
+}
+
     const $=(s,e=document)=>e.querySelector(s);
     const $$=(s,e=document)=>Array.from(e.querySelectorAll(s));
 
@@ -431,22 +613,25 @@ if (projectCategory === "article") {
     
   
     function requiredCount() {
+  if (isGeneratedConversation) {
+    const mode = (document.getElementById("genTaskMode")?.value || "human-ai");
+    if (mode === "human-human") return { exact: 2 };
+    if (mode === "labeling") return { min: 1 };
+    return { exact: 1 }; // human-ai أو model_selection
+  }
+
   if (projectCategory === "article") {
     const taskType = document.getElementById("taskType").value;
-    
-    if (taskType === "model_selection") {
-      return { exact: 1 };  // ✅ بالضبط 1
-    } else {
-      return { min: 1 };     // ✅ على الأقل 1
-    }
-  } 
-  
+    return taskType === "model_selection" ? { exact: 1 } : { min: 1 };
+  }
+
   return { exact: convTypeInput.value === "human-human" ? 2 : 1 };
 }
+
     
     let exChecks = [];   
 
-function updateRule(){
+    function updateRule(){
   if (projectCategory === "article") {
     const exRule = document.querySelector(".ex-rule");
     if (exRule) exRule.style.display = "none";
@@ -461,24 +646,34 @@ function updateRule(){
   }
 
   const req = requiredCount();
-  exRuleText.textContent = req.exact === 2 ? "Select exactly 2 examiners" : "Select exactly 1 examiner";
+  if (req.exact !== undefined) {
+    exRuleText.textContent = `Select exactly ${req.exact} examiner${req.exact > 1 ? "s" : ""}`;
+  } else {
+    exRuleText.textContent = `Select at least ${req.min} examiner${req.min > 1 ? "s" : ""}`;
+  }
+
   updateSelectedCount();
 }
 
-function updateSelectedCount(){
-  const selected=exChecks.filter(cb=>cb.checked).length;
-  const req=requiredCount();
-  exCountSpan.textContent=`(${selected} selected)`;
-  if(selected===req){
-    exCountSpan.style.color="var(--success)";
-    exBox.style.borderColor="rgba(0,0,0,0.1)";
-    exBox.style.boxShadow="0 0 0 1px rgba(16,185,129,.25)";
-  }else{
-    exCountSpan.style.color="#f54900";
-    exBox.style.borderColor="rgba(180,35,24,0.4)";
-    exBox.style.boxShadow="none";
+
+function updateSelectedCount() {
+  const selected = exChecks.filter(cb => cb.checked).length;
+  const req = requiredCount();
+  exCountSpan.textContent = `(${selected} selected)`;
+
+  const ok = (req.exact !== undefined) ? (selected === req.exact) : (selected >= req.min);
+
+  if (ok) {
+    exCountSpan.style.color = "var(--success)";
+    exBox.style.borderColor = "rgba(0,0,0,0.1)";
+    exBox.style.boxShadow = "0 0 0 1px rgba(16,185,129,.25)";
+  } else {
+    exCountSpan.style.color = "#f54900";
+    exBox.style.borderColor = "rgba(180,35,24,0.4)";
+    exBox.style.boxShadow = "none";
   }
 }
+
 
 convToggle.addEventListener("click",e=>{
   const btn=e.target.closest(".conv-pill");
@@ -509,6 +704,26 @@ if (taskTypeToggle) {
     updateRule();
   });
 }
+// ========== Generate Conversation Mode Toggle ==========
+const genTaskModeToggle = document.getElementById("genTaskModeToggle");
+const genTaskModeInput = document.getElementById("genTaskMode");
+
+if (genTaskModeToggle) {
+  genTaskModeToggle.addEventListener("click", e => {
+    const btn = e.target.closest(".conv-pill");
+    if (!btn) return;
+
+    genTaskModeInput.value = btn.dataset.value;
+
+    document.querySelectorAll("#genTaskModeToggle .conv-pill").forEach(b =>
+      b.classList.toggle("active", b === btn)
+    );
+
+    applyFieldVisibility();
+    updateRule();
+    updateGeneratedDescVisibility();
+  });
+}
 
 stepBtns.forEach(btn=>{
   btn.addEventListener("click",()=>{
@@ -525,6 +740,7 @@ submitBtn.addEventListener("click", async () => {
   const title = titleEl.value.trim();
   const turns = parseInt(turnInput.value);
   const convType = convTypeInput.value;
+  const modeDesc = (document.getElementById("genModeDesc")?.value || "").trim();
 
   const selectedExaminers = exChecks
     .filter(cb => cb.checked)
@@ -547,6 +763,23 @@ if (requirement.exact !== undefined) {
 }
 
 if (!isValid) {
+  // ✅ Generate Conversation: رسالة حسب المود المختار
+  if (isGeneratedConversation) {
+    const mode = (document.getElementById("genTaskMode")?.value || "human-ai");
+
+    if (mode === "model_selection") {
+      alert(`Please assign exactly 1 examiner for Model Selection. You selected ${selectedExaminers.length}.`);
+    } else if (mode === "labeling") {
+      alert(`Please assign at least 1 examiner for Labeling & Feedback. You selected ${selectedExaminers.length}.`);
+    } else if (mode === "human-human") {
+      alert(`Please select exactly 2 examiners for Human ↔ Human conversation. You selected ${selectedExaminers.length}.`);
+    } else {
+      alert(`Please select exactly 1 examiner for Human ↔ AI conversation. You selected ${selectedExaminers.length}.`);
+    }
+    return;
+  }
+
+  // ✅ Article 
   if (projectCategory === "article") {
     const taskType = document.getElementById("taskType").value;
     if (taskType === "model_selection") {
@@ -562,6 +795,7 @@ if (!isValid) {
   }
   return;
 }
+
   
   // Create payload
 let payload = {
@@ -572,15 +806,32 @@ let payload = {
   
 
   // ========== إضافة البيانات حسب نوع المشروع ==========
-if (!taskId) { // فقط عند الإنشاء
-  if (projectCategory === "article") {
+  if (!taskId) { // فقط عند الإنشاء
+  if (isGeneratedConversation) {
+    const mode = document.getElementById("genTaskMode").value;
+
+    // لو اختار موديلات/فيدباك
+    if (mode === "model_selection" || mode === "labeling") {
+  payload.task_type = mode;
+  payload.task_description = modeDesc;   // ✅ جديد
+} else {
+  payload.conversation_type = mode;
+  payload.number_of_turns = turns;
+}
+
+
+  } else if (projectCategory === "article") {
+    // Article كما هو
     const taskType = document.getElementById("taskType").value;
     payload.task_type = taskType;
+
   } else {
+    // Conversation العادي كما هو
     payload.conversation_type = convType;
     payload.number_of_turns = turns;
   }
 }
+
   
 
   // ⭐ تحديد URL و METHOD حسب الحالة (إنشاء / تعديل)
@@ -602,7 +853,7 @@ if (!taskId) { // فقط عند الإنشاء
     const data = await res.json();
 
     if (data.error) {
-      alert("Error: " + data.error);
+      alert(data.error);
       return;
     }
 
@@ -672,10 +923,97 @@ if (!taskId) { // فقط عند الإنشاء
   if (taskId) {
     document.getElementById("turnsField").style.display = "none";
   }
-  
+  applyFieldVisibility();
   updateRule();
- 
+  updateGeneratedDescVisibility();
 
   </script>
+  <script>
+    const langToggle = document.getElementById("langToggle");
+  
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+      return match ? decodeURIComponent(match[2]) : "";
+    }
+  
+    function getActiveLang() {
+      const gt = getCookie("googtrans");
+      const m = gt.match(/^\/[^/]+\/([^/]+)$/);
+      return (m && m[1]) ? m[1].toLowerCase() : "en";
+    }
+  
+    function setActiveLang(lang) {
+      const val = `/en/${lang}`;
+      document.cookie = `googtrans=${val}; path=/`;
+      document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}`;
+      localStorage.setItem("ui_lang", lang);
+    }
+  
+    function refreshLangButton() {
+      if (!langToggle) return;
+      const active = getActiveLang();
+      langToggle.textContent = active === "ar" ? "EN" : "AR";
+      langToggle.setAttribute("translate", "no");
+      langToggle.classList.add("notranslate");
+    }
+  
+    function hideGoogleBar() {
+      document.querySelectorAll(
+        "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+      ).forEach(el => {
+        el.style.display = "none";
+        el.style.visibility = "hidden";
+        el.style.height = "0";
+      });
+      document.body.style.top = "0px";
+      document.documentElement.style.top = "0px";
+    }
+  
+    function applyGoogleLang(lang, tries = 0) {
+      const combo = document.querySelector(".goog-te-combo");
+      if (!combo) {
+        if (tries < 30) setTimeout(() => applyGoogleLang(lang, tries + 1), 100);
+        return;
+      }
+      combo.value = lang;
+      combo.dispatchEvent(new Event("change"));
+      setTimeout(hideGoogleBar, 50);
+      setTimeout(hideGoogleBar, 250);
+    }
+  
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        { pageLanguage: "en", includedLanguages: "en,ar", autoDisplay: false },
+        "google_translate_element"
+      );
+  
+      const saved = localStorage.getItem("ui_lang");
+      if (!getCookie("googtrans") && (saved === "ar" || saved === "en")) {
+        setActiveLang(saved);
+      }
+  
+      refreshLangButton();
+      hideGoogleBar();
+      setInterval(hideGoogleBar, 250);
+    }
+  
+    window.addEventListener("load", () => {
+      refreshLangButton();
+      hideGoogleBar();
+      applyGoogleLang(getActiveLang());
+    });
+  
+    langToggle?.addEventListener("click", () => {
+      const active = getActiveLang();
+      const next = active === "ar" ? "en" : "ar";
+      setActiveLang(next);
+      refreshLangButton();
+      applyGoogleLang(next);
+    });
+  </script>
+  
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <div id="google_translate_element" style="display:none"></div>
+  
 </body>
 </html> 

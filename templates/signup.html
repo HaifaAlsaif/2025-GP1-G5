@@ -605,26 +605,24 @@
   }
 
   /* صورة اللوقو (العدسة + TrustLens) من الملف الذي ذكرتِه */
-  .header .brand-img{
-    height:28px; /* لو تبين أكبر: 32px */
-    display:block;
-  }
-
+  
   /* لو بقي h1 قديم في مكان آخر، نخليه طبيعي */
-  .header .logo-text{ margin:0; font-size:0; line-height:0; }
 
   /* عناصر اليمين: EN + تبديل الثيم + الهوم */
   .header .header-actions{
     display:flex; align-items:center; gap:16px;
   }
   .header .language-selector{
-    font-size:14px; font-weight:600; color:#0f172a; user-select:none;
+    font-size:14px; font-weight:600; color:#0f172a; user-select:none; cursor: pointer;
+
   }
   .header .theme-toggle{
-    width:22px; height:22px; cursor:pointer; opacity:.9;
-    transition:transform .2s ease, opacity .2s ease;
-  }
-  .header .theme-toggle:hover{ transform:translateY(-1px); opacity:1; }
+  width:36px;height:36px;border:1px solid #dbe2ea;border-radius:10px;
+  background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .2s ease, opacity .2s ease;
+}
+.header .theme-toggle:hover{ transform:translateY(-1px); opacity:1; }
+.header .theme-icon{font-size:20px;line-height:1;color:#0a0a0a;}
 
   .header .home-btn{
     width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center;
@@ -638,6 +636,158 @@
     box-shadow:0 10px 22px rgba(0,184,219,.35);
   }
   .header .home-btn img{ width:18px; height:18px; display:block; filter:brightness(100%); }
+
+
+  :root[data-theme="dark"] body{
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg,#071225 0%,#0b1b37 55%,#0d2747 100%) !important;
+  color:#eaf2ff !important;
+}
+
+:root[data-theme="dark"] header,
+:root[data-theme="dark"] .header{
+  background:rgba(10,22,44,.78) !important;
+  border-bottom:1px solid #2a4168 !important;
+  box-shadow:none !important;
+}
+
+:root[data-theme="dark"] .signup-container{
+  background:linear-gradient(180deg,#0f1f3b 0%,#122547 100%) !important;
+  border:1px solid #2a4168 !important;
+  box-shadow:0 14px 28px rgba(0,0,0,.35) !important;
+}
+
+:root[data-theme="dark"] .section-title,
+:root[data-theme="dark"] .icon-header h2,
+:root[data-theme="dark"] .role-card h3,
+:root[data-theme="dark"] label{
+  color:#f8fbff !important;
+}
+
+:root[data-theme="dark"] .section-subtitle,
+:root[data-theme="dark"] .icon-header p,
+:root[data-theme="dark"] .step-label,
+:root[data-theme="dark"] .password-hint,
+:root[data-theme="dark"] .footer-section p,
+:root[data-theme="dark"] .footer-links a,
+:root[data-theme="dark"] .footer-bottom,
+:root[data-theme="dark"] .language-selector{
+  color:#aebdd7 !important;
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea{
+  background:#152a4d !important;
+  border:1px solid #2a4168 !important;
+  color:#eaf2ff !important;
+}
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder{
+  color:#9fb2d3 !important;
+}
+
+:root[data-theme="dark"] .role-card{
+  background:#132747 !important;
+  border:1px solid #35517c !important;
+}
+:root[data-theme="dark"] .role-card.selected,
+:root[data-theme="dark"] .role-card:hover{
+  background:linear-gradient(90deg,rgba(0,184,219,.20),rgba(21,93,252,.18)) !important;
+  border-color:#00B8DB !important;
+}
+
+:root[data-theme="dark"] .progress-steps::before{ background:#2a4168 !important; }
+
+:root[data-theme="dark"] footer{
+  background:transparent !important;
+  border-top:1px solid #2a4168 !important;
+}
+:root[data-theme="dark"] .footer-bottom{
+  border-top:1px solid #2a4168 !important;
+}
+:root[data-theme="dark"] .social-icon{
+  background:#152a4d !important;
+  border:1px solid #35517c !important;
+  color:#eaf2ff !important;
+}
+
+:root[data-theme="dark"] .header .theme-toggle{
+  background:#10213f !important;
+  border-color:#2a4168 !important;
+}
+:root[data-theme="dark"] .header .theme-icon{
+  color:#eaf2ff !important;
+}
+
+.header .logo-link{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+}
+
+.header .header-logo-icon{
+  width:32px;
+  height:32px;
+  display:block;
+}
+
+.header .header-logo-text{
+  font-size:20px;
+  font-weight:400;
+  line-height:1;
+  background:linear-gradient(90deg,#00B8DB,#155DFC);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+/* ===== Dark Fix: Back to Login + Step Circles ===== */
+:root[data-theme="dark"] .btn-secondary{
+  background:#1a335a !important;
+  color:#dbe8ff !important;
+  border:1px solid #35517c !important;
+  box-shadow:none !important;
+}
+:root[data-theme="dark"] .btn-secondary:hover{
+  background:#22406f !important;
+  border-color:#4a6ea3 !important;
+  color:#ffffff !important;
+}
+
+/* الدوائر اللي فوق (2 و 3) */
+:root[data-theme="dark"] .step-circle{
+  background:linear-gradient(180deg,#24476f 0%, #1a365a 100%) !important;
+  color:#c4d6f2 !important;
+  border:1px solid #3a5f8c !important;
+}
+
+/* الدائرة النشطة/المكتملة تبقى جراديانت */
+:root[data-theme="dark"] .step.active .step-circle,
+:root[data-theme="dark"] .step.completed .step-circle{
+  background:linear-gradient(90deg,#00b8db 0%, #155dfc 100%) !important;
+  color:#fff !important;
+  border-color:transparent !important;
+}
+.language-selector.notranslate{
+  direction:ltr;
+  unicode-bidi:isolate;
+}
+
+/* Hide Google Translate top bar */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt{
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+}
+body{ top:0 !important; }
+
 </style>
 
 <header class="header">
@@ -645,16 +795,19 @@
 
     <!-- يسار: لوقو كصورة واحدة (مطابق للصورة الثانية) -->
     <div class="logo-section">
-      <a href="/" aria-label="TrustLens Home">
-        <img src="../static/images/img_header_logo.png" alt="TrustLens" class="brand-img">
+      <a href="/" class="logo-link" aria-label="TrustLens Home">
+        <img src="../static/images/img_header.svg" alt="TrustLens Logo" class="header-logo-icon">
+        <span class="header-logo-text notranslate" translate="no">TrustLens</span>
       </a>
     </div>
-
+    
     <!-- يمين: EN + زر الدارك مود + زر الهوم -->
     <div class="header-actions">
-      <span class="nav-item language-selector">EN</span>
-      <img id="theme-toggle" src="../static/images/img_buttonDark.svg" alt="theme" class="theme-toggle">
-      <a href="/" class="home-btn" aria-label="Home">
+      <span id="langToggle" class="nav-item language-selector notranslate" translate="no" dir="ltr">AR</span>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+        <span id="themeIcon" class="theme-icon">☾</span>
+      </button>
+            <a href="/" class="home-btn" aria-label="Home">
         <img src="../static/images/home.png" alt="Home">
       </a>
     </div>
@@ -1777,7 +1930,119 @@ window.togglePassword = togglePassword;
 
   // شغّلي شريط التقدم بدايةً
   updateProgress();
+
+
+  const root = document.documentElement;
+const themeToggle = document.getElementById("themeToggle");
+const themeIcon = document.getElementById("themeIcon");
+
+function applyTheme(theme){
+  const isDark = theme === "dark";
+  root.setAttribute("data-theme", isDark ? "dark" : "");
+  if (themeIcon) themeIcon.textContent = isDark ? "☀" : "☾";
+  if (themeToggle) themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+}
+
+applyTheme(localStorage.getItem("theme") === "dark" ? "dark" : "light");
+
+themeToggle?.addEventListener("click", () => {
+  const current = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+
     </script>
+    <script>
+      const langToggle = document.getElementById("langToggle");
+    
+      function getCookie(name) {
+        const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+        return match ? decodeURIComponent(match[2]) : "";
+      }
+    
+      function getActiveLang() {
+        const gt = getCookie("googtrans"); // /en/ar or /en/en
+        const m = gt.match(/^\/[^/]+\/([^/]+)$/);
+        return (m && m[1]) ? m[1].toLowerCase() : "en";
+      }
+    
+      function setActiveLang(lang) {
+        const val = `/en/${lang}`;
+        document.cookie = `googtrans=${val}; path=/`;
+        document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}`;
+        localStorage.setItem("ui_lang", lang);
+      }
+    
+      function refreshLangButton() {
+        if (!langToggle) return;
+        const active = getActiveLang();
+        langToggle.textContent = active === "ar" ? "EN" : "AR";
+        langToggle.setAttribute("translate", "no");
+        langToggle.classList.add("notranslate");
+      }
+    
+      function hideGoogleBar() {
+        document.querySelectorAll(
+          "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+        ).forEach(el => {
+          el.style.display = "none";
+          el.style.visibility = "hidden";
+          el.style.height = "0";
+        });
+        document.body.style.top = "0px";
+        document.documentElement.style.top = "0px";
+      }
+      function applyGoogleLang(lang, tries = 0) {
+  const combo = document.querySelector(".goog-te-combo");
+  if (!combo) {
+    if (tries < 30) setTimeout(() => applyGoogleLang(lang, tries + 1), 100);
+    return;
+  }
+  combo.value = lang;
+  combo.dispatchEvent(new Event("change"));
+  setTimeout(hideGoogleBar, 50);
+  setTimeout(hideGoogleBar, 250);
+}
+
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            includedLanguages: "en,ar",
+            autoDisplay: false
+          },
+          "google_translate_element"
+        );
+    
+        const saved = localStorage.getItem("ui_lang");
+        if (!getCookie("googtrans") && (saved === "ar" || saved === "en")) {
+          setActiveLang(saved);
+        }
+    
+        refreshLangButton();
+        hideGoogleBar();
+        setInterval(hideGoogleBar, 250);
+      }
+    
+      window.addEventListener("load", () => {
+  refreshLangButton();
+  hideGoogleBar();
+  applyGoogleLang(getActiveLang());
+});
+
+    
+      langToggle?.addEventListener("click", () => {
+        const active = getActiveLang();
+        const next = active === "ar" ? "en" : "ar";
+        setActiveLang(next);
+        refreshLangButton();
+        applyGoogleLang(next);
+      });
+    </script>
+    
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <div id="google_translate_element" style="display:none"></div>
+    
   </body>
 
 

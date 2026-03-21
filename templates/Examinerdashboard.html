@@ -83,11 +83,12 @@
  font-size: 14px;
  color: #0a0a0a;
  }
- 
- .notification-btn {
- width: 36px;
- height: 36px;
- }
+ .theme-toggle{
+ width:36px;height:36px;border:1px solid #dbe2ea;border-radius:10px;
+ background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.theme-icon{font-size:20px;line-height:1;color:#0a0a0a}
+
  
  .user-profile {
  display: flex;
@@ -172,13 +173,14 @@
  flex-direction: column;
  gap: 32px;
  }
- 
  .welcome-section {
- background: linear-gradient(90deg, #00b8da19 0%, #2b7fff19 50%, #ac46ff19 100%);
+ background: linear-gradient(90deg, rgba(0,184,218,.08) 0%, rgba(43,127,255,.07) 55%, rgba(172,70,255,.06) 100%);
+ border: 1px solid rgba(0,0,0,.06);
  border-radius: 16px;
  padding: 24px;
- box-shadow: 0px 4px 128px #888888ff;
- }
+ box-shadow: 0 10px 24px rgba(21,92,251,.08);
+}
+
  
  .welcome-title {
  font-size: 24px;
@@ -1192,16 +1194,22 @@
 /* يُلصق بعد الأنماط الافتراضية مباشرة،
  ويُفعَّل فقط عند إضافة كلاس .dark إلى <body> */
 
-body.dark {
- --bg: #0a0a0a;
- --card: #1c1c1e;
- --text: #e5e5e5;
+  body.dark {
+ --bg: #071a3a;
+ --card: #132d57;
+ --text: #eaf2ff;
  --text-inv: #0a0a0a;
- --border: #333;
- --shadow: rgba(0,0,0,.6);
- }
+ --border: rgba(90,140,220,.35);
+ --shadow: rgba(2,8,23,.35);
+}
+
  
- body.dark { background: var(--bg); color: var(--text); }
+body.dark {
+ background:
+  radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+  linear-gradient(135deg, #071225 0%, #0b1b37 55%, #0d2747 100%);
+ color: var(--text);
+}
  
  body.dark .sidebar { background: var(--bg); border-color: var(--border); }
  body.dark .menu-text,
@@ -1223,15 +1231,19 @@ body.dark {
  -webkit-text-fill-color: transparent;
  background-clip: text;
  }
- 
- body.dark .welcome-section,
- body.dark .quick-actions,
- body.dark .chart-card,
- body.dark .activity-card,
- body.dark .invitations-section,
- body.dark .stat-card,
- body.dark .invitation-card { background: var(--card); border-color: var(--border); box-shadow: 0 4px 20px var(--shadow); }
- 
+
+body.dark .welcome-section,
+body.dark .quick-actions,
+body.dark .chart-card,
+body.dark .activity-card,
+body.dark .invitations-section,
+body.dark .stat-card,
+body.dark .invitation-card {
+ background: linear-gradient(180deg, rgba(19,45,87,.95) 0%, rgba(15,36,72,.95) 100%);
+ border: 1px solid var(--border);
+ box-shadow: 0 12px 28px var(--shadow);
+}
+
  body.dark .menu-item:hover { background: #2a2a2a; }
  body.dark .user-dropdown { background: var(--card); border-color: var(--border); }
  body.dark .dropdown-divider { background: var(--border); }
@@ -1279,6 +1291,72 @@ body.dark {
  border-right: 3px solid #4c84ff; /* خط ملون على الحافة اليمنى */
  cursor: default; /* يشير أنه غير قابل للنقر مرة ثانية */
  }
+ .stat-card::before,
+.invitation-card::before,
+.invitations-section::before,
+.invitations-section::after{
+ content:none !important;
+ display:none !important;
+}
+body.dark .welcome-section{
+ background: linear-gradient(90deg, rgba(0,184,218,.10) 0%, rgba(79,57,246,.10) 100%);
+ border: 1px solid rgba(90,140,220,.35);
+ box-shadow: 0 12px 28px rgba(2,8,23,.35);
+}
+
+body.dark .theme-toggle{
+ background:#1f2937;
+ border-color:#374151;
+}
+body.dark .theme-icon{ color:#e5e7eb; }
+
+body.dark .sidebar{
+ background: linear-gradient(180deg, #081b3c 0%, #071835 100%);
+ border-right-color: rgba(90,140,220,.35);
+}
+
+body.dark .sidebar-menu .menu-item.active{
+ background-color: #1f3f73;
+ border-right: 3px solid #4c84ff;
+}
+
+body.dark .menu-item:hover{
+ background-color: #173661;
+}
+/* Sidebar icons white in dark mode */
+body.dark .menu-icon{
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+/* Dropdown icons white in dark mode */
+body.dark .dropdown-icon{
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+body.dark .user-dropdown .dropdown-icon{
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+.language-selector{ cursor:pointer; }
+.language-selector.notranslate{
+  direction:ltr;
+  unicode-bidi:isolate;
+}
+
+/* hide google translate top bar */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt{
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+}
+body{ top:0 !important; }
+
+
  </style>
  
  
@@ -1289,13 +1367,15 @@ body.dark {
  <header class="header">
  <div class="header-left">
  <img src="../static/images/img_header.svg" alt="TrustLens Logo" class="logo">
- <div class="brand-text">TrustLens</div>
- </div>
+ <div class="brand-text notranslate" translate="no">TrustLens</div>
+</div>
  <div class="header-right">
- <div class="language-selector">EN</div>
+  <div id="langToggle" class="language-selector notranslate" translate="no" dir="ltr">AR</div>
  
  <!-- زر تبديل الوضع المظلم/الفاتح -->
-<img src="../static/images/img_buttonlight.png" alt="Toggle Dark Mode" id="themeToggle" class="notification-btn" style="cursor:pointer;">
+ <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+  <span id="themeIcon" class="theme-icon">☾</span>
+</button>
 <div class="user-profile" onclick="toggleUserDropdown()">
  <img src="../static/images/user-profile.png" alt="Avatar" class="user-avatar">
  <div class="user-info">
@@ -1584,28 +1664,114 @@ Feedback
  this.style.transform = 'translateY(-1px)';
  });
  });
+ 
  // ---------- Theme Toggle ----------
 const themeToggle = document.getElementById('themeToggle');
-const darkSrc = '../assets/static/img_buttonlight.png';
-const lightSrc = '../assets/static/img_buttonDark.svg';
+const themeIcon = document.getElementById('themeIcon');
 
-// استرجاع الوضع المحفوظ (إن وجد)
-if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
- document.body.classList.add('dark');
- themeToggle.src = darkSrc;
-} else {
- themeToggle.src = lightSrc;
+function applyTheme(mode){
+  const isDark = mode === 'dark';
+  document.body.classList.toggle('dark', isDark);
+  if (themeIcon) themeIcon.textContent = isDark ? '☀' : '☾';
+  if (themeToggle) themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+  localStorage.theme = isDark ? 'dark' : 'light';
 }
 
-// تبديل الوضع عند النقر
-themeToggle.addEventListener('click', () => {
- const isDark = document.body.classList.toggle('dark');
- themeToggle.src = isDark ? darkSrc : lightSrc;
- localStorage.theme = isDark ? 'dark' : 'light';
+applyTheme(localStorage.theme === 'dark' ? 'dark' : 'light');
+
+themeToggle?.addEventListener('click', () => {
+  applyTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
 });
 
 
-
  </script>
+ <script>
+  const langToggle = document.getElementById("langToggle");
+  const LANG_KEY = "ui_lang";
+
+  function currentLang() {
+    return sessionStorage.getItem(LANG_KEY) === "ar" ? "ar" : "en";
+  }
+
+  function setLang(lang) {
+    const safe = lang === "ar" ? "ar" : "en";
+    sessionStorage.setItem(LANG_KEY, safe);
+    const val = `/en/${safe}`;
+    document.cookie = `googtrans=${val}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}; max-age=31536000; SameSite=Lax`;
+  }
+
+  function refreshLangButton() {
+    if (!langToggle) return;
+    langToggle.textContent = currentLang() === "ar" ? "EN" : "AR";
+    langToggle.setAttribute("translate", "no");
+    langToggle.classList.add("notranslate");
+  }
+
+  function hideGoogleBar() {
+    document.querySelectorAll(
+      "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+    ).forEach(el => {
+      el.style.display = "none";
+      el.style.visibility = "hidden";
+      el.style.height = "0";
+    });
+    document.body.style.top = "0px";
+    document.documentElement.style.top = "0px";
+  }
+
+  function applyGoogleLang(lang, tries = 0) {
+    const combo = document.querySelector(".goog-te-combo");
+    if (!combo) {
+      if (tries < 20) setTimeout(() => applyGoogleLang(lang, tries + 1), 150);
+      return;
+    }
+    combo.value = lang;
+    combo.dispatchEvent(new Event("change"));
+  }
+
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      { pageLanguage: "en", includedLanguages: "en,ar", autoDisplay: false },
+      "google_translate_element"
+    );
+    const lang = currentLang();
+    setLang(lang);
+    refreshLangButton();
+    hideGoogleBar();
+    applyGoogleLang(lang);
+    setInterval(hideGoogleBar, 300);
+  }
+
+  window.addEventListener("load", () => {
+    refreshLangButton();
+    hideGoogleBar();
+  });
+
+  langToggle?.addEventListener("click", () => {
+    const next = currentLang() === "ar" ? "en" : "ar";
+    setLang(next);
+    refreshLangButton();
+    applyGoogleLang(next);
+  });
+</script>
+
+  
+<script>
+  (function () {
+    const LANG_KEY = "ui_lang";
+    if (!sessionStorage.getItem(LANG_KEY)) {
+      sessionStorage.setItem(LANG_KEY, "en");
+    }
+    const lang = sessionStorage.getItem(LANG_KEY) === "ar" ? "ar" : "en";
+    const val = `/en/${lang}`;
+    document.cookie = `googtrans=${val}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}; max-age=31536000; SameSite=Lax`;
+  })();
+</script>
+
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <div id="google_translate_element" style="display:none"></div>
+  
 </body>
 </html>

@@ -227,17 +227,11 @@
  background: linear-gradient(135deg, #f0fdf47f 0%, #ebfcf44c 100%);
  border: 0 solid #0000000d;
  }
- 
- .stat-card::before {
- content: '';
- position: absolute;
- width: 128px;
- height: 128px;
- border-radius: 64px;
- top: -20px;
- right: -20px;
- box-shadow: 0px 4px 80px #888888ff;
- }
+ .stat-card::before{
+  display: none !important;
+  content: none !important;
+}
+
  
  .stat-card-total::before {
  background: linear-gradient(135deg, #00d2f233 0%, #2b7fff33 100%);
@@ -740,17 +734,6 @@
  border: 1px solid #ffc9c97f;
  }
  
- .invitation-card::before {
- content: '';
- position: absolute;
- width: 128px;
- height: 128px;
- border-radius: 64px;
- top: 1px;
- right: 1px;
- box-shadow: 0px 4px 80px #888888ff;
- }
- 
  .invitation-card-accepted::before {
  background: linear-gradient(135deg, #05df7233 0%, #00d49133 100%);
  }
@@ -1132,11 +1115,19 @@
  .main-content {
  padding: 24px;
  }
- 
  .welcome-section {
- padding: 32px;
- }
- 
+  background: linear-gradient(135deg, #f8fbff 0%, #f3f7fd 100%);
+  border: 1px solid #e4ebf5;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+body.dark .welcome-section {
+  background: linear-gradient(180deg, rgba(18, 37, 71, 0.9) 0%, rgba(16, 33, 63, 0.82) 100%) !important;
+  border: 1px solid #2b4269 !important;
+  box-shadow: 0 10px 26px rgba(3, 10, 25, 0.38) !important;
+}
+
  .stats-grid {
  gap: 24px;
  }
@@ -1279,6 +1270,121 @@ body.dark {
  border-right: 3px solid #4c84ff; /* خط ملون على الحافة اليمنى */
  cursor: default; /* يشير أنه غير قابل للنقر مرة ثانية */
  }
+ /* ===== Moon Toggle (same style) ===== */
+.theme-toggle{
+  width:36px;
+  height:36px;
+  border:1px solid #dbe2ea;
+  border-radius:10px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.theme-icon{
+  font-size:20px;
+  line-height:1;
+  color:#0a0a0a;
+}
+
+/* في الدارك */
+body.dark .theme-toggle{
+  background:#10213f;
+  border-color:#2a4168;
+}
+body.dark .theme-icon{
+  color:#eaf2ff;
+}
+
+/* وضوح أيقونات السايدبار في الدارك */
+body.dark .menu-icon,
+body.dark .dropdown-icon{
+  filter: brightness(0) invert(1);
+  opacity: .95;
+}
+/* ===== Dark Theme V2 (Dashboard like My Projects) ===== */
+body.dark{
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg,#071225 0%,#0b1b37 55%,#0d2747 100%) !important;
+  color:#eaf2ff !important;
+}
+
+body.dark .sidebar{
+  background:#0c1b35 !important;
+  border-right:1px solid #2a4168 !important;
+}
+body.dark .menu-item:hover{background:#17345d !important;border-radius:10px}
+body.dark .sidebar-menu .menu-item.active{
+  background:#1b3a67 !important;
+  border-right:3px solid #4c84ff !important;
+}
+
+body.dark .welcome-section,
+body.dark .quick-actions,
+body.dark .chart-card,
+body.dark .activity-card,
+body.dark .invitations-section,
+body.dark .stat-card,
+body.dark .invitation-card{
+  background:linear-gradient(180deg,#0f1f3b 0%,#122547 100%) !important;
+  border:1px solid #2a4168 !important;
+  box-shadow:0 14px 28px rgba(0,0,0,.35) !important;
+}
+
+body.dark .welcome-title,
+body.dark .chart-title,
+body.dark .activity-title,
+body.dark .invitations-title,
+body.dark .menu-text,
+body.dark .user-info h3,
+body.dark .view-all-btn,
+body.dark .stat-number{
+  color:#f8fbff !important;
+}
+body.dark .welcome-subtitle,
+body.dark .chart-subtitle,
+body.dark .activity-subtitle,
+body.dark .invitations-subtitle,
+body.dark .user-info p,
+body.dark .language-selector,
+body.dark .stat-description{
+  color:#aebdd7 !important;
+}
+
+body.dark .chart-period,
+body.dark .activity-status,
+body.dark .invitations-total{
+  background:#152a4d !important;
+  border:1px solid #35517c !important;
+  color:#dbe8ff !important;
+}
+
+body.dark .user-dropdown{
+  background:#0f1f3b !important;
+  border:1px solid #2a4168 !important;
+}
+body.dark .dropdown-divider{background:#2a4168 !important}
+body.dark .dropdown-item:hover{background:#17345d !important}
+
+body.dark .theme-toggle{
+  background:#10213f !important;
+  border-color:#2a4168 !important;
+}
+body.dark .theme-icon{color:#eaf2ff !important}
+
+body.dark .menu-icon,
+body.dark .dropdown-icon{
+  filter:brightness(0) invert(1);
+  opacity:.95;
+}
+.invitations-section::before,
+.invitations-section::after{
+  display:none !important;
+  content:none !important;
+}
+
  </style>
  
  
@@ -1289,14 +1395,16 @@ body.dark {
  <header class="header">
  <div class="header-left">
  <img src="../static/images/img_header.svg" alt="TrustLens Logo" class="logo">
- <div class="brand-text">TrustLens</div>
- </div>
+ <div class="brand-text notranslate" translate="no">TrustLens</div>
+</div>
  <div class="header-right">
- <div class="language-selector">EN</div>
+  <span id="langToggle" class="language-selector notranslate" translate="no" dir="ltr">AR</span>
  
  <!-- زر تبديل الوضع المظلم/الفاتح -->
-<img src="../static/images/img_buttonlight.png" alt="Toggle Dark Mode" id="themeToggle" class="notification-btn" style="cursor:pointer;">
-<div class="user-profile" onclick="toggleUserDropdown()">
+ <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+    <span id="themeIcon" class="theme-icon">☾</span>
+  </button>
+  <div class="user-profile" onclick="toggleUserDropdown()">
  <img src="../static/images/user-profile.png" alt="Avatar" class="user-avatar">
  <div class="user-info">
  <h3>{{ user_name }}</h3>
@@ -1373,7 +1481,7 @@ body.dark {
  <div class="stat-content">
  <div class="stat-info">
  <div class="stat-label stat-label-total">Total Projects</div>
- <div class="stat-number">0</div>
+ <div class="stat-number" id="statTotal">0</div>
  <div class="stat-description">All Projects</div>
  </div>
  <div class="stat-icon-btn stat-icon-btn-total">
@@ -1386,7 +1494,7 @@ body.dark {
  <div class="stat-content">
  <div class="stat-info">
  <div class="stat-label stat-label-pending">Pending Projects</div>
- <div class="stat-number">0</div>
+ <div class="stat-number" id="statPending">0</div>
  <div class="stat-description pending">
  <img src="../static/images/img_time.svg" alt="Awaiting" style="width: 12px; height: 12px;">
  Awaiting Start
@@ -1402,7 +1510,7 @@ body.dark {
  <div class="stat-content">
  <div class="stat-info">
  <div class="stat-label stat-label-active">Active Projects</div>
- <div class="stat-number">0</div>
+ <div class="stat-number" id="statProgress">0</div>
  <div class="stat-description active">
  <img src="../static/images/img_Man.svg" alt="In Progress" style="width: 12px; height: 12px;">
  In Progress
@@ -1418,7 +1526,7 @@ body.dark {
  <div class="stat-content">
  <div class="stat-info">
  <div class="stat-label stat-label-completed">Completed Projects</div>
- <div class="stat-number">0</div>
+ <div class="stat-number" id="statCompleted">0</div>
  <div class="stat-description completed">
  <img src="../static/images/img_icon_green_a700.svg" alt="Finished" style="width: 12px; height: 12px;">
  Finished
@@ -1563,8 +1671,8 @@ body.dark {
  <div class="invitations-icon">
  <img src="../static/images/img_group_5.svg" alt="Invitations" style="width: 24px; height: 24px;">
  </div>
- <div class="invitations-badge">4</div>
- </div>
+ <div class="invitations-badge" id="invBadge">4</div>
+</div>
  <div>
  <div class="invitations-title">Examiner Invitations</div>
  <div class="invitations-subtitle">Track invitation responses and engagement</div>
@@ -1572,9 +1680,10 @@ body.dark {
  </div>
 
  <div class="invitations-total">
- <img src="../static/images/img_icon_black_900_12x12.svg" alt="Total" style="width: 12px; height: 12px;">
- 11 Total
- </div>
+  <img src="../static/images/img_icon_black_900_12x12.svg" alt="Total" style="width: 12px; height: 12px;">
+  <span id="invTotal">11</span> Total
+</div>
+
  </div>
  
  <div class="invitations-grid">
@@ -1583,8 +1692,8 @@ body.dark {
  <div class="invitation-content">
  <div class="invitation-header">
  <img src="../static/images/img_container_white_a700_64x64.png" alt="Accepted" class="invitation-avatar">
- <div class="invitation-number invitation-number-accepted">5</div>
- </div>
+ <div class="invitation-number invitation-number-accepted" id="invAccepted">5</div>
+</div>
  <div class="invitation-label invitation-label-accepted">✓ Accepted Invitations</div>
  <div class="invitation-description">Successfully joined your projects</div>
  <div class="progress-bar-container">
@@ -1608,8 +1717,8 @@ body.dark {
  <div class="invitation-content">
  <div class="invitation-header">
  <img src="../static/images/img_container_64x64.png" alt="Pending" class="invitation-avatar">
- <div class="invitation-number invitation-number-pending">4</div>
- </div>
+ <div class="invitation-number invitation-number-pending" id="invPending">4</div>
+</div>
  <div class="invitation-label invitation-label-pending">⏳ Pending Response</div>
  <div class="invitation-description">Awaiting examiner decisions</div>
  <div class="progress-bar-container progress-bar-container-pending">
@@ -1633,8 +1742,8 @@ body.dark {
  <div class="invitation-content">
  <div class="invitation-header">
  <img src="../static/images/img_container_3.png" alt="Declined" class="invitation-avatar">
- <div class="invitation-number invitation-number-declined">2</div>
- </div>
+ <div class="invitation-number invitation-number-declined" id="invDeclined">2</div>
+</div>
  <div class="invitation-label invitation-label-declined">✗ Declined Invitations</div>
  <div class="invitation-description">Examiners who declined</div>
  <div class="progress-bar-container progress-bar-container-declined">
@@ -1794,28 +1903,114 @@ body.dark {
  this.style.transform = 'translateY(-1px)';
  });
  });
- // ---------- Theme Toggle ----------
 const themeToggle = document.getElementById('themeToggle');
-const darkSrc = '../assets/static/img_buttonlight.png';
-const lightSrc = '../assets/static/img_buttonDark.svg';
+const themeIcon = document.getElementById('themeIcon');
 
-// استرجاع الوضع المحفوظ (إن وجد)
-if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
- document.body.classList.add('dark');
- themeToggle.src = darkSrc;
-} else {
- themeToggle.src = lightSrc;
+function applyTheme(theme){
+  const isDark = theme === 'dark';
+  document.body.classList.toggle('dark', isDark);
+  themeIcon.textContent = isDark ? '☀' : '☾';
+  themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+  localStorage.theme = isDark ? 'dark' : 'light';
 }
 
+applyTheme(localStorage.theme || 'light');
 
-// تبديل الوضع عند النقر
 themeToggle.addEventListener('click', () => {
- const isDark = document.body.classList.toggle('dark');
- themeToggle.src = isDark ? darkSrc : lightSrc;
- localStorage.theme = isDark ? 'dark' : 'light';
+  applyTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
 });
 
 
+
+
  </script>
+
+<script>
+  const langToggle = document.getElementById("langToggle");
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+    return match ? decodeURIComponent(match[2]) : "";
+  }
+
+  function getActiveLang() {
+    const gt = getCookie("googtrans");
+    const m = gt.match(/^\/[^/]+\/([^/]+)$/);
+    return (m && m[1]) ? m[1].toLowerCase() : "en";
+  }
+
+  function setActiveLang(lang) {
+    const val = `/en/${lang}`;
+    document.cookie = `googtrans=${val}; path=/`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}`;
+    localStorage.setItem("ui_lang", lang);
+  }
+
+  function refreshLangButton() {
+    if (!langToggle) return;
+    const active = getActiveLang();
+    langToggle.textContent = active === "ar" ? "EN" : "AR";
+    langToggle.setAttribute("translate", "no");
+    langToggle.classList.add("notranslate");
+  }
+
+  function hideGoogleBar() {
+    document.querySelectorAll(
+      "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+    ).forEach(el => {
+      el.style.display = "none";
+      el.style.visibility = "hidden";
+      el.style.height = "0";
+    });
+    document.body.style.top = "0px";
+    document.documentElement.style.top = "0px";
+  }
+
+  function applyGoogleLang(lang, tries = 0) {
+    const combo = document.querySelector(".goog-te-combo");
+    if (!combo) {
+      if (tries < 30) setTimeout(() => applyGoogleLang(lang, tries + 1), 100);
+      return;
+    }
+    combo.value = lang;
+    combo.dispatchEvent(new Event("change"));
+    setTimeout(hideGoogleBar, 50);
+    setTimeout(hideGoogleBar, 250);
+  }
+
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      { pageLanguage: "en", includedLanguages: "en,ar", autoDisplay: false },
+      "google_translate_element"
+    );
+
+    const saved = localStorage.getItem("ui_lang");
+    if (!getCookie("googtrans") && (saved === "ar" || saved === "en")) {
+      setActiveLang(saved);
+    }
+
+    refreshLangButton();
+    hideGoogleBar();
+    setInterval(hideGoogleBar, 250);
+  }
+
+  window.addEventListener("load", () => {
+    refreshLangButton();
+    hideGoogleBar();
+    applyGoogleLang(getActiveLang());
+  });
+
+  langToggle?.addEventListener("click", () => {
+    const active = getActiveLang();
+    const next = active === "ar" ? "en" : "ar";
+    setActiveLang(next);
+    refreshLangButton();
+    applyGoogleLang(next);
+  });
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<div id="google_translate_element" style="display:none"></div>
+
 </body>
 </html>

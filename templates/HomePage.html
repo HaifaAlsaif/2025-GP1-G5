@@ -326,11 +326,14 @@
       width: 100%;
       max-width: 400px;
       border-radius: 24px;
-      box-shadow: 0px 25px 50px #0000003f, 0px 4px 128px #888888ff;
+      box-shadow: 0 22px 50px rgba(0,0,0,.35), 0 0 70px rgba(0,184,218,.20);
       background: linear-gradient(90deg, #00b8da7f 0%, #155cfb7f 100%);
       padding: 1px;
     }
-    
+    [data-theme="dark"] .hero-image{
+  box-shadow: 0 24px 56px rgba(0,0,0,.45), 0 0 80px rgba(21,92,251,.22);
+}
+
     .hero-image img {
       width: 100%;
       border-radius: 24px;
@@ -1159,6 +1162,127 @@
       --bg:#121212;--fg:#e2e2e2;--muted:#999aab;--card:#1e1e1eb2;
     }
     body{background:var(--bg)!important;color:var(--fg)!important;transition:background .3s,color .3s;}
+  
+    .theme-toggle{
+  width:36px;height:36px;border:1px solid #dbe2ea;border-radius:10px;
+  background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.theme-icon{font-size:20px;line-height:1;color:#0a0a0a}
+
+[data-theme="dark"] .theme-toggle{
+  background:#10213f;
+  border-color:#2a4168;
+}
+[data-theme="dark"] .theme-icon{color:#eaf2ff}
+[data-theme="dark"] .language-selector{color:#eaf2ff}
+
+/* نفس روح الألوان القديمة الجميلة */
+[data-theme="dark"] body{
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg,#071225 0%,#0b1b37 55%,#0d2747 100%) !important;
+  color:#eaf2ff !important;
+}
+[data-theme="dark"] .hero-section,
+[data-theme="dark"] .features-section,
+[data-theme="dark"] .team-section,
+[data-theme="dark"] .about-card,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .target-user-card,
+[data-theme="dark"] .team-card,
+[data-theme="dark"] .contact-form,
+[data-theme="dark"] .footer{
+  background:linear-gradient(180deg,#0f1f3b 0%,#122547 100%) !important;
+  border:1px solid #2a4168 !important;
+}
+[data-theme="dark"] .nav-item{color:#aebdd7}
+[data-theme="dark"] .nav-item.active,
+[data-theme="dark"] .nav-item:hover{color:#f8fbff}
+[data-theme="dark"] .hero-description,
+[data-theme="dark"] .feature-description,
+[data-theme="dark"] .target-user-description,
+[data-theme="dark"] .team-member-role,
+[data-theme="dark"] .team-member-department,
+[data-theme="dark"] .footer-description,
+[data-theme="dark"] .footer-link{
+  color:#aebdd7 !important;
+}
+[data-theme="dark"] .btn-secondary{
+  background:#152a4d;
+  color:#f8fbff;
+  border:1px solid #35517c;
+}
+
+.signup-btn,
+.btn-primary,
+.btn-secondary{
+  text-decoration: none !important;
+}
+[data-theme="dark"] .about-title,
+[data-theme="dark"] .features-title,
+[data-theme="dark"] .target-users-title,
+[data-theme="dark"] .team-title,
+[data-theme="dark"] .contact-title,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] .footer-links-title,
+[data-theme="dark"] .footer-social-title,
+[data-theme="dark"] .team-member-name,
+[data-theme="dark"] .feature-title,
+[data-theme="dark"] .target-user-title,
+[data-theme="dark"] .card-title{
+  color:#f8fbff !important;
+}
+
+[data-theme="dark"] .about-subtitle,
+[data-theme="dark"] .features-subtitle,
+[data-theme="dark"] .target-users-subtitle,
+[data-theme="dark"] .team-subtitle,
+[data-theme="dark"] .contact-subtitle,
+[data-theme="dark"] .card-description,
+[data-theme="dark"] .feature-description,
+[data-theme="dark"] .target-user-description,
+[data-theme="dark"] .team-member-role,
+[data-theme="dark"] .team-member-department,
+[data-theme="dark"] .footer-description,
+[data-theme="dark"] .footer-link,
+[data-theme="dark"] .footer-copyright{
+  color:#aebdd7 !important;
+}
+
+[data-theme="dark"] .form-input,
+[data-theme="dark"] .form-textarea{
+  background:#152a4d !important;
+  color:#eaf2ff !important;
+  border:1px solid #35517c !important;
+}
+
+[data-theme="dark"] .form-input::placeholder,
+[data-theme="dark"] .form-textarea::placeholder{
+  color:#9fb2d3 !important;
+}
+/* Force hide Google translate toolbar */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+html, body {
+  top: 0 !important;
+  margin-top: 0 !important;
+  position: static !important;
+}
+
+.language-selector.notranslate{
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
   </style>
 
 
@@ -1167,7 +1291,7 @@
   <div class="container">
     <!-- Header -->
     <header class="header">
-      <div class="logo-section">
+      <div class="logo-section notranslate" translate="no">
         <img src="../static/images/img_header.svg" alt="TrustLens Logo" class="logo">
         <div class="logo-text">TrustLens</div>
       </div>
@@ -1183,9 +1307,11 @@
       </nav>
       
       <div class="header-actions">
-        <span class="language-selector" title="Translate">EN</span>
-        <img src="../static/images/img_buttonDark.svg" alt="Settings" class="header-icon" title="Dark mode">
-        <a href="/login" class="signup-btn">Sign Up / Log In</a>
+        <span id="langToggle" class="language-selector notranslate" translate="no" dir="ltr">AR</span>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+          <span id="themeIcon" class="theme-icon">☾</span>
+        </button>
+                <a href="/login" class="signup-btn">Sign Up / Log In</a>
       </div>
     </header>
 
@@ -1443,8 +1569,6 @@
 
     <!-- Footer -->
     <footer class="footer">
-      <div class="footer-bg-circle-1"></div>
-      <div class="footer-bg-circle-2"></div>
       
       <div class="footer-content">
         <div class="footer-main">
@@ -1497,43 +1621,121 @@
   </div>
 
   
-
-<!-- السكربت النظيف (بدون ترجمة + EN بيضاء عند الداكن) -->
-<script>
-  /* ===== Dark Mode مع تبديل أيقونة الزر ===== */
-  const imgBtn   = document.querySelector('.header-icon');
-  const darkSrc  = '../static/images/img_buttonlight.png';   // أيقونة الوضع الليلي
-  const lightSrc = '../static/images/img_buttonDark.svg';    // أيقونة الوضع النهاري
+  <script>
+    const root = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
   
-  imgBtn.style.cursor = 'pointer';
+    function applyTheme(theme){
+      const isDark = theme === 'dark';
+      root.setAttribute('data-theme', isDark ? 'dark' : '');
+      themeIcon.textContent = isDark ? '☀' : '☾';
+      themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+      localStorage.setItem('theme', isDark ? 'dark' : '');
+    }
   
-  // وضع الأيقونة الصحيحة عند التحميل
-  (function initIcon(){
-    const isDark = localStorage.theme === 'dark';
-    imgBtn.src = isDark ? darkSrc : lightSrc;
-    document.documentElement.dataset.theme = isDark ? 'dark' : '';
-  })();
+    applyTheme(localStorage.getItem('theme') || '');
   
-  // تبديل الثيم + الأيقونة + حفظ التفضيل
-  imgBtn.addEventListener('click', () => {
-    const isDark = document.documentElement.dataset.theme === 'dark';
-    document.documentElement.dataset.theme = isDark ? '' : 'dark';
-    imgBtn.src = isDark ? lightSrc : darkSrc;
-    localStorage.theme = isDark ? '' : 'dark';
-  });
-  
-  
- 
-  const langText = document.querySelector('.language-selector');
-
-  if (localStorage.theme === 'dark') langText.style.color = '#fff';
-  
-  imgBtn.addEventListener('click', () => {
-    const isDark = document.documentElement.dataset.theme === 'dark';
-    langText.style.color = isDark ? '#fff' : '#0a0a0a';
-  });
+    themeToggle.addEventListener('click', () => {
+      const current = root.getAttribute('data-theme') === 'dark' ? 'dark' : '';
+      applyTheme(current === 'dark' ? '' : 'dark');
+    });
   </script>
+  <script>
+    const langToggle = document.getElementById("langToggle");
+  
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+      return match ? decodeURIComponent(match[2]) : "";
+    }
+  
+    function getActiveLang() {
+      const gt = getCookie("googtrans"); // format: /en/ar or /en/en
+      const m = gt.match(/^\/[^/]+\/([^/]+)$/);
+      return (m && m[1]) ? m[1].toLowerCase() : "en";
+    }
+  
+    function setActiveLang(lang) {
+      const val = `/en/${lang}`;
+      document.cookie = `googtrans=${val}; path=/`;
+      document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}`;
+      localStorage.setItem("ui_lang", lang);
+    }
+  
+    function refreshLangButton() {
+      if (!langToggle) return;
+      const active = getActiveLang();
+      // إذا الصفحة عربي => الزر EN ، إذا إنجليزي => الزر AR
+      langToggle.textContent = active === "ar" ? "EN" : "AR";
+      langToggle.setAttribute("translate", "no");
+      langToggle.classList.add("notranslate");
+    }
+  
+    function hideGoogleBar() {
+      document.querySelectorAll(
+        "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+      ).forEach(el => {
+        el.style.display = "none";
+        el.style.visibility = "hidden";
+        el.style.height = "0";
+      });
+      document.body.style.top = "0px";
+      document.documentElement.style.top = "0px";
+    }
+    function applyGoogleLang(lang, tries = 0) {
+  const combo = document.querySelector(".goog-te-combo");
+  if (!combo) {
+    if (tries < 30) setTimeout(() => applyGoogleLang(lang, tries + 1), 100);
+    return;
+  }
+  combo.value = lang;
+  combo.dispatchEvent(new Event("change"));
+  setTimeout(hideGoogleBar, 50);
+  setTimeout(hideGoogleBar, 250);
+}
+
+  
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement(
+        {
+          pageLanguage: "en",
+          includedLanguages: "en,ar",
+          autoDisplay: false
+        },
+        "google_translate_element"
+      );
+  
+      // لو ما فيه لغة محفوظة من قبل، خذ localStorage مرة واحدة
+      const saved = localStorage.getItem("ui_lang");
+      if (!getCookie("googtrans") && (saved === "ar" || saved === "en")) {
+        setActiveLang(saved);
+      }
+  
+      refreshLangButton();
+      hideGoogleBar();
+      setInterval(hideGoogleBar, 250);
+    }
+  
+    window.addEventListener("load", () => {
+  refreshLangButton();
+  hideGoogleBar();
+  applyGoogleLang(getActiveLang());
+});
+
+  
+    langToggle?.addEventListener("click", () => {
+      const active = getActiveLang();
+      const next = active === "ar" ? "en" : "ar";
+      setActiveLang(next);
+      refreshLangButton();
+      applyGoogleLang(next);
+    });
+  </script>
+  
+  
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  
+  <div id="google_translate_element" style="display:none"></div>
+
   </body>
   </html>
-</body>
-</html>

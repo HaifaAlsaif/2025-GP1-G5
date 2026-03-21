@@ -11,19 +11,24 @@
     body{font-family:Arial,sans-serif;background:#fff;color:#0a0a0a;line-height:1.5}
 
     /* ===== تنسيق الهيدر المطابق لـ Dashboard ===== */
-    .header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      width:calc(100% - 268px);   /* 140px+128px */
-      margin:16px auto 0;
-      padding:0;
-    }
+  .header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  width:calc(100% - 64px);
+  margin:16px 32px 0;
+  padding:0;
+}
+
     .header-left,.header-right{display:flex;gap:8px;align-items:center}
     .logo{width:32px;height:32px}
     .brand-text{font-size:20px;font-weight:400;background:linear-gradient(90deg,#00b8da 0%,#155cfb 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
     .language-selector{padding:6px;font-size:14px;color:#0a0a0a}
-    .notification-btn{width:36px;height:36px;cursor:pointer}
+    .theme-toggle{
+  width:36px;height:36px;border:1px solid #dbe2ea;border-radius:10px;
+  background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.theme-icon{font-size:20px;line-height:1;color:#0a0a0a}
     .user-profile{display:flex;gap:8px;align-items:center;position:relative;cursor:pointer}
     .user-avatar{width:40px;height:40px;border-radius:20px;background:linear-gradient(135deg,#00b8da 0%,#155cfb 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:400}
     .user-info h3{font-size:14px;font-weight:400;color:#0a0a0a}
@@ -81,6 +86,106 @@
     .btn-accept:hover{transform:translateY(-1px);box-shadow:0 4px 8px #00000019}
     .btn-decline{background:#fff;color:#e7000b;font-size:14px;padding:6px 12px;border-radius:8px;border:0 solid #fa2b3666;cursor:pointer;transition:background .2s}
     .btn-decline:hover{background:#fef2f2}
+
+    /* ===== Dark Mode (Owner-like blue) ===== */
+body.dark{
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg, #071225 0%, #0b1b37 55%, #0d2747 100%);
+  color:#eaf2ff;
+}
+
+body.dark .sidebar{
+  background:linear-gradient(180deg,#081b3c 0%,#071835 100%);
+  border-right:1px solid rgba(90,140,220,.35);
+}
+
+body.dark .menu-item.active{
+  background-color:#1f3f73;
+  border-right:3px solid #4c84ff;
+}
+body.dark .menu-item:hover{background-color:#173661;}
+
+body.dark .menu-text,
+body.dark .user-info h3,
+body.dark .welcome-title,
+body.dark .invitations-title,
+body.dark .invitation-project-title,
+body.dark .dropdown-item{
+  color:#eaf2ff;
+}
+
+body.dark .language-selector,
+body.dark .user-info p,
+body.dark .welcome-subtitle,
+body.dark .invitations-description,
+body.dark .invitation-from{
+  color:#aebdd7;
+}
+
+body.dark .welcome-section,
+body.dark .invitations-card{
+  background:linear-gradient(180deg,rgba(19,45,87,.95) 0%,rgba(15,36,72,.95) 100%);
+  border:1px solid rgba(90,140,220,.35);
+  box-shadow:0 12px 28px rgba(2,8,23,.35);
+}
+
+body.dark .invitation-item{
+  background:rgba(16,37,74,.75);
+  border:1px solid rgba(90,140,220,.30);
+}
+
+body.dark .pending-badge{
+  background:rgba(255,255,255,.08);
+  color:#eaf2ff;
+  border:1px solid rgba(90,140,220,.35);
+}
+
+body.dark .btn-decline{
+  background:#132d57;
+  color:#ffb4b4;
+  border:1px solid rgba(250,43,54,.45);
+}
+body.dark .btn-decline:hover{background:#193869;}
+
+body.dark .user-dropdown{
+  background:#132d57;
+  border:1px solid rgba(90,140,220,.35);
+  box-shadow:0 12px 24px rgba(2,8,23,.35);
+}
+body.dark .dropdown-divider{background:rgba(90,140,220,.35);}
+
+body.dark .menu-icon,
+body.dark .dropdown-icon{
+  filter:brightness(0) invert(1);
+  opacity:1;
+}
+
+body.dark .theme-toggle{
+  background:#10213f;
+  border-color:rgba(90,140,220,.35);
+}
+body.dark .theme-icon{color:#eaf2ff;}
+
+.language-selector{ cursor:pointer; }
+.language-selector.notranslate{
+  direction:ltr;
+  unicode-bidi:isolate;
+}
+
+/* hide google translate top bar */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt{
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+}
+body{ top:0 !important; }
+
   </style>
 </head>
 <body>
@@ -89,12 +194,14 @@
   <header class="header">
     <div class="header-left">
       <img src="{{ url_for('static', filename='images/img_header.svg') }}" alt="TrustLens Logo" class="logo">
-      <div class="brand-text">TrustLens</div>
+      <div class="brand-text notranslate" translate="no">TrustLens</div>
     </div>
     <div class="header-right">
-      <div class="language-selector">EN</div>
-      <img src="{{ url_for('static', filename='images/img_buttonlight.png') }}" id="themeToggle" class="notification-btn" style="cursor:pointer;">
-      <div class="user-profile" onclick="toggleUserDropdown()">
+      <div id="langToggle" class="language-selector notranslate" translate="no" dir="ltr">AR</div>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+        <span id="themeIcon" class="theme-icon">☾</span>
+      </button>
+            <div class="user-profile" onclick="toggleUserDropdown()">
         <img src="{{ url_for('static', filename='images/user-profile.png') }}" alt="Avatar" class="user-avatar">
         <div class="user-info">
           <h3>{{ user_name }}</h3>
@@ -117,7 +224,7 @@
     <aside class="sidebar">
       <nav class="sidebar-menu">
         <div class="menu-item" onclick="window.location.href='/'"><img src="{{ url_for('static', filename='images/img_iconhome.svg') }}" class="menu-icon"><span class="menu-text">Home</span></div>
-        <div class="menu-item" onclick="window.location.href='Examinerdashboard.html'"><img src="{{ url_for('static', filename='images/img_File.svg') }}" class="menu-icon"><span class="menu-text">Dashboard</span></div>
+        <div class="menu-item" onclick="window.location.href='/examinerdashboard'"><img src="{{ url_for('static', filename='images/img_File.svg') }}" class="menu-icon"><span class="menu-text">Dashboard</span></div>
         <div class="menu-item active" onclick="window.location.href='/invitation'"><img src="{{ url_for('static', filename='images/img_invitation.svg') }}" class="menu-icon"><span class="menu-text">Invitations</span></div>
         <div class="menu-item" onclick="window.location.href='/myprojectexaminer'"><img src="{{ url_for('static', filename='images/img_File.svg') }}" class="menu-icon"><span class="menu-text">My Projects</span></div>
         <div class="menu-item" onclick="window.location.href='/feedback'"><img src="{{ url_for('static', filename='images/img_Explainability2.png') }}" class="menu-icon"><span class="menu-text">Feedback</span></div>
@@ -161,18 +268,22 @@
     if (!e.target.closest('.user-profile')) document.getElementById('userDropdown').classList.remove('show');
   });
 
-  const themeBtn = document.getElementById('themeToggle');
-  const darkSrc = '../static/images/img_buttonlight.png';
-  const lightSrc = '../static/images/img_buttonDark.svg';
-  if (localStorage.theme === 'dark') {
-    document.body.classList.add('dark');
-    themeBtn.src = darkSrc;
-  }
-  themeBtn.addEventListener('click', () => {
-    const isDark = document.body.classList.toggle('dark');
-    themeBtn.src = isDark ? darkSrc : lightSrc;
-    localStorage.theme = isDark ? 'dark' : 'light';
-  });
+  const themeToggle = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
+
+function applyTheme(mode){
+  const isDark = mode === 'dark';
+  document.body.classList.toggle('dark', isDark);
+  if (themeIcon) themeIcon.textContent = isDark ? '☀' : '☾';
+  if (themeToggle) themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+  localStorage.theme = isDark ? 'dark' : 'light';
+}
+
+applyTheme(localStorage.theme === 'dark' ? 'dark' : 'light');
+
+themeToggle?.addEventListener('click', () => {
+  applyTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
+});
 
   /* ===== جلب الدعوات وعرضها ===== */
   async function loadInvitations() {
@@ -236,5 +347,93 @@
   /* ===== استدعاء الدالة عند فتح الصفحة ===== */
   document.addEventListener('DOMContentLoaded', loadInvitations);
 </script>
+<script>
+  const langToggle = document.getElementById("langToggle");
+  const LANG_KEY = "ui_lang";
+
+  function currentLang() {
+    return sessionStorage.getItem(LANG_KEY) === "ar" ? "ar" : "en";
+  }
+
+  function setLang(lang) {
+    const safe = lang === "ar" ? "ar" : "en";
+    sessionStorage.setItem(LANG_KEY, safe);
+    const val = `/en/${safe}`;
+    document.cookie = `googtrans=${val}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}; max-age=31536000; SameSite=Lax`;
+  }
+
+  function refreshLangButton() {
+    if (!langToggle) return;
+    langToggle.textContent = currentLang() === "ar" ? "EN" : "AR";
+    langToggle.setAttribute("translate", "no");
+    langToggle.classList.add("notranslate");
+  }
+
+  function hideGoogleBar() {
+    document.querySelectorAll(
+      "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+    ).forEach(el => {
+      el.style.display = "none";
+      el.style.visibility = "hidden";
+      el.style.height = "0";
+    });
+    document.body.style.top = "0px";
+    document.documentElement.style.top = "0px";
+  }
+
+  function applyGoogleLang(lang, tries = 0) {
+    const combo = document.querySelector(".goog-te-combo");
+    if (!combo) {
+      if (tries < 20) setTimeout(() => applyGoogleLang(lang, tries + 1), 150);
+      return;
+    }
+    combo.value = lang;
+    combo.dispatchEvent(new Event("change"));
+  }
+
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      { pageLanguage: "en", includedLanguages: "en,ar", autoDisplay: false },
+      "google_translate_element"
+    );
+    const lang = currentLang();
+    setLang(lang);
+    refreshLangButton();
+    hideGoogleBar();
+    applyGoogleLang(lang);
+    setInterval(hideGoogleBar, 300);
+  }
+
+  window.addEventListener("load", () => {
+    refreshLangButton();
+    hideGoogleBar();
+  });
+
+  langToggle?.addEventListener("click", () => {
+    const next = currentLang() === "ar" ? "en" : "ar";
+    setLang(next);
+    refreshLangButton();
+    applyGoogleLang(next);
+  });
+</script>
+
+
+<script>
+  (function () {
+    const LANG_KEY = "ui_lang";
+    if (!sessionStorage.getItem(LANG_KEY)) {
+      sessionStorage.setItem(LANG_KEY, "en");
+    }
+    const lang = sessionStorage.getItem(LANG_KEY) === "ar" ? "ar" : "en";
+    const val = `/en/${lang}`;
+    document.cookie = `googtrans=${val}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}; max-age=31536000; SameSite=Lax`;
+  })();
+</script>
+
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <div id="google_translate_element" style="display:none"></div>
+  
 </body>
 </html>

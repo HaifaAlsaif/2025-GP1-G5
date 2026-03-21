@@ -132,6 +132,115 @@
     .btn-primary{flex:1;height:40px;border-radius:8px;background:linear-gradient(90deg,var(--primary1),var(--primary2));
       display:flex;align-items:center;justify-content:center;color:#fff;border:none;cursor:pointer}
     .btn-ghost{height:40px;min-width:75px;border-radius:8px;background:#fff;border:0.8px solid var(--line);display:flex;align-items:center;justify-content:center;color:#0a0a0a;cursor:pointer}
+  /* ===== Theme Toggle ===== */
+.theme-toggle{
+  width:36px;height:36px;border:1px solid #dbe2ea;border-radius:10px;
+  background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.theme-icon{font-size:20px;line-height:1;color:#0a0a0a}
+
+/* ===== Dark Theme ===== */
+:root{
+  --dm-bg-1:#071225; --dm-bg-2:#0b1b37; --dm-bg-3:#0d2747;
+  --dm-card:#0f1f3b; --dm-card-2:#122547; --dm-line:#2a4168;
+  --dm-text:#eaf2ff; --dm-muted:#aebdd7; --dm-input:#152a4d;
+}
+
+[data-theme="dark"] body{
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg,var(--dm-bg-1) 0%,var(--dm-bg-2) 55%,var(--dm-bg-3) 100%);
+  color:var(--dm-text);
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .domain-pop,
+[data-theme="dark"] .popover,
+[data-theme="dark"] .sel-card,
+[data-theme="dark"] .drop{
+  background:linear-gradient(180deg,var(--dm-card) 0%,var(--dm-card-2) 100%) !important;
+  border:1px solid var(--dm-line) !important;
+  box-shadow:0 14px 28px rgba(0,0,0,.35);
+}
+
+[data-theme="dark"] .title,
+[data-theme="dark"] .label,
+[data-theme="dark"] .cat-card h4,
+[data-theme="dark"] #selTitle,
+[data-theme="dark"] .brand-name{
+  color:var(--dm-text) !important;
+}
+
+[data-theme="dark"] .subtitle,
+[data-theme="dark"] .hint,
+[data-theme="dark"] .muted,
+[data-theme="dark"] .note{
+  color:var(--dm-muted) !important;
+}
+
+[data-theme="dark"] .input,
+[data-theme="dark"] .textarea,
+[data-theme="dark"] .search-input,
+[data-theme="dark"] .search-wrap .box,
+[data-theme="dark"] .domain-trigger{
+  background:var(--dm-input) !important;
+  border:1px solid var(--dm-line) !important;
+  color:var(--dm-text) !important;
+}
+
+[data-theme="dark"] .input::placeholder,
+[data-theme="dark"] .textarea::placeholder,
+[data-theme="dark"] .search-input::placeholder{
+  color:#9fb2d3;
+}
+
+[data-theme="dark"] .cat-card{
+  background:#132747;
+  border:1px solid #35517c;
+}
+[data-theme="dark"] #cat-news:checked + label,
+[data-theme="dark"] #cat-conv:checked + label{
+  background:linear-gradient(90deg,rgba(0,184,219,.20),rgba(21,93,252,.18));
+  border-color:#00B8DB;
+}
+
+[data-theme="dark"] .btn-ghost{
+  background:#152a4d;
+  border:1px solid #35517c;
+  color:#f8fbff;
+}
+[data-theme="dark"] .btn-primary{
+  box-shadow:0 8px 18px rgba(21,92,251,.35);
+}
+
+[data-theme="dark"] .theme-toggle{
+  background:#10213f;
+  border-color:var(--dm-line);
+}
+[data-theme="dark"] .theme-icon,
+[data-theme="dark"] .lang{
+  color:var(--dm-text) !important;
+}
+
+/* icons in dark */
+[data-theme="dark"] .icon-16{
+  filter: brightness(0) invert(1);
+  opacity:.95;
+}
+.mast{
+  position:absolute;
+  top:16px;
+  left:clamp(16px,6vw,134.8px);
+  right:clamp(16px,6vw,134.8px);
+  height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  z-index:1000;   /* add this */
+}
+.lang{ cursor:pointer; }
+
   </style>
 </head>
 <body>
@@ -140,14 +249,18 @@
     <div class="mast">
       <div class="brand">
         <img src="../static/images/icon_logo.svg" alt="TrustLens logo">
-        <div class="brand-name">TrustLens</div>
+        <div class="brand-name notranslate" translate="no">TrustLens</div>
       </div>
       <div class="mast-right">
-        <div class="lang">EN</div>
-       
-
-    <!-- Main frame -->
-    <div class="frame">
+        <span id="langToggle" class="lang notranslate" translate="no" dir="ltr">AR</span>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+          <span id="themeIcon" class="theme-icon">☾</span>
+        </button>
+      </div>
+      </div> <!-- THIS closes .mast -->
+      
+      <!-- Main frame -->
+      <div class="frame">      
       <div class="topbar">
         <a class="back" href="/ownerdashboard">
           <img class="icon-16" src="../static/images/icon_back.svg" alt="">
@@ -426,7 +539,10 @@ if (BASIC_MODE) {
 
     /* ===== Category & Dataset ===== */
     const catNews=$("#cat-news"), catConv=$("#cat-conv"), genRow=$("#genRow");
-    function syncGenVisibility(){ genRow.style.display = catConv.checked ? "flex" : "none"; }
+    function syncGenVisibility(){
+  const hasUploadedFile = !!document.getElementById("file")?.files?.[0];
+  genRow.style.display = (catConv.checked && !hasUploadedFile) ? "flex" : "none";
+}
     catNews.addEventListener("change", syncGenVisibility);
     catConv.addEventListener("change", syncGenVisibility);
     syncGenVisibility();
@@ -436,7 +552,15 @@ if (BASIC_MODE) {
           fileOk=$("#fileOk"), dropTitle=$("#dropTitle"), gen=$("#gen");
     const MAX=10*1024*1024;
     function resetFileMessages(){ fileErr.hidden=true; fileErr.textContent=""; fileOk.hidden=true; fileOk.textContent=""; }
-    function validateFile(file){
+
+function showGenerateUploadError(){
+  fileOk.hidden = true;
+  fileErr.hidden = false;
+  fileErr.textContent = "You can't upload a dataset while 'Generate from scratch' is checked.";
+}
+
+function validateFile(file){
+
       resetFileMessages();
       if(!file){ fileErr.hidden=false; fileErr.textContent="File is empty."; return false; }
       const isCSV = /\.csv$/i.test(file.name||"");
@@ -444,14 +568,56 @@ if (BASIC_MODE) {
       if(file.size===0){ fileErr.hidden=false; fileErr.textContent="File is empty."; return false; }
       if(file.size>MAX){ fileErr.hidden=false; fileErr.textContent="File is too large. Maximum size is 10MB."; return false; }
       fileOk.hidden=false; fileOk.textContent="CSV looks good.";
-      dropTitle.textContent=file.name;
-      return true;
+dropTitle.textContent=file.name;
+
+// إذا رفع ملف بنجاح في Conversations: شيل خيار Generate
+gen.checked = false;
+syncGenVisibility();
+
+return true;
+
     }
-    drop.addEventListener("click", ()=> fileInput.click());
+    drop.addEventListener("click", () => {
+  if (catConv.checked && gen.checked) {
+    showGenerateUploadError();
+    return;
+  }
+  fileInput.click();
+});
     ["dragenter","dragover"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.style.borderColor="#00B8DB"; }));
     ["dragleave","drop"].forEach(evt=> drop.addEventListener(evt, e=>{ e.preventDefault(); drop.style.borderColor="var(--line)"; }));
-    drop.addEventListener("drop", e=>{ const f=e.dataTransfer.files?.[0]; if(f){ fileInput.files=e.dataTransfer.files; validateFile(f);} });
-    fileInput.addEventListener("change", ()=>{ const f=fileInput.files?.[0]; if(f) validateFile(f); else { resetFileMessages(); dropTitle.textContent="Click to upload CSV file"; } });
+    drop.addEventListener("drop", e => {
+  const f = e.dataTransfer.files?.[0];
+  if (!f) return;
+
+  if (catConv.checked && gen.checked) {
+    showGenerateUploadError();
+    return;
+  }
+
+  fileInput.files = e.dataTransfer.files;
+  validateFile(f);
+});
+fileInput.addEventListener("change", () => {
+  const f = fileInput.files?.[0];
+
+  if (!f) {
+  resetFileMessages();
+  dropTitle.textContent = "Click to upload CSV file";
+  syncGenVisibility(); // رجوع خيار Generate
+  return;
+}
+
+
+  if (catConv.checked && gen.checked) {
+    fileInput.value = "";
+    dropTitle.textContent = "Click to upload CSV file";
+    showGenerateUploadError();
+    return;
+  }
+
+  validateFile(f);
+});
 
     /* ===== Invite Examiners ===== */
     let sampleUsers = [];
@@ -690,6 +856,11 @@ submitBtn.addEventListener("click", async () => {
     formData.append("category", catNews.checked ? "Article" : "Conversation");
   }
 
+
+// جديد: هل اختار Generate from scratch في Conversations؟
+const isGeneratedConversation = catConv.checked && gen.checked;
+formData.append("generated_from_scratch", isGeneratedConversation ? "true" : "false");
+
   // domains
   selectedDomains.forEach(d => formData.append("domain", d));
 
@@ -753,5 +924,116 @@ if (EDIT_ID) {
 
 
   </script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const root = document.documentElement;
+  const themeToggle = document.getElementById("themeToggle");
+  const themeIcon = document.getElementById("themeIcon");
+  if (!themeToggle || !themeIcon) return;
+
+  function applyTheme(theme){
+    const isDark = theme === "dark";
+    root.setAttribute("data-theme", isDark ? "dark" : "light");
+    themeIcon.textContent = isDark ? "☀" : "☾";
+    themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }
+
+  applyTheme(localStorage.getItem("theme") || "light");
+
+  themeToggle.addEventListener("click", () => {
+    const current = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+});
+</script>
+
+<script>
+  const langToggle = document.getElementById("langToggle");
+
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp("(^|;\\s*)" + name + "=([^;]+)"));
+    return match ? decodeURIComponent(match[2]) : "";
+  }
+
+  function getActiveLang() {
+    const gt = getCookie("googtrans");
+    const m = gt.match(/^\/[^/]+\/([^/]+)$/);
+    return (m && m[1]) ? m[1].toLowerCase() : "en";
+  }
+
+  function setActiveLang(lang) {
+    const val = `/en/${lang}`;
+    document.cookie = `googtrans=${val}; path=/`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}`;
+    localStorage.setItem("ui_lang", lang);
+  }
+
+  function refreshLangButton() {
+    if (!langToggle) return;
+    const active = getActiveLang();
+    langToggle.textContent = active === "ar" ? "EN" : "AR";
+    langToggle.setAttribute("translate", "no");
+    langToggle.classList.add("notranslate");
+  }
+
+  function hideGoogleBar() {
+    document.querySelectorAll(
+      "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+    ).forEach(el => {
+      el.style.display = "none";
+      el.style.visibility = "hidden";
+      el.style.height = "0";
+    });
+    document.body.style.top = "0px";
+    document.documentElement.style.top = "0px";
+  }
+
+  function applyGoogleLang(lang, tries = 0) {
+    const combo = document.querySelector(".goog-te-combo");
+    if (!combo) {
+      if (tries < 30) setTimeout(() => applyGoogleLang(lang, tries + 1), 100);
+      return;
+    }
+    combo.value = lang;
+    combo.dispatchEvent(new Event("change"));
+    setTimeout(hideGoogleBar, 50);
+    setTimeout(hideGoogleBar, 250);
+  }
+
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      { pageLanguage: "en", includedLanguages: "en,ar", autoDisplay: false },
+      "google_translate_element"
+    );
+
+    const saved = localStorage.getItem("ui_lang");
+    if (!getCookie("googtrans") && (saved === "ar" || saved === "en")) {
+      setActiveLang(saved);
+    }
+
+    refreshLangButton();
+    hideGoogleBar();
+    setInterval(hideGoogleBar, 250);
+  }
+
+  window.addEventListener("load", () => {
+    refreshLangButton();
+    hideGoogleBar();
+    applyGoogleLang(getActiveLang());
+  });
+
+  langToggle?.addEventListener("click", () => {
+    const active = getActiveLang();
+    const next = active === "ar" ? "en" : "ar";
+    setActiveLang(next);
+    refreshLangButton();
+    applyGoogleLang(next);
+  });
+</script>
+
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<div id="google_translate_element" style="display:none"></div>
+
 </body>
 </html>

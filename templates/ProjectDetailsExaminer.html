@@ -155,13 +155,17 @@
     }
 
     .project-card {
-      background: linear-gradient(135deg, #fffefee5 0%, #fffefe7f 100%);
-      border: 0 solid #0000000d;
-      border-radius: 14px;
-      padding: 30px;
-      box-shadow: 0px 8px 10px #00000019;
-      margin-bottom: 24px;
-    }
+  background: linear-gradient(135deg, #fffefee5 0%, #fffefe7f 100%);
+  border: 0 solid #0000000d;
+  border-radius: 14px;
+  padding: 30px;
+  box-shadow: 0px 8px 10px #00000019;
+  margin-bottom: 24px;
+
+  /* ✅ مهم: عشان الزر يثبت داخل نفس المربع */
+  position: relative;
+}
+
 
     .project-title {
       font-size: 16px;
@@ -388,15 +392,15 @@
       grid-template-columns: 1fr;
       gap: 24px;
     }
-
     .task-card {
-      background-color: #ffffff;
-      border: 1px solid #00b8da;
-      border-left: 4px solid #00b8da;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0px 2px 4px #00000019;
-    }
+  background-color: #ffffff;
+  border: 1px solid #00b8da;
+  border-left: 4px solid #00b8da;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0px 2px 4px #00000019;
+}
+
 
     .task-title {
       font-size: 16px;
@@ -631,6 +635,172 @@
   content: '📊';
   font-size: 16px;
 }
+.task-desc-box{
+  background:#eff6ff;
+  border:1px solid #dbeafe;
+  border-radius:10px;
+  padding:10px 12px;
+  margin-top:10px;   /* تحت Assigned to مباشرة */
+}
+.task-desc-label{
+  font-size:12px;
+  color:#64748b;
+  margin-bottom:4px;
+}
+.task-desc-value{
+  font-size:13px;
+  color:#0f172a;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+.theme-toggle{
+  width:36px;
+  height:36px;
+  border:1px solid #dbe2ea;
+  border-radius:10px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.theme-icon{
+  font-size:20px;
+  line-height:1;
+  color:#0a0a0a;
+}
+/* ===== Dark Mode (Owner-like) ===== */
+body.dark{
+  background:
+    radial-gradient(1200px 500px at 50% -20%, #163a78 0%, transparent 60%),
+    linear-gradient(135deg, #071225 0%, #0b1b37 55%, #0d2747 100%);
+  color:#eaf2ff;
+}
+
+body.dark .language-selector,
+body.dark .page-title,
+body.dark .project-title,
+body.dark .meta-value,
+body.dark .team-info h3,
+body.dark .tasks-info h3,
+body.dark .task-title,
+body.dark .assignment-value{
+  color:#eaf2ff;
+}
+
+body.dark .project-description,
+body.dark .meta-label,
+body.dark .team-info p,
+body.dark .tasks-info p,
+body.dark .assignment-label,
+body.dark .task-meta-label{
+  color:#aebdd7;
+}
+
+body.dark .back-link{
+  color:#eaf2ff;
+}
+body.dark .back-link:hover{
+  color:#9fc3ff;
+}
+
+body.dark .project-card,
+body.dark .team-section,
+body.dark .tasks-section,
+body.dark .task-card{
+  background: linear-gradient(180deg, rgba(19,45,87,.96) 0%, rgba(15,36,72,.96) 100%);
+  border:1px solid rgba(90,140,220,.4);
+  box-shadow:0 12px 28px rgba(2,8,23,.35);
+}
+
+body.dark .team-member{
+  background: rgba(255,255,255,.04);
+  border:1px solid rgba(90,140,220,.3);
+}
+
+body.dark .assignment-box,
+body.dark .task-desc-box{
+  background: rgba(255,255,255,.05);
+  border:1px solid rgba(90,140,220,.35);
+}
+body.dark .task-desc-value{
+  color:#eaf2ff;
+}
+
+body.dark .filter-btn.active{
+  background:#2b7fff;
+  color:#fff;
+}
+body.dark .filter-btn:not(.active){
+  background: rgba(255,255,255,.06);
+  color:#eaf2ff;
+  border:1px solid rgba(90,140,220,.35);
+}
+
+body.dark .project-detection-btn{
+  background:#132d57;
+  color:#eaf2ff;
+  border:1px solid rgba(90,140,220,.45);
+}
+body.dark .project-detection-btn:hover{
+  background:#193869;
+}
+
+body.dark .theme-toggle{
+  background:#10213f;
+  border-color:rgba(90,140,220,.35);
+}
+body.dark .theme-icon{
+  color:#eaf2ff;
+}
+/* تحسين وضوح النص في الدارك */
+body.dark .member-info h4,
+body.dark .member-info h4 a,
+body.dark .meta-value,
+body.dark .project-description,
+body.dark .assignment-value,
+body.dark .task-desc-value {
+  color: #eaf2ff !important;
+}
+
+body.dark .back-link {
+  color: #eaf2ff !important;
+  font-weight: 600;
+}
+
+body.dark .back-icon {
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+}
+
+body.dark .member-status {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+body.dark .project-meta {
+  border-top: 1px solid rgba(90,140,220,.35);
+}
+.language-selector{ cursor:pointer; }
+.language-selector.notranslate{
+  direction:ltr;
+  unicode-bidi:isolate;
+}
+
+/* hide google translate top bar */
+iframe.goog-te-banner-frame,
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+body > .skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt{
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+}
+body{ top:0 !important; }
+
   </style>
   
   </head>
@@ -639,25 +809,31 @@
     <header class="header">
       <div class="header-left">
         <img src="../static/images/img_header.svg" alt="TrustLens logo" class="logo">
-        <div class="brand-text">TrustLens</div>
+        <div class="brand-text notranslate" translate="no">TrustLens</div>
       </div>
       <div class="header-right">
-        <div class="language-selector">EN</div>
-        <img src="../static/images/img_button.svg" alt="Settings" class="settings-icon">
-      
+        <div id="langToggle" class="language-selector notranslate" translate="no" dir="ltr">AR</div>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" aria-pressed="false">
+          <span id="themeIcon" class="theme-icon">☾</span>
+        </button>
       </div>
+      
     </header>
 
     <div class="content-wrapper">
       <section class="page-header">
         <h1 class="page-title">Project Details</h1>
-        <a href="/examinerdashboard" class="back-link">
+        <a href="/myprojectexaminer" class="back-link">
           <img src="../static/images/img_icon.svg" alt="Back arrow" class="back-icon">
-          Back to Dashboard
+          Back to My Projects
         </a>
+        
 
         <div class="project-card">
+         
+        
           <h2 class="project-title" id="projectName">...</h2>
+        
           <p class="project-description" id="projectDesc">...</p>
         
           <div class="project-meta">
@@ -779,14 +955,29 @@
       });
     
       
-      // category tag
-      const categoryDiv = document.getElementById("categoryTag");
-categoryDiv.innerHTML = "";  
-      const catSpan = document.createElement("span");
-      catSpan.className = "tag tag-green";
-      catSpan.textContent = data.category;
-      document.getElementById("categoryTag").appendChild(catSpan);
-    }
+    // category tag
+const categoryDiv = document.getElementById("categoryTag");
+categoryDiv.innerHTML = "";
+
+const catSpan = document.createElement("span");
+catSpan.className = "tag tag-green";
+
+const rawCategory = (data.category || "").toLowerCase();
+const isConversation = rawCategory.includes("conversation");
+const isGenerated =
+  data.generated_from_scratch === true ||
+  data.generated_from_scratch === "true";
+  window.isGeneratedConversationProject = isGenerated;
+
+
+const displayCategory = (isConversation && isGenerated)
+  ? "Generate Conversation"
+  : (data.category || "Unknown");
+
+catSpan.textContent = displayCategory;
+categoryDiv.appendChild(catSpan);
+}
+
     
   
 async function loadExaminers() {
@@ -827,13 +1018,23 @@ async function loadExaminers() {
 
 
   </script>
+  
  <script>
- async function loadExaminerTasks() {
+  function escapeHtml(value = "") {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+async function loadExaminerTasks() {
   const pathParts = window.location.pathname.split('/');
   const projectId = pathParts[pathParts.length - 1];
 
   const res = await fetch(`/api/examiner_tasks/${projectId}`);
-  if (!res.ok) { 
+  if (!res.ok) {
     console.error("Failed to load tasks");
     return;
   }
@@ -849,9 +1050,27 @@ async function loadExaminers() {
     card.className = "task-card";
     card.setAttribute("data-status", task.status);
 
-    // 🔹 السطر الرمادي: Human ↔ Human • 2 turns
+    // 🔹 وصف نوع المهمة
     let metaHTML = "";
-    if (window.projectCategory !== "article") {
+
+    if (task.task_type === "model_selection") {
+      const picked = task.selected_model_label || task.selectedModelLabel || "Not selected yet";
+      metaHTML = `
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <span class="task-meta-label">Model Selection • ${picked}</span>
+          </div>
+        </div>
+      `;
+    } else if (task.task_type === "labeling") {
+      metaHTML = `
+        <div class="task-meta">
+          <div class="task-meta-row">
+            <span class="task-meta-label">Labeling & Feedback</span>
+          </div>
+        </div>
+      `;
+    } else if (window.projectCategory !== "article" && task.conversation_type) {
       const typeLabel =
         task.conversation_type === "human-ai" ? "Human ↔ AI" : "Human ↔ Human";
       const turnsLabel = `${task.number_of_turns} turns`;
@@ -865,44 +1084,29 @@ async function loadExaminers() {
       `;
     }
 
-    // 🔹 الزر / حالة المهمة
+    // 🔹 الزر / الحالة
     const assignedToYou = task.is_assigned_to_you;
     let statusPillHTML = "";
     let buttonHTML = "";
 
     if (task.status === "completed") {
-      // حبة "Completed" فوق
-      statusPillHTML = `
-        <span class="status-pill completed">Completed</span>
+      statusPillHTML = `<span class="status-pill completed">Completed</span>`;
+      buttonHTML = `
+        <button 
+          class="task-button completed completed-btn"
+          onclick="goToTask('${task.task_id}', '${task.conversation_type || ''}', '${task.task_type || ''}')">
+          Completed
+        </button>
       `;
-
-      // لو هي مهمتك وفيها نوع محادثة، خليه يفتح المحادثة
-      if (assignedToYou && task.conversation_type) {
-        buttonHTML = `
-  <button 
-    class="task-button primary ${task.status === 'progress' ? 'continue' : 'join'}"
-    onclick="goToTask('${task.task_id}', '${task.conversation_type || ''}', '${task.task_type || ''}')">
-            Completed
-          </button>
-        `;
-      } else {
-        buttonHTML = `
-  <button 
-    class="task-button completed completed-btn"
-    onclick="goToTask('${task.task_id}', '${task.conversation_type || ''}', '${task.task_type || ''}')">
-    Completed
-  </button>
-`;
-      }
-   } else if (assignedToYou) {
-  buttonHTML = `
-    <button 
-      class="task-button primary ${task.status === 'progress' ? 'continue' : 'join'}"
-      onclick="goToTask('${task.task_id}', '${task.conversation_type || ''}', '${task.task_type || ''}')">
-      ${task.status === "progress" ? "Continue" : "Join"}
-    </button>
-  `;
-} else {
+    } else if (assignedToYou) {
+      buttonHTML = `
+        <button 
+          class="task-button primary ${task.status === 'progress' ? 'continue' : 'join'}"
+          onclick="goToTask('${task.task_id}', '${task.conversation_type || ''}', '${task.task_type || ''}')">
+          ${task.status === "progress" ? "Continue" : "Join"}
+        </button>
+      `;
+    } else {
       buttonHTML = `
         <button class="task-button completed completed-btn">
           Not Assigned
@@ -910,7 +1114,7 @@ async function loadExaminers() {
       `;
     }
 
-    // 🔹 نص "Assigned to:" و "2 examiners"
+    // 🔹 Assigned to
     const emails = task.examiner_emails || [];
     let assignedText = "Not assigned";
 
@@ -919,6 +1123,23 @@ async function loadExaminers() {
     } else if (emails.length > 1) {
       assignedText = `${emails[0]} and ${emails.length - 1} more`;
     }
+
+    // 🔹 Description box (مربع منفصل)
+    const rawDesc = (task.task_description || "").trim();
+    const showDesc =
+      window.isGeneratedConversationProject === true &&
+      window.projectCategory !== "article" &&
+      (task.task_type === "model_selection" || task.task_type === "labeling") &&
+      rawDesc.length > 0;
+
+    const descriptionHTML = showDesc
+      ? `
+        <div class="task-desc-box">
+          <div class="task-desc-label">Task Description</div>
+          <div class="task-desc-value">${escapeHtml(rawDesc)}</div>
+        </div>
+      `
+      : "";
 
     card.innerHTML = `
       <h4 class="task-title">${task.task_name}</h4>
@@ -934,6 +1155,8 @@ async function loadExaminers() {
           ${emails.length} examiner${emails.length === 1 ? "" : "s"}
         </div>
       </div>
+
+      ${descriptionHTML}
 
       ${buttonHTML}
     `;
@@ -978,15 +1201,92 @@ loadProjectDetails().then(() => {
     const url = `${basePath}?taskId=${encodeURIComponent(taskId)}&projectId=${encodeURIComponent(PROJECT_ID)}`;
     window.location.href = url;
   }
-  function goToAnalysisResults() {
-  const pathParts = window.location.pathname.split('/');
-  const projectId = pathParts[pathParts.length - 1];
-  
-  // ✅ Examiner يروح لصفحة Examiner
-  window.location.href = `/project/${projectId}/analysis/examiner`;
-}
+
+
 
 
 </script>
+<script>
+  const langToggle = document.getElementById("langToggle");
+  const LANG_KEY = "ui_lang";
+  let gtLoaded = false;
+
+  function normalizeLang(v){ return v === "ar" ? "ar" : "en"; }
+  function getPreferredLang(){ return sessionStorage.getItem(LANG_KEY) === "ar" ? "ar" : "en"; }
+
+  function setActiveLang(lang){
+    const safe = normalizeLang(lang);
+    sessionStorage.setItem(LANG_KEY, safe);
+    const val = `/en/${safe}`;
+    document.cookie = `googtrans=${val}; path=/; max-age=31536000; SameSite=Lax`;
+    document.cookie = `googtrans=${val}; path=/; domain=${location.hostname}; max-age=31536000; SameSite=Lax`;
+  }
+
+  function refreshLangButton(){
+    if (!langToggle) return;
+    const active = getPreferredLang();
+    langToggle.textContent = active === "ar" ? "EN" : "AR";
+    langToggle.setAttribute("translate", "no");
+    langToggle.classList.add("notranslate");
+  }
+
+  function hideGoogleBar(){
+    document.querySelectorAll(
+      "iframe.goog-te-banner-frame, .goog-te-banner-frame, body > .skiptranslate, .goog-te-balloon-frame, #goog-gt-tt"
+    ).forEach(el => {
+      el.style.display = "none";
+      el.style.visibility = "hidden";
+      el.style.height = "0";
+    });
+    document.body.style.top = "0px";
+    document.documentElement.style.top = "0px";
+  }
+
+  function loadGoogleTranslateOnce() {
+    if (gtLoaded) return;
+    gtLoaded = true;
+    const s = document.createElement("script");
+    s.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    s.async = true;
+    document.head.appendChild(s);
+  }
+
+  function applyGoogleLang(lang, tries = 0){
+    const combo = document.querySelector(".goog-te-combo");
+    if (!combo){
+      if (tries < 20) setTimeout(() => applyGoogleLang(lang, tries + 1), 150);
+      return;
+    }
+    combo.value = lang;
+    combo.dispatchEvent(new Event("change"));
+  }
+
+  function googleTranslateElementInit(){
+    new google.translate.TranslateElement(
+      { pageLanguage: "en", includedLanguages: "en,ar", autoDisplay: false },
+      "google_translate_element"
+    );
+    hideGoogleBar();
+    setInterval(hideGoogleBar, 300);
+  }
+
+  window.addEventListener("load", () => {
+    if (!sessionStorage.getItem(LANG_KEY)) setActiveLang("en");
+    refreshLangButton();
+    hideGoogleBar();
+  });
+
+  langToggle?.addEventListener("click", () => {
+    const next = getPreferredLang() === "ar" ? "en" : "ar";
+    setActiveLang(next);
+    refreshLangButton();
+    loadGoogleTranslateOnce();
+    applyGoogleLang(next);
+  });
+</script>
+<div id="google_translate_element" style="display:none"></div>
+
+  
+      
 </body>
 </html>
